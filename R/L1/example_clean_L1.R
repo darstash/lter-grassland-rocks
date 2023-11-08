@@ -13,7 +13,6 @@ rm(list=ls())
 library(tidyverse)
 
 # Set working directory 
-Sys.getenv("L0DIR")
 L0_dir <- Sys.getenv("L0DIR")
 L1_dir <- Sys.getenv("L1DIR")
 list.files(L1_dir)

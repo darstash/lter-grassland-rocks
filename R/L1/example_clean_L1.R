@@ -16,5 +16,6 @@ library(tidyverse)
 Sys.getenv("L0DIR")
 L0_dir <- Sys.getenv("L0DIR")
 L1_dir <- Sys.getenv("L1DIR")
+list.files(L1_dir)
 
 # EXAMPLE X2

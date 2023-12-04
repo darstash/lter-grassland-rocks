@@ -6,7 +6,7 @@
 # PROJECT:        LTER Grassland Rock
 # DATE:           11/28/2023
 
-# R VERSION:      R-4.3.2
+# R VERSION:      R-4.3.2, Rstudio: 2023.06.2 Build 561
 # MUSIC:          Singuläre Frau - Jeffi Lou
 #                 Não Ao Marco Temporal - Esperanza Spalding
 #                 run>> - IKAN HYU
@@ -64,7 +64,12 @@
 rm(list=ls())
 
 #Load packages
-library(tidyverse)
+library(tidyverse) # tidyverse 2.0.0
+# dplyr     1.1.3     # readr     2.1.4
+# forcats   1.0.0     # stringr   1.5.1
+# ggplot2   3.4.4     # tibble    3.2.1
+# lubridate 1.9.3     # tidyr     1.3.0
+# purrr     1.0.2     
 
 # Set working directory 
 L0_dir <- Sys.getenv("L0DIR")

@@ -1,26 +1,43 @@
+# TITLE:          LTER Grassland Rock: KBS ANPP biomass and plant composition cleanup
+# AUTHORS:        Caitlin Broderick
+# COLLABORATORS:  
+# DATA INPUT:     Data imported as csv files from shared Google drive L0 folder
+# DATA OUTPUT:    
+# PROJECT:        LTER Grassland Rock
+# DATE:  October 2023
 
 # this code is to clean MCSE (and microplot treatment) data, merge them, and link with temp/precip
-# TO DO: Change working directories and/or file names to link with Google Drive
+# TO DO: 
 
-
+# Clear all existing data
 rm(list=ls())
 
-
+# Load packages
 library(tidyverse)
 library(gtools)
 
-setwd("~/Downloads")
+# Set working directory 
+L0_dir <- Sys.getenv("L0DIR")
+L1_dir <- Sys.getenv("L1DIR")
+list.files(L0_dir)
 
+#setwd("~/Downloads")
+
+# Read in CSV files
 # bring in mcse data 
   # note: the leading number in the file name is the table code on the KBS LTER site.
-mcse <- read.csv("291-biomass+compilation+for+herbaceous+systems+1698767008.csv", stringsAsFactors = FALSE)
-
+        # Note from Moriah: when I load in this data it loads it as only 1 variable - not sure how to change that
+mcse <- read.csv(file.path(L0_dir, "KBS/291-biomass+compilation+for+herbaceous+systems+1698674531_L0.csv"), stringsAsFactors = FALSE)
+#mcse <- read.csv("291-biomass+compilation+for+herbaceous+systems+1698767008.csv", stringsAsFactors = FALSE)
 
 # bring in microplot data
-micro <- read.csv("154-early+successional+microplot+biomass+sorted+to+species++1698756518.csv", stringsAsFactors = FALSE)
+micro <- read.csv(file.path(L0_dir, "KBS/154-early+successional+microplot+biomass+sorted+to+species++1698756518_L0.csv"), stringsAsFactors = FALSE)
+#micro <- read.csv("154-early+successional+microplot+biomass+sorted+to+species++1698756518.csv", stringsAsFactors = FALSE)
 
 # bring in temp precip data
-weatherdaily <- read.csv("7-lter+weather+station+daily+precip+and+air+temp+1698756534.csv", stringsAsFactors = FALSE)
+# this file is not in the drive yet
+weatherdaily <- read.csv(file.path(L0_dir, "KBS/7-lter+weather+station+daily+precip+and+air+temp+1698756534.csv"))
+#weatherdaily <- read.csv("7-lter+weather+station+daily+precip+and+air+temp+1698756534.csv", stringsAsFactors = FALSE)
 
 head(mcse)
 head(micro)
@@ -152,6 +169,8 @@ allt7_SpComp_tp <- merge (allt7_SpComp, weatheryear, by = "Year")
 
 allt7_SpComp_tp
 
+# write a new .csv with the cleaned and merged data and upload to the shared google drive L1 folder
+write.csv(allt7_SpComp_tp, file.path(L1_dir, "./KBS_MCSE_T7_SpComp.csv"), row.names=F)
 #write.csv(allt7_SpComp_tp, "KBS_MCSE_T7_SpComp.csv")
 
 
@@ -163,7 +182,8 @@ allt7_ANPP_tp <- merge(anpp_KBS_T7 , weatheryear , by = "Year")
 
 allt7_ANPP_tp
 
-
+# write a new .csv with the cleaned and merged data and upload to the shared google drive L1 folder
+write.csv(allt7_ANPP_tp, file.path(L1_dir, "./KBS_MCSE_T7_ANPP.csv"), row.names=F)
 #write.csv(allt7_ANPP_tp, "KBS_MCSE_T7_ANPP.csv")
 
 

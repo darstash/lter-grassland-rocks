@@ -1,7 +1,7 @@
-# TITLE:         LTER Grassland Rock: KBS ANPP and species composition cleanup
+# TITLE:         LTER Grassland Rock: KBS - calculating diversity & stability & exploring data
 # AUTHOR:        Ashley Darst
 # COLLABORATORS: LTER synthesis group
-# DATA INPUT:    Data imported as csvs from shared Google Drive L0 folder
+# DATA INPUT:    Data imported as csvs from shared Google Drive L1 folder
 # DATA OUTPUT:
 # PROJECT:       LTER Grassland Rock synthesis group
 # DATE:          11/15/2023
@@ -20,8 +20,8 @@ L1_dir <- Sys.getenv("L1DIR")
 list.files(L1_dir)
 
 # Load data ----
-anpp <- read.csv("KBS_MCSE_T7_ANPP.csv")
-spcomp <- read.csv("KBS_MCSE_T7_SpComp.csv")
+anpp <- read.csv(file.path(L1_dir, "KBS_MCSE_T7_ANPP.csv"))
+spcomp <- read.csv(file.path(L1_dir, "KBS_MCSE_T7_SpComp.csv"))
 anpp <- clean_names(anpp)
 spcomp <- clean_names(spcomp)
 

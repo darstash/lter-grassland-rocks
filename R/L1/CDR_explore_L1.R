@@ -144,16 +144,23 @@ e245_anpp <-
 
 
 # Clean data ####
-#e001 first#
+##e001####
 str(e001_anpp)
+names(e001_anpp)
 
+#adding study information and renaming columns to match master data sheet
 e001_anpp <- e001_anpp %>%
-  mutate(species = as.factor(species)) #to look at all the species and identify things to remove
+  mutate(site="CDR",
+         higher_order_organization = field,
+         nitrogen_amount = n_add,
+         species = as.factor(species)) #to look at all the species and identify things to remove
 
-
-levels(e001_anpp$species)
+#make new column that designates if fertilized or not
+e001_anpp$nutrients_added <- ifelse(e001_anpp[,6] == 0, "no_fertilizer", "NPK+")
 
 #remove none plant species data, is there a better way to do this?
+levels(e001_anpp$species)
+
 e001_anpp <- e001_anpp %>%
   filter(species != "Corn litter") %>%
   filter(species != "Fungi") %>%
@@ -191,19 +198,21 @@ e001_anpp <- e001_anpp %>%
   filter(species != "Miscellaneous woody tree") %>%
   filter(species != "Woody debris")
 
-#combine rows that have same species but different biomass - this would be due to error I assume (they measured biomass of a species and entered it, then had another of the same species and added that entry as well)
 names(e001_anpp)
+
 e001_anpp <- e001_anpp %>%
-  group_by(exp, year, field, n_trt, n_add, plot, species) %>% # this removes nitr_add and n_atmn_n_add columns which we don't want for cleaned data
+  select(year, site, plot, higher_order_organization, nutrients_added, nitrogen_amount, species, biomass)
+
+#combine rows that have same species but different biomass - this would be due to error I assume (they measured biomass of a species and entered it, then had another of the same species and added that entry as well)
+e001_anpp <- e001_anpp %>%
+  group_by(year, site, plot, higher_order_organization, nutrients_added, nitrogen_amount, species) %>% # this removes nitr_add and n_atmn_n_add columns which we don't want for cleaned data
   summarize(biomass=sum(biomass))
 
-# Summarize data ----
-# Calculate ANPP and species richness for each plot in a given year
-e001_anpp <- e001_anpp %>%
-  group_by(exp, year, field, n_trt, n_add, plot) %>%
-  summarize(anpp = sum(biomass), #anpp
-            richness = n())      #species richness
+View(e001_anpp)
+#e001 still needs to add temp, precip, and other variables that the master datasheet will have
 
-View(e001_anpp) #note some plots have species richness of 1 which is not an error based on looking at raw data.
+##e054####
+str(e054_anpp)
+names(e054_anpp)
 
-#next add other data (precip and temp?) needed for cleaned data. Also work on other datasets.
+#need to work on e054 and other sets next as well.

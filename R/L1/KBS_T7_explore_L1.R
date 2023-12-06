@@ -17,7 +17,7 @@ library(janitor)
 # Set working directory 
 L0_dir <- Sys.getenv("L0DIR")
 L1_dir <- Sys.getenv("L1DIR")
-list.files(L0_dir)
+list.files(L1_dir)
 
 # Load data ----
 anpp <- read.csv("KBS_MCSE_T7_ANPP.csv")

@@ -1,0 +1,17 @@
+---
+title: "KNZ_L0_data_wrangling"
+author: "Smriti Pehim Limbu"
+date: "2023-12-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##package upload
+```{r}
+pacman::p_load("tidyverse")
+
+```
+

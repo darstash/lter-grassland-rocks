@@ -11,6 +11,17 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ##package upload
 ```{r}
-library(dplyr)
+install.packages(pacman)
+library(pacman)
+pacman::p_load(readr, ggplot2, dplyr, tidyverse, googledrive)
+drive_auth()
+
 ```
 
+##set working directory
+```{r}
+L0_dir <- Sys.getenv("L0DIR")
+L1_dir <- Sys.getenv("L1DIR")
+L2_dir <- Sys.getenv("L2DIR")
+list.files(L0_dir)
+```

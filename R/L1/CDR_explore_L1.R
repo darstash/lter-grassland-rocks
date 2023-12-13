@@ -77,8 +77,13 @@ list.files(L0_dir)
 
 
 # Load data ####
-e001_anpp <- 
-  read.table(paste(L0_dir, "e001_Plant_aboveground_biomass_data.txt", sep = "/"), 
+# something is not working here, but try to use this global "plant" list of CDR
+# first to clean & unify the species names.
+species_list_CDR <- read.csv(paste(L0_dir, "CDR/cc_plant_species.csv"))
+
+
+e001_anpp <-
+  read.table(paste(L0_dir, "CDR/e001_Plant_aboveground_biomass_data.txt", sep = "/"), 
              sep  = "\t", 
              skip = 1
   ) %>%
@@ -95,7 +100,7 @@ e001_anpp <-
   )
 
 e054_anpp <- 
-  read.table(paste(L0_dir, "e054_Plant_aboveground_biomass_data.txt", sep = "/"), 
+  read.table(paste(L0_dir, "CDR/e054_Plant_aboveground_biomass_data.txt", sep = "/"), 
              sep  = "\t",
              skip = 1
   ) %>%
@@ -110,7 +115,7 @@ e054_anpp <-
          )
 
 e097_anpp <- 
-  read.table(paste(L0_dir, "e097_Plant_aboveground_biomass_data.txt", sep = "/"), 
+  read.table(paste(L0_dir, "CDR/e097_Plant_aboveground_biomass_data.txt", sep = "/"), 
              sep  = "\t", 
              skip = 1
   ) %>%
@@ -127,7 +132,7 @@ e097_anpp <-
 
 
 e245_anpp <- 
-  read.table(paste(L0_dir, "e245_Plant_aboveground_biomass_data.txt", sep = "/"), 
+  read.table(paste(L0_dir, "CDR/e245_Plant_aboveground_biomass_data.txt", sep = "/"), 
              sep  = "\t", 
              skip = 1
   ) %>%
@@ -156,15 +161,29 @@ e001_anpp <- e001_anpp %>%
          species = as.factor(species)) #to look at all the species and identify things to remove
 
 #make new column that designates if fertilized or not
-e001_anpp$nutrients_added <- ifelse(e001_anpp[,6] == 0, "no_fertilizer", "NPK+")
+e001_anpp <- e001_anpp %>%
+  mutate(nutrients_added = ifelse(n_trt %in% 9, "no_fertilizer", 
+                                  ifelse(n_trt %in% 1, "PK+", "NPK+")))
 
-#remove none plant species data, is there a better way to do this?
+#remove none plant species data, is there a better way to do this? --> use 
+# species list first and then create a second lists of things to kick out (list
+# started below). These lists can then be used for all data sets.
 levels(e001_anpp$species)
+
+non_plant_things_in_biomass <- c("Corn litter", 
+                                 "Fungi", 
+                                 "Lichens",)
+
+maybe_plant_things_in_biomass <- c("Leaves",
+                                   "Miscellaneous liter",
+                                   "Miscellaneous forb",
+                                   "Miscellaneous litter",
+                                   "Miscellaneous woody litter")
 
 e001_anpp <- e001_anpp %>%
   filter(species != "Corn litter") %>%
   filter(species != "Fungi") %>%
-  filter(species != "Grass seedlings") %>%
+  # filter(species != "Grass seedlings") %>%
   filter(species != "Leaves") %>%
   filter(species != "Lichens") %>%
   filter(species != "Miscellaneous liter") %>%

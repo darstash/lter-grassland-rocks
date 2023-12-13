@@ -27,7 +27,7 @@ list.files(L0_dir)
 # bring in mcse data 
   # note: the leading number in the file name is the table code on the KBS LTER site.
         # Note from Moriah: when I load in this data it loads it as only 1 variable - not sure how to change that
-mcse <- read.csv(file.path(L0_dir, "KBS/291-biomass+compilation+for+herbaceous+systems+1698674531_L0.csv"), stringsAsFactors = FALSE)
+mcse <- read.csv(file.path(L0_dir, "KBS/291-biomass+compilation+for+herbaceous+systems+1698767008_L0.csv"), stringsAsFactors = FALSE)
 #mcse <- read.csv("291-biomass+compilation+for+herbaceous+systems+1698767008.csv", stringsAsFactors = FALSE)
 
 # bring in microplot data
@@ -36,7 +36,7 @@ micro <- read.csv(file.path(L0_dir, "KBS/154-early+successional+microplot+biomas
 
 # bring in temp precip data
 # this file is not in the drive yet
-weatherdaily <- read.csv(file.path(L0_dir, "KBS/7-lter+weather+station+daily+precip+and+air+temp+1698756534.csv"))
+weatherdaily <- read.csv(file.path(L0_dir, "KBS/7-lter+weather+station+daily+precip+and+air+temp+1698756534_L0.csv"))
 #weatherdaily <- read.csv("7-lter+weather+station+daily+precip+and+air+temp+1698756534.csv", stringsAsFactors = FALSE)
 
 head(mcse)
@@ -178,7 +178,7 @@ write.csv(allt7_SpComp_tp, file.path(L1_dir, "./KBS_MCSE_T7_SpComp.csv"), row.na
 
 
 
-allt7_ANPP_tp <- merge(anpp_KBS_T7 , weatheryear , by = "Year")
+allt7_ANPP_tp <- merge(anpp_KBS_T7, weatheryear, by = "Year")
 
 allt7_ANPP_tp
 

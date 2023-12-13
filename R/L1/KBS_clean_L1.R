@@ -178,7 +178,7 @@ write.csv(allt7_SpComp_tp, file.path(L1_dir, "./KBS_MCSE_T7_SpComp.csv"), row.na
 
 
 
-allt7_ANPP_tp <- merge(anpp_KBS_T7 , weatheryear , by = "Year")
+allt7_ANPP_tp <- merge(anpp_KBS_T7, weatheryear, by = "Year")
 
 allt7_ANPP_tp
 

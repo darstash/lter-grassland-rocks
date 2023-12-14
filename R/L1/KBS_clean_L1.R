@@ -25,8 +25,12 @@ list.files(L0_dir)
 
 # Read in CSV files
 # bring in mcse data 
-  # note: the leading number in the file name is the table code on the KBS LTER site.
-        # Note from Moriah: when I load in this data it loads it as only 1 variable - not sure how to change that
+        # note: The leading number in the file name is the table code on the KBS LTER site. Additionally, KBS generally puts 
+                # a lot of metadata rows at the top, and then has a weird system where they include units under the column names. 
+                # Caitlin removed the metadata at the top and combined these (e.g so biomass_g_m2 was one column name instead of taking two rows).
+                # Caitlin replaced these "straight-from KBS-website" files with the slightly modified ones on the shared Google drive. Essentially, 
+                # the raw download data from KBS is not usable in R.
+
 mcse <- read.csv(file.path(L0_dir, "KBS/291-biomass+compilation+for+herbaceous+systems+1698767008_L0.csv"), stringsAsFactors = FALSE)
 #mcse <- read.csv("291-biomass+compilation+for+herbaceous+systems+1698767008.csv", stringsAsFactors = FALSE)
 
@@ -35,7 +39,6 @@ micro <- read.csv(file.path(L0_dir, "KBS/154-early+successional+microplot+biomas
 #micro <- read.csv("154-early+successional+microplot+biomass+sorted+to+species++1698756518.csv", stringsAsFactors = FALSE)
 
 # bring in temp precip data
-# this file is not in the drive yet
 weatherdaily <- read.csv(file.path(L0_dir, "KBS/7-lter+weather+station+daily+precip+and+air+temp+1698756534_L0.csv"))
 #weatherdaily <- read.csv("7-lter+weather+station+daily+precip+and+air+temp+1698756534.csv", stringsAsFactors = FALSE)
 

@@ -77,8 +77,11 @@ list.files(L0_dir)
 
 
 # Load data ####
-e001_anpp <- 
-  read.table(paste(L0_dir, "e001_Plant_aboveground_biomass_data.txt", sep = "/"), 
+species_list_CDR <- read.csv(paste(L0_dir, "CDR/cc_plant_species.csv", sep = "/"))
+
+
+e001_anpp <-
+  read.table(paste(L0_dir, "CDR/e001_Plant_aboveground_biomass_data.txt", sep = "/"), 
              sep  = "\t", 
              skip = 1
   ) %>%
@@ -95,7 +98,7 @@ e001_anpp <-
   )
 
 e054_anpp <- 
-  read.table(paste(L0_dir, "e054_Plant_aboveground_biomass_data.txt", sep = "/"), 
+  read.table(paste(L0_dir, "CDR/e054_Plant_aboveground_biomass_data.txt", sep = "/"), 
              sep  = "\t",
              skip = 1
   ) %>%
@@ -110,7 +113,7 @@ e054_anpp <-
          )
 
 e097_anpp <- 
-  read.table(paste(L0_dir, "e097_Plant_aboveground_biomass_data.txt", sep = "/"), 
+  read.table(paste(L0_dir, "CDR/e097_Plant_aboveground_biomass_data.txt", sep = "/"), 
              sep  = "\t", 
              skip = 1
   ) %>%
@@ -127,7 +130,7 @@ e097_anpp <-
 
 
 e245_anpp <- 
-  read.table(paste(L0_dir, "e245_Plant_aboveground_biomass_data.txt", sep = "/"), 
+  read.table(paste(L0_dir, "CDR/e245_Plant_aboveground_biomass_data.txt", sep = "/"), 
              sep  = "\t", 
              skip = 1
   ) %>%
@@ -151,57 +154,152 @@ names(e001_anpp)
 #adding study information and renaming columns to match master data sheet
 e001_anpp <- e001_anpp %>%
   mutate(site="CDR",
-         higher_order_organization = field,
+         higher_order_organization = paste("field", field), # note I added the field string, so that it is not a random A. Not sure this is needed
          nitrogen_amount = n_add,
          species = as.factor(species)) #to look at all the species and identify things to remove
 
 #make new column that designates if fertilized or not
-e001_anpp$nutrients_added <- ifelse(e001_anpp[,6] == 0, "no_fertilizer", "NPK+")
-
-#remove none plant species data, is there a better way to do this?
-levels(e001_anpp$species)
-
 e001_anpp <- e001_anpp %>%
-  filter(species != "Corn litter") %>%
-  filter(species != "Fungi") %>%
-  filter(species != "Grass seedlings") %>%
-  filter(species != "Leaves") %>%
-  filter(species != "Lichens") %>%
-  filter(species != "Miscellaneous liter") %>%
-  filter(species != "Miscellaneous forb") %>%
-  filter(species != "Miscellaneous litter") %>%
-  filter(species != "Miscellaneous woody litter") %>%
-  filter(species != "moses & lichens") %>%
-  filter(species != "Mosses") %>%
-  filter(species != "Mosses & lichens") %>%
-  filter(species != "Mosses & lichens 2") %>%
-  filter(species != "Pine litter") %>%
-  filter(species != "pine needles") %>%
-  filter(species != "Pine needles") %>%
-  filter(species != "Pine twigs") %>%
-  filter(species != "woody debris") %>%
-  filter(species != "Woody debris") %>%
-  filter(species != "Miscellaneous  woody") %>%
-  filter(species != "Miscellaneous forb 1") %>%
-  filter(species != "Miscellaneous forb 2") %>%
-  filter(species != "Miscellaneous grass") %>%
-  filter(species != "Miscellaneous grasses") %>%
-  filter(species != "Miscellaneous herbs") %>%
-  filter(species != "Miscellaneous herbs 2") %>%
-  filter(species != "Miscellaneous sedges") %>%
-  filter(species != "Miscellaneous sp.") %>%
-  filter(species != "Miscellaneous woody 1") %>%
-  filter(species != "Miscellaneous woody 2") %>%
-  filter(species != "Miscellaneous woody plants") %>%
-  filter(species != "Miscellaneous woody plants 1") %>%
-  filter(species != "Miscellaneous woody plants 2") %>%
-  filter(species != "Miscellaneous woody tree") %>%
-  filter(species != "Woody debris")
+  mutate(nutrients_added = ifelse(n_trt %in% 9, "no_fertilizer", 
+                                  ifelse(n_trt %in% 1, "PK+", "NPK+")))
+
+#remove none plant species data, is there a better way to do this? --> use 
+# species list first and then create a second lists of things to kick out (list
+# started below). These lists can then be used for all data sets.
+
+
+# find all "species" names that are not an identified species -> fix those
+merge(e001_anpp,
+      species_list_CDR %>% 
+        select(Species, ITISRecognizedName) %>%
+        rename(species = Species),
+      by = "species",
+      all.x = T) %>% 
+  select(species, ITISRecognizedName) %>%
+  unique() %>%
+  arrange(species) %>%
+  filter(ITISRecognizedName %in% c(NA, ""))
+
+genus_sp_in_biomass <- c("Allium sp.",
+                         "Apocynum sp.",
+                         "Arabis sp.",
+                         "Aristida sp.",
+                         "Aster sp.",
+                         "Calamovilfa sp.",
+                         "Carex sp.",
+                         "Chenopodium sp.",
+                         "Cirsium sp.",
+                         "Cyperus sp.",
+                         "Digitaria sp.",
+                         "Digitaria sp.",
+                         "Equisetum sp.",
+                         "Erigeron sp.",
+                         "Galium sp.",
+                         "Helianthus sp.",
+                         "Hieracium sp.",
+                         "Juncus sp.",
+                         "Lactuca sp.",
+                         "Lithospermum sp.",
+                         "Melilotus sp.",
+                         "Oenothera sp.",
+                         "Oxalis sp.",
+                         "Panicum sp.",
+                         "Parthenocissus sp.",
+                         "Pinus sp.",
+                         "Poa sp.",
+                         "Polygala sp.",
+                         "Polygonatum sp.",
+                         "Potentilla sp.",
+                         "Prunus sp.",
+                         "Quercus borealis-ellipsoidalis",
+                         "Quercus sp.",
+                         "Ranunculus sp.",
+                         "Rhus sp.",
+                         "Rubus sp.",
+                         "Rumex sp.",
+                         "Salix sp.",
+                         "Sedges",
+                         "Senecio sp.",
+                         "Setaria sp.",
+                         "Silene sp.",
+                         "Solidago sp.",
+                         "Sporobolus sp.",
+                         "Tradescantia sp.",
+                         "Trifolium sp.")
+
+non_plant_things_in_biomass <- c("Corn litter", 
+                                 "Fungi", 
+                                 "Mosses",
+                                 "Mosses & lichens",
+                                 "Mosses & lichens 2",
+                                 "moses & lichens",
+                                 "Lichens",
+                                 "Pine litter",
+                                 "Pine cones",
+                                 "pine needles",
+                                 "Pine needles",
+                                 "Pine twigs",
+                                 "woody debris",
+                                 "Woody debris",
+                                 "Leaves")
+
+maybe_plant_things_in_biomass <- c("Grass seedlings",
+                                   "Forb seedlings",
+                                   "Miscellaneous forb",
+                                   "Miscellaneous forb 1",
+                                   "Miscellaneous forb 2",
+                                   "Miscellaneous grass",
+                                   "Miscellaneous grasses",
+                                   "Miscellaneous grasses 2",
+                                   "Miscellaneous herb",
+                                   "Miscellaneous herbs",
+                                   "Miscellaneous herbs 2",
+                                   "Miscellaneous legumes",
+                                   "Miscellaneous liter",
+                                   "Miscellaneous litter",
+                                   "Miscellaneous rushes",
+                                   "Miscellaneous sedges",
+                                   "Miscellaneous sp.",
+                                   "Miscellaneous woody tree",
+                                   "Miscellaneous  woody",
+                                   "Miscellaneous Woody",
+                                   "Miscellaneous woody 1",
+                                   "Miscellaneous woody 2",
+                                   "Miscellaneous woody plants",
+                                   "Miscellaneous woody plants 1",
+                                   "Miscellaneous woody plants 2",
+                                   "Miscellaneous woody litter")
+
+
+# correct typos & kick out things that are in the kick out things on lists
+e001_anpp <- e001_anpp %>%
+  merge(.,
+        species_list_CDR %>% 
+          select(Species, ITISRecognizedName) %>%
+          rename(species = Species),
+        by = "species",
+        all.x = T) %>%
+  mutate(species_fixed = species,
+         species_fixed = ifelse(!ITISRecognizedName %in% c("", NA), ITISRecognizedName, species_fixed),
+         species_fixed = gsub(species_fixed, pattern = "carex sp.",             replacement = "Carex sp."),
+         species_fixed = gsub(species_fixed, pattern = "Chenopodium Album",     replacement = "Chenopodium album"),
+         species_fixed = gsub(species_fixed, pattern = "cyperus sp.",           replacement = "Cyperus sp."),
+         species_fixed = gsub(species_fixed, pattern = "Heliantus Laetifiorus", replacement = "Helianthus laetiflorus"),
+         species_fixed = gsub(species_fixed, pattern = "Poa Pratensis",         replacement = "Poa pratensis"),
+         species_fixed = gsub(species_fixed, pattern = "Pycnan Vir",            replacement = "Pycnanthemum virginianum"),
+         species_fixed = gsub(species_fixed, pattern = "ranoncolos rhombiodeus",replacement = "Ranunculus rhomboideus"),	
+         species_fixed = gsub(species_fixed, pattern = "Taraxicum officinalis", replacement = "Taraxacum officinalis")
+         ) %>%
+  # filter(!species %in% maybe_plant_things_in_biomass) %>%
+  filter(!species_fixed %in% non_plant_things_in_biomass)
+
+
+
 
 names(e001_anpp)
 
 e001_anpp <- e001_anpp %>%
-  select(year, site, plot, higher_order_organization, nutrients_added, nitrogen_amount, species, biomass)
+  select(year, site, plot, higher_order_organization, nutrients_added, nitrogen_amount, species_fixed, biomass)
 
 #combine rows that have same species but different biomass - this would be due to error I assume (they measured biomass of a species and entered it, then had another of the same species and added that entry as well)
 e001_anpp <- e001_anpp %>%

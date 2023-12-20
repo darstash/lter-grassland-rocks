@@ -1,10 +1,10 @@
-# TITLE:          LTER Grassland Rock: KBS ANPP biomass and plant composition cleanup
-# AUTHORS:        Caitlin Broderick
+# TITLE:        LTER Grassland Rock: KBS ANPP biomass and plant composition cleanup
+# AUTHORS:      Caitlin Broderick
 # COLLABORATORS:  
-# DATA INPUT:     Data imported as csv files from shared Google drive L0 folder
+# DATA INPUT:   Data imported as csv files from shared Google drive L0 folder
 # DATA OUTPUT:    
-# PROJECT:        LTER Grassland Rock
-# DATE:  October 2023
+# PROJECT:      LTER Grassland Rock
+# DATE:         October 2023
 
 # this code is to clean MCSE (and microplot treatment) data, merge them, and link with temp/precip
 # TO DO: 
@@ -25,9 +25,13 @@ list.files(L0_dir)
 
 # Read in CSV files
 # bring in mcse data 
-  # note: the leading number in the file name is the table code on the KBS LTER site.
-        # Note from Moriah: when I load in this data it loads it as only 1 variable - not sure how to change that
-mcse <- read.csv(file.path(L0_dir, "KBS/291-biomass+compilation+for+herbaceous+systems+1698674531_L0.csv"), stringsAsFactors = FALSE)
+        # note: The leading number in the file name is the table code on the KBS LTER site. Additionally, KBS generally puts 
+                # a lot of metadata rows at the top, and then has a weird system where they include units under the column names. 
+                # Caitlin removed the metadata at the top and combined these (e.g so biomass_g_m2 was one column name instead of taking two rows).
+                # Caitlin replaced these "straight-from KBS-website" files with the slightly modified ones on the shared Google drive. Essentially, 
+                # the raw download data from KBS is not usable in R.
+
+mcse <- read.csv(file.path(L0_dir, "KBS/291-biomass+compilation+for+herbaceous+systems+1698767008_L0.csv"), stringsAsFactors = FALSE)
 #mcse <- read.csv("291-biomass+compilation+for+herbaceous+systems+1698767008.csv", stringsAsFactors = FALSE)
 
 # bring in microplot data
@@ -35,8 +39,7 @@ micro <- read.csv(file.path(L0_dir, "KBS/154-early+successional+microplot+biomas
 #micro <- read.csv("154-early+successional+microplot+biomass+sorted+to+species++1698756518.csv", stringsAsFactors = FALSE)
 
 # bring in temp precip data
-# this file is not in the drive yet
-weatherdaily <- read.csv(file.path(L0_dir, "KBS/7-lter+weather+station+daily+precip+and+air+temp+1698756534.csv"))
+weatherdaily <- read.csv(file.path(L0_dir, "KBS/7-lter+weather+station+daily+precip+and+air+temp+1698756534_L0.csv"))
 #weatherdaily <- read.csv("7-lter+weather+station+daily+precip+and+air+temp+1698756534.csv", stringsAsFactors = FALSE)
 
 head(mcse)
@@ -61,11 +64,17 @@ mcse$Date <- lubridate::mdy(mcse$Date)
 t7 <- mcse %>% 
   filter(Treatment == "T7" & Campaign == "Peak Biomass")
 
+# add columns
+t7$nutrients_added <- "no_fertilizer"
+
+# We'll need to go through this more and see if we need to change or delete anything (like none plant stuff). 
+# I wonder if we should make a master list of species between our 3 sites?
+unique(t7$Species)
 
 # calculate total ANPP: sum up ANPP for each species
 anpp_t7 <- t7 %>% 
-  group_by(Year, Treatment, Replicate, Station,Source) %>% 
-  summarise(anpp = sum(biomass_g_m2))
+  group_by(Year, Treatment, Replicate, Station, Source) %>% 
+  summarise(plot_biomass = sum(biomass_g_m2))
 
 anpp_t7
 
@@ -88,9 +97,12 @@ micro$Source <- "MCSE Microplot (Table 154)"
 names(micro)
 anpp_micro <-  micro %>% 
   group_by(Year, Treatment, Replicate, Disturbed_Microplot, Fertilized_Microplot,Source) %>% 
-  summarise (anpp = sum (biomass_g_m2))
+  summarise (plot_biomass = sum (biomass_g_m2))
 
 head(anpp_micro)
+
+# add columns
+micro$nutrients_added <- "N+"
 
 
 
@@ -112,7 +124,7 @@ anpp_KBS_T7 <- rbind(anpp_t7, anpp_micro)
 head(anpp_KBS_T7 )
 unique(anpp_KBS_T7$Treatment) # dope.
 
-hist(anpp_KBS_T7$anpp)
+hist(anpp_KBS_T7$plot_biomass)
 
 
 # NEXT : GET Percent cover dataset (sp comp)
@@ -127,7 +139,7 @@ t7_with_ANPP <- merge(t7, anpp_t7, by = c("Year", "Treatment", "Station",
 head(t7_with_ANPP)
 
 # get psesudo percent cover by dividing plant by total for ANPP...
-t7_with_ANPP$Pseudo_PercCover <- t7_with_ANPP$biomass_g_m2 / t7_with_ANPP$anpp * 100
+t7_with_ANPP$Pseudo_PercCover <- t7_with_ANPP$biomass_g_m2 / t7_with_ANPP$plot_biomass * 100
 head(t7_with_ANPP)
 
 # micro
@@ -135,7 +147,7 @@ micro_with_ANPP <- merge(micro, anpp_micro, by = c("Year", "Treatment", "Disturb
                                                    "Replicate", "Source"))
 head(micro_with_ANPP)
 
-micro_with_ANPP$Pseudo_PercCover <- micro_with_ANPP$biomass_g_m2 / micro_with_ANPP$anpp * 100
+micro_with_ANPP$Pseudo_PercCover <- micro_with_ANPP$biomass_g_m2 / micro_with_ANPP$plot_biomass * 100
 
 head(micro_with_ANPP)
 
@@ -146,7 +158,6 @@ head(micro_with_ANPP)
 allt7_SpComp <- dplyr:: bind_rows (t7_with_ANPP, micro_with_ANPP)
 
 allt7_SpComp
-
 
 
 
@@ -169,22 +180,29 @@ allt7_SpComp_tp <- merge (allt7_SpComp, weatheryear, by = "Year")
 
 allt7_SpComp_tp
 
+# add site column
+allt7_SpComp_tp$site <- "KBS"
+
+names(allt7_SpComp_tp) <- tolower(names(allt7_SpComp_tp))
+
 # write a new .csv with the cleaned and merged data and upload to the shared google drive L1 folder
 write.csv(allt7_SpComp_tp, file.path(L1_dir, "./KBS_MCSE_T7_SpComp.csv"), row.names=F)
 #write.csv(allt7_SpComp_tp, "KBS_MCSE_T7_SpComp.csv")
 
 
 
-
-
-
-allt7_ANPP_tp <- merge(anpp_KBS_T7 , weatheryear , by = "Year")
+allt7_ANPP_tp <- merge(anpp_KBS_T7, weatheryear, by = "Year")
 
 allt7_ANPP_tp
+
+# add site column
+allt7_ANPP_tp$site <- "KBS"
+
+names(allt7_ANPP_tp) <- tolower(names(allt7_ANPP_tp))
 
 # write a new .csv with the cleaned and merged data and upload to the shared google drive L1 folder
 write.csv(allt7_ANPP_tp, file.path(L1_dir, "./KBS_MCSE_T7_ANPP.csv"), row.names=F)
 #write.csv(allt7_ANPP_tp, "KBS_MCSE_T7_ANPP.csv")
 
 
-ggplot(allt7_ANPP_tp, aes (x = annualprecip, y = ANPP))
+ggplot(allt7_ANPP_tp, aes (x = annualprecip, y = plot_biomass))

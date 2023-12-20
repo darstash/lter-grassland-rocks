@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 install.packages(pacman)
 library(pacman)
-pacman::p_load(readr, ggplot2, dplyr, tidyverse, googledrive)
+pacman::p_load(readr, ggplot2, dplyr, tidyverse, gtools)
 
 ```
 
@@ -23,14 +23,22 @@ pacman::p_load(readr, ggplot2, dplyr, tidyverse, googledrive)
 L0_dir <- Sys.getenv("L0DIR")
 L1_dir <- Sys.getenv("L1DIR")
 L2_dir <- Sys.getenv("L2DIR")
-list.files(L1_dir)
+list.files(L0_dir)
 ```
 
 ##Load files
 
 ```{r}
-df_f1 <- read_csv()
+df_A1_KNZ <- read.csv(file.path(L0_dir, "KNZ/A1_CME011_Sppcomp.csv"), stringsAsFactors = FALSE)
+df_A2_KNZ <- read.csv(file.path(L0_dir, "KNZ/A2_CME012_Biomass.csv"), stringsAsFactors = FALSE)
 
+```
+
+##start cleaning
+
+```{r}
+df_A1_KNZ.clean <- df_A1_KNZ %>% rename(year = RecYear, species_name = Taxa)
+df_A2_KNZ.clean <- df_A1_KNZ %>% rename(year = RecYear ) %>% mutate(site = "KNZ") %>% unite(plot, site, Watershed,Plot, sep ="_", remove=FALSE)
 
 ```
 

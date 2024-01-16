@@ -71,31 +71,33 @@ library(tidyverse) # tidyverse 2.0.0
 # lubridate 1.9.3     # tidyr     1.3.0
 # purrr     1.0.2     
 
+library(janitor)
+
 # Set working directory 
 L0_dir <- Sys.getenv("L0DIR")
 list.files(L0_dir)
 
-
 # Load data ####
 species_list_CDR <- read.csv(paste(L0_dir, "CDR/cc_plant_species.csv", sep = "/"))
 
+e001e002_anpp <- read.csv(paste(L0_dir, "CDR/E001 E002 Aboveground Biomass for ML through 2022.csv", sep = "/"))
 
-e001_anpp <-
-  read.table(paste(L0_dir, "CDR/e001_Plant_aboveground_biomass_data.txt", sep = "/"), 
-             sep  = "\t", 
-             skip = 1
-  ) %>%
-  rename("exp"         = "V1", 
-         "year"        = "V2", 
-         "field"       = "V3",
-         "plot"        = "V4",
-         "n_trt"       = "V5", 
-         "n_add"       = "V6", 
-         "nitr_add"    = "V7", 
-         "n_atm_n_add" = "V8",  
-         "species"     = "V9", 
-         "biomass"     = "V10"
-  )
+#e001_anpp <-
+#  read.table(paste(L0_dir, "CDR/e001_Plant_aboveground_biomass_data.txt", sep = "/"), 
+#             sep  = "\t", 
+#             skip = 1
+#  ) %>%
+#  rename("exp"         = "V1", 
+#         "year"        = "V2", 
+#         "field"       = "V3",
+#         "plot"        = "V4",
+#         "n_trt"       = "V5", 
+#         "n_add"       = "V6", 
+#         "nitr_add"    = "V7", 
+#         "n_atm_n_add" = "V8",  
+#         "species"     = "V9", 
+#         "biomass"     = "V10"
+#  )
 
 e054_anpp <- 
   read.table(paste(L0_dir, "CDR/e054_Plant_aboveground_biomass_data.txt", sep = "/"), 
@@ -147,21 +149,39 @@ e245_anpp <-
 
 
 # Clean data ####
-##e001####
-str(e001_anpp)
-names(e001_anpp)
+##e001 and e002####
+str(e001e002_anpp)
+names(e001e002_anpp)
 
 #adding study information and renaming columns to match master data sheet
-e001_anpp <- e001_anpp %>%
+e001e002_anpp <- e001e002_anpp %>%
   mutate(site="CDR",
-         higher_order_organization = paste("field", field), # note I added the field string, so that it is not a random A. Not sure this is needed
-         nitrogen_amount = n_add,
-         species = as.factor(species)) #to look at all the species and identify things to remove
+         higher_order_organization = paste("Experiment", Exp, " field", Field), # note I added the field string, so that it is not a random A. Not sure this is needed
+         species = as.factor(Species)) #to look at all the species and identify things to remove
 
 #make new column that designates if fertilized or not
-e001_anpp <- e001_anpp %>%
-  mutate(nutrients_added = ifelse(n_trt %in% 9, "no_fertilizer", 
-                                  ifelse(n_trt %in% 1, "PK+", "NPK+")))
+e001e002_anpp <- e001e002_anpp %>%
+  mutate(nutrients_added = ifelse(NTrt %in% 9, "no_fertilizer", 
+                                  ifelse(NTrt %in% 1, "PK+", "NPK+")),
+         nitrogen_amount = NAdd)
+
+#make new column designating fence treatment and burn treatment (based on cdr experimental design info from website - see flowchart for e001 and e002)
+e001e002_anpp <- e001e002_anpp %>%
+  mutate(grazing = case_when(Exp == 1 & Year < 2004 ~ "ungrazed",
+                             Exp == 1 & Year >= 2004 ~ "grazed",
+                             Exp == 2 & Year < 2004 ~ "ungrazed",
+                             Exp == 2 & Year >= 2004 ~ "grazed"),
+         fire_frequency = case_when(Exp == 1 & Field == "A" & Year < 2005 ~ 0,
+                                    Exp == 1 & Field == "A" & Year >= 2005 ~ 1,
+                                    Exp == 1 & Field == "B" & Year < 2005 ~ 0,
+                                    Exp == 1 & Field == "B" & Year >= 2005 ~ 1,
+                                    Exp == 1 & Field == "C" & Year < 2005 ~ 0,
+                                    Exp == 1 & Field == "C" & Year >= 2005 ~ 1,
+                                    Exp == 1 & Field == "D" & Year < 1987 ~ 0,
+                                    Exp == 1 & Field == "D" & Year >= 1987 ~ 2.5,
+                                    Exp == 2 & Field == "A" ~ 0,
+                                    Exp == 2 & Field == "B" ~ 0,
+                                    Exp == 2 & Field == "C" ~ 0,))
 
 #remove none plant species data, is there a better way to do this? --> use 
 # species list first and then create a second lists of things to kick out (list
@@ -169,7 +189,7 @@ e001_anpp <- e001_anpp %>%
 
 
 # find all "species" names that are not an identified species -> fix those
-merge(e001_anpp,
+merge(e001e002_anpp,
       species_list_CDR %>% 
         select(Species, ITISRecognizedName) %>%
         rename(species = Species),
@@ -241,6 +261,9 @@ non_plant_things_in_biomass <- c("Corn litter",
                                  "Pine twigs",
                                  "woody debris",
                                  "Woody debris",
+                                 "Miscellaneous litter",
+                                 "Mosses & lichens",
+                                 "Woody debris",
                                  "Leaves")
 
 maybe_plant_things_in_biomass <- c("Grass seedlings",
@@ -272,7 +295,7 @@ maybe_plant_things_in_biomass <- c("Grass seedlings",
 
 
 # correct typos & kick out things that are in the kick out things on lists
-e001_anpp <- e001_anpp %>%
+e001e002_anpp = e001e002_anpp %>%
   merge(.,
         species_list_CDR %>% 
           select(Species, ITISRecognizedName) %>%
@@ -291,23 +314,32 @@ e001_anpp <- e001_anpp %>%
          species_fixed = gsub(species_fixed, pattern = "Taraxicum officinalis", replacement = "Taraxacum officinalis")
          ) %>%
   # filter(!species %in% maybe_plant_things_in_biomass) %>%
-  filter(!species_fixed %in% non_plant_things_in_biomass)
+  filter(!species %in% non_plant_things_in_biomass)
 
-
-
-
-names(e001_anpp)
-
-e001_anpp <- e001_anpp %>%
-  select(year, site, plot, higher_order_organization, nutrients_added, nitrogen_amount, species_fixed, biomass)
+#metadata df#
+e001e002_metadata <- e001e002_anpp %>%
+  clean_names(.) %>%
+  select(site, year, plot, higher_order_organization, nutrients_added, nitrogen_amount, grazing, fire_frequency)
+  
+#e001 still needs to add temp, precip, and other variables that the master datasheet will have
 
 #combine rows that have same species but different biomass - this would be due to error I assume (they measured biomass of a species and entered it, then had another of the same species and added that entry as well)
-e001_anpp <- e001_anpp %>%
-  group_by(year, site, plot, higher_order_organization, nutrients_added, nitrogen_amount, species) %>% # this removes nitr_add and n_atmn_n_add columns which we don't want for cleaned data
-  summarize(biomass=sum(biomass))
+e001e002_anpp <- e001e002_anpp %>%
+  group_by(Year, site, Plot, higher_order_organization, species) %>% # this removes nitr_add and n_atmn_n_add columns which we don't want for cleaned data
+  summarize(Biomass.g.m2.=sum(Biomass.g.m2.))
 
-View(e001_anpp)
-#e001 still needs to add temp, precip, and other variables that the master datasheet will have
+e001e002_anpp <- e001e002_anpp %>%
+  group_by(Year, site, Plot, higher_order_organization) %>%
+  mutate(relative_abundance = Biomass.g.m2./sum(Biomass.g.m2.),
+         abundance = Biomass.g.m2.,
+         original_measurement_unit = "biomass_g/m2") %>%
+  clean_names(.)
+
+e001e002_anpp <- e001e002_anpp %>%
+  select(year, site, plot, higher_order_organization, species, abundance, relative_abundance, original_measurement_unit)
+
+#anpp data is now in correct format?
+
 
 ##e054####
 str(e054_anpp)

@@ -131,21 +131,28 @@ e097_anpp <-
   )
 
 
-e245_anpp <- 
-  read.table(paste(L0_dir, "CDR/e245_Plant_aboveground_biomass_data.txt", sep = "/"), 
-             sep  = "\t", 
-             skip = 1
-  ) %>%
-  rename("year"     = "V1", 
-         "date"     = "V2", 
-         "plot"     = "V3",
-         "subplot"  = "V4",
-         "treatment"= "V5", 
-         "ferttrt"  = "V6", 
-         "species"  = "V7", 
-         "biomass"  = "V8",  
-         "strip"    = "V9"
-  )
+e245_anpp <- read.delim(paste(L0_dir, "CDR/e245_Plant_aboveground_biomass_data.txt", sep = "/")) %>%
+  mutate(Year = as.integer(paste(Year)),
+         Plot = as.integer(paste(Plot)),
+         Treatment = factor(Treatment, 
+                            levels = c("Control", "Insecticide", 
+                                       "FoliarFungicide", 
+                                       "SoilDrenchFungicide", 
+                                       "AllPesticides", "Fenced")), 
+         FertTrt = factor(FertTrt),
+         Species = factor(Species),
+         Species = str_squish(Species),
+         Species = str_to_sentence(Species),
+         Species = as.factor(Species)) %>%
+  # the data of the first year of experiment (2008) was not sorted to species.
+  filter(!Year %in% c(NA,1,2,3,4,5,6, 2008)) %>%
+  # in 2017 and 2018 biomass was collected in two strips and values need to be 
+  # averaged to get one measurement per plant and year
+  group_by(Year, Plot, Subplot, Treatment, FertTrt, Species) %>%
+  reframe(Mass.g.m.2. = ifelse(Year %in% c(2017, 2018), sum(Mass.g.m.2.)/2, sum(Mass.g.m.2.))) %>%
+  # at some point, the plots were split in two subplots and the western subplot started to get fertilized. This has not been running for long enough to be considered here.
+  filter(!Subplot %in% "West") %>%
+  clean_names() 
 
 
 # Clean data ####
@@ -200,11 +207,23 @@ merge(e001e002_anpp,
   arrange(species) %>%
   filter(ITISRecognizedName %in% c(NA, ""))
 
+merge(e245_anpp,
+      species_list_CDR %>% 
+        select(Species, ITISRecognizedName) %>%
+        rename(species = Species),
+      by = "species",
+      all.x = T) %>% 
+  select(species, ITISRecognizedName) %>%
+  unique() %>%
+  arrange(species) %>%
+  filter(ITISRecognizedName %in% c(NA, ""))
+
 genus_sp_in_biomass <- c("Allium sp.",
                          "Apocynum sp.",
                          "Arabis sp.",
                          "Aristida sp.",
                          "Aster sp.",
+                         "Bromus sp.",
                          "Calamovilfa sp.",
                          "Carex sp.",
                          "Chenopodium sp.",
@@ -219,12 +238,14 @@ genus_sp_in_biomass <- c("Allium sp.",
                          "Hieracium sp.",
                          "Juncus sp.",
                          "Lactuca sp.",
+                         "Liatris sp.",
                          "Lithospermum sp.",
                          "Melilotus sp.",
                          "Oenothera sp.",
                          "Oxalis sp.",
                          "Panicum sp.",
                          "Parthenocissus sp.",
+                         "Penstemon sp.",
                          "Pinus sp.",
                          "Poa sp.",
                          "Polygala sp.",
@@ -245,7 +266,8 @@ genus_sp_in_biomass <- c("Allium sp.",
                          "Solidago sp.",
                          "Sporobolus sp.",
                          "Tradescantia sp.",
-                         "Trifolium sp.")
+                         "Trifolium sp.",
+                         "Viola sp.")
 
 non_plant_things_in_biomass <- c("Corn litter", 
                                  "Fungi", 
@@ -261,14 +283,18 @@ non_plant_things_in_biomass <- c("Corn litter",
                                  "Pine twigs",
                                  "woody debris",
                                  "Woody debris",
-                                 "Miscellaneous litter",
-                                 "Mosses & lichens",
-                                 "Woody debris",
+                                 "Woody",
                                  "Leaves")
 
 maybe_plant_things_in_biomass <- c("Grass seedlings",
+                                   "1st year woody",
+                                   "C3 grasses",
+                                   "C4 grasses",
                                    "Forb seedlings",
+                                   "Forbes",
+                                   "Legumes",
                                    "Miscellaneous forb",
+                                   "Miscellaneous forbs",
                                    "Miscellaneous forb 1",
                                    "Miscellaneous forb 2",
                                    "Miscellaneous grass",
@@ -283,6 +309,7 @@ maybe_plant_things_in_biomass <- c("Grass seedlings",
                                    "Miscellaneous rushes",
                                    "Miscellaneous sedges",
                                    "Miscellaneous sp.",
+                                   "Miscellaneous sp. 2",
                                    "Miscellaneous woody tree",
                                    "Miscellaneous  woody",
                                    "Miscellaneous Woody",
@@ -291,7 +318,8 @@ maybe_plant_things_in_biomass <- c("Grass seedlings",
                                    "Miscellaneous woody plants",
                                    "Miscellaneous woody plants 1",
                                    "Miscellaneous woody plants 2",
-                                   "Miscellaneous woody litter")
+                                   "Miscellaneous woody litter",
+                                   "Sedges")
 
 
 # correct typos & kick out things that are in the kick out things on lists
@@ -346,3 +374,49 @@ str(e054_anpp)
 names(e054_anpp)
 
 #need to work on e054 and other sets next as well.
+
+
+
+##e245###
+# fix species names
+e245_anpp <- e245_anpp %>%
+  mutate(species = recode_factor(species,
+                                 "Achillea millefolium(lanulosa)" = "Achillea millefolium (lanulosa)",
+                                 "Miscellaneous forb"             = "Miscellaneous forbs",
+                                 "Miscellaneous grass"            = "Miscellaneous grasses",
+                                 "Taraxicum officinalis"          = "Taraxacum officinale",
+                                 "Viola petatifida"               = "Viola pedatifida")) %>%
+  filter(!species %in% non_plant_things_in_biomass)
+
+# make columns match with our goal dataset
+e245_anpp <- e245_anpp %>%
+  group_by(year, plot, treatment) %>%
+  mutate(site                      = "CDR",
+         higher_order_organization = case_when(plot %in% c(1:6)   ~ "e245_block1",
+                                               plot %in% c(7:12)  ~ "e245_block2", 
+                                               plot %in% c(13:18) ~ "e245_block3", 
+                                               plot %in% c(19:24) ~ "e245_block4",
+                                               plot %in% c(25:30) ~ "e245_block5",
+                                               plot %in% c(31:36) ~ "e245_block6",
+                                               plot %in% c(37:42) ~ "e245_block7",
+                                               plot %in% c(43:48) ~ "e245_block8"),
+         original_measurement_unit = "g/m2",
+         relative_abundance        = mass_g_m_2/sum(mass_g_m_2)) %>%
+  rename("abundance" = mass_g_m_2) %>%
+  select(year, site, plot, higher_order_organization, species, abundance, relative_abundance, original_measurement_unit, treatment)
+
+e245_metadata <- e245_anpp %>%
+  select(year, site, plot, higher_order_organization, treatment) %>%
+  unique()
+
+e245_anpp <- e245_anpp %>%
+  mutate(species = recode_factor(species,
+                                 "Achillea millefolium(lanulosa)" = "Achillea millefolium (lanulosa)",
+                                 "Miscellaneous forb"             = "Miscellaneous forbs",
+                                 "Miscellaneous grass"            = "Miscellaneous grasses",
+                                 "Taraxicum officinalis"          = "Taraxacum officinale",
+                                 "Viola petatifida"               = "Viola pedatifida")) %>%
+  filter(!species %in% non_plant_things_in_biomass)
+
+e245_anpp <- e245_anpp %>%
+  select(!treatment)

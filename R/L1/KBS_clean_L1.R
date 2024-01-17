@@ -21,7 +21,7 @@ L0_dir <- Sys.getenv("L0DIR")
 L1_dir <- Sys.getenv("L1DIR")
 list.files(L0_dir)
 
-#setwd("~/Downloads")
+
 
 # Read in CSV files
 # bring in mcse data 

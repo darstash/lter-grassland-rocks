@@ -7,7 +7,10 @@
 # DATE:         October 2023
 
 # this code is to clean MCSE (and microplot treatment) data, merge them, and link with temp/precip
-# TO DO: 
+  # 1-17-24 - added GLBRC BCSE and scale-up code. 
+# To do: check columns - what do we want to add? Also, we did not yet match up
+    # "Treatment" and "Replicate" columns, since dif sampling schemes, etc.
+
 
 # Clear all existing data
 rm(list=ls())
@@ -20,6 +23,7 @@ library(gtools)
 L0_dir <- Sys.getenv("L0DIR")
 L1_dir <- Sys.getenv("L1DIR")
 list.files(L0_dir)
+
 
 
 
@@ -38,17 +42,33 @@ mcse <- read.csv(file.path(L0_dir, "KBS/291-biomass+compilation+for+herbaceous+s
 micro <- read.csv(file.path(L0_dir, "KBS/154-early+successional+microplot+biomass+sorted+to+species++1698756518_L0.csv"), stringsAsFactors = FALSE)
 #micro <- read.csv("154-early+successional+microplot+biomass+sorted+to+species++1698756518.csv", stringsAsFactors = FALSE)
 
+
+
+#bring in GLBRC 
+glbrc <- read.csv(file.path(L0_dir, "KBS/269-above+ground+biomass+of+herbaceous+perennial+crops+treatments+5+6+7+9+10+1702908396_L0.csv"), stringsAsFactors = FALSE)
+
+
+#bring in GLBRC scale-up
+glbrc_scaleup <- read.csv(file.path(L0_dir, "KBS/180-biomass+of+the+glbrc+scale+up+fields+1702908404_L0.csv"), stringsAsFactors = FALSE)
+
+
+
+
 # bring in temp precip data
 weatherdaily <- read.csv(file.path(L0_dir, "KBS/7-lter+weather+station+daily+precip+and+air+temp+1698756534_L0.csv"))
 #weatherdaily <- read.csv("7-lter+weather+station+daily+precip+and+air+temp+1698756534.csv", stringsAsFactors = FALSE)
 
 head(mcse)
 head(micro)
+head(glbrc)
+head(glbrc_scaleup)
 head(weatherdaily)
 
 
 ############################
+############################
 ###### mcse 
+############################
 ############################
 
 unique(mcse$Treatment)
@@ -65,7 +85,7 @@ t7 <- mcse %>%
   filter(Treatment == "T7" & Campaign == "Peak Biomass")
 
 # add columns
-t7$nutrients_added <- "no_fertilizer"
+t7$Nutrients_added <- "no_fertilizer"
 
 # We'll need to go through this more and see if we need to change or delete anything (like none plant stuff). 
 # I wonder if we should make a master list of species between our 3 sites?
@@ -74,7 +94,7 @@ unique(t7$Species)
 # calculate total ANPP: sum up ANPP for each species
 anpp_t7 <- t7 %>% 
   group_by(Year, Treatment, Replicate, Station, Source) %>% 
-  summarise(plot_biomass = sum(biomass_g_m2))
+  summarise(plot_biomass = sum(Biomass_g_m2))
 
 anpp_t7
 
@@ -84,7 +104,7 @@ anpp_t7
 ###### microplots in t7
 ############################
 
-micro$Date <- lubridate::mdy(micro$Sample_date)
+micro$Date <- lubridate::mdy(micro$Date)
 
 micro$Year <- lubridate::year(micro$Date)
 
@@ -97,23 +117,23 @@ micro$Source <- "MCSE Microplot (Table 154)"
 names(micro)
 anpp_micro <-  micro %>% 
   group_by(Year, Treatment, Replicate, Disturbed_Microplot, Fertilized_Microplot,Source) %>% 
-  summarise (plot_biomass = sum (biomass_g_m2))
+  summarise (plot_biomass = sum (Biomass_g_m2))
 
 head(anpp_micro)
 
 # add columns
-micro$nutrients_added <- "N+"
+micro$Nutrients_added <- "N+"
 
 
 
 
 ####################################################################
-################# combine these datasets into ANPP df and SPCOMP df
+################# MCSE: combine these datasets into ANPP df and SPCOMP df
 ####################################################################
 
 
 #FIRST:
-# combine these ANPP datasets
+# combine these ANPP datasets for microplot and normal Mcse
 names(anpp_t7)
 names(anpp_micro)
 
@@ -139,7 +159,7 @@ t7_with_ANPP <- merge(t7, anpp_t7, by = c("Year", "Treatment", "Station",
 head(t7_with_ANPP)
 
 # get psesudo percent cover by dividing plant by total for ANPP...
-t7_with_ANPP$Pseudo_PercCover <- t7_with_ANPP$biomass_g_m2 / t7_with_ANPP$plot_biomass * 100
+t7_with_ANPP$Pseudo_PercCover <- t7_with_ANPP$Biomass_g_m2 / t7_with_ANPP$plot_biomass * 100
 head(t7_with_ANPP)
 
 # micro
@@ -147,7 +167,7 @@ micro_with_ANPP <- merge(micro, anpp_micro, by = c("Year", "Treatment", "Disturb
                                                    "Replicate", "Source"))
 head(micro_with_ANPP)
 
-micro_with_ANPP$Pseudo_PercCover <- micro_with_ANPP$biomass_g_m2 / micro_with_ANPP$plot_biomass * 100
+micro_with_ANPP$Pseudo_PercCover <- micro_with_ANPP$Biomass_g_m2 / micro_with_ANPP$plot_biomass * 100
 
 head(micro_with_ANPP)
 
@@ -161,6 +181,241 @@ allt7_SpComp
 
 
 
+
+
+############################
+############################
+###### glbrc
+############################
+############################
+
+names(glbrc)
+unique(glbrc$Treatment)
+# https://lter.kbs.msu.edu/research/long-term-experiments/glbrc-intensive-experiment/
+# G10 =  restored prairie
+# G5 = Switchgrass
+# G6 = Miscanthus
+# G7 Native Grasses  - a mix of 4 species
+# G9 = Early successional
+unique(glbrc$Campaign)
+
+# make column indicating that this is 291: main MCSE table
+glbrc$Source <- "GLBRC (Table 269)"
+
+glbrc$Date <- lubridate::mdy(glbrc$Date)
+
+glbrc$Nutrients_added <- "no_fertilizer"
+#this is a placeholder. check to make sure no fert. 
+
+# filter to only be peak biomass, and trts we want, and year
+# NOTE: Include native grassses ? 4 planted species. Did not here
+glbrc_grassland <- glbrc %>% 
+  filter( (Treatment == "G10" | # restored prairie
+             Treatment == "G9") & # Early successional 
+            Campaign == "peak biomass" &
+            Year <2018) # 2018 on is not sorted yet
+unique(glbrc_grassland$Treatment)
+
+# calculate total ANPP: sum up ANPP for ALL species
+anpp_glbrc <- glbrc_grassland %>% 
+  group_by(Year, Treatment, Site, Replicate, Station,Source) %>% 
+  summarise(plot_biomass = sum(Biomass_g_m2))
+
+anpp_glbrc
+
+
+
+############################
+###### glbrc scaleup
+############################
+
+names(glbrc_scaleup)
+unique(glbrc_scaleup$Treatment)
+#https://lter.kbs.msu.edu/maps/images/glbrc_scaleup_sites_history_and_naming_conventions.pdf
+# M2 =  CRP-Prairie
+# L3 = AGR-Prairie
+
+
+# make column indicating what data table this is from KBS website
+glbrc_scaleup$Source <- "GLBRC Scale-Up (Table 180)"
+
+glbrc_scaleup$Date <- lubridate::mdy(glbrc_scaleup$Date)
+
+glbrc_scaleup$Nutrients_added <- "no_fertilizer"
+#this is a placeholder. check to make sure no fert. 
+
+
+# filter to only be trts we caare about
+# ALSO 
+glbrc_scaleup_grassland <- glbrc_scaleup %>% 
+  filter( (Treatment == "M2" | # CRP --> Prairie
+             Treatment == "L3") )  # AGR --> Prairie
+unique(glbrc_scaleup_grassland$Treatment)
+
+# calculate total ANPP: sum up ANPP for each species
+anpp_glbrc_scaleup <- glbrc_scaleup_grassland %>% 
+  group_by(Year, Treatment,  Station,Source) %>% 
+  summarise(plot_biomass = sum(Biomass_g_m2))
+
+anpp_glbrc_scaleup
+
+
+
+
+####################################################################
+########### GLBRC: combine these datasets into ANPP df and SPCOMP df
+####################################################################
+
+
+#FIRST:
+# combine these ANPP datasets
+names(anpp_glbrc)
+names(anpp_glbrc_scaleup)
+
+
+# merge main BCSE with scale up (ANPP)
+anpp_glbrc_KBS <- rbind(anpp_glbrc, anpp_glbrc_scaleup)
+
+head(anpp_glbrc_KBS )
+unique(anpp_glbrc_KBS$Treatment) 
+
+hist(anpp_KBS_T7$plot_biomass)
+hist(anpp_glbrc_KBS$plot_biomass)
+
+
+# NEXT : GET Percent cover dataset (sp comp) for GLBRC
+
+head(glbrc_grassland )
+head(glbrc_scaleup_grassland)
+
+
+# BCSE - merge main witih scaleup
+glbrc_BCSE_with_ANPP <- merge(glbrc_grassland, anpp_glbrc, by = c("Year", "Treatment", "Station", "Site",
+                                                                  "Replicate", "Source"))
+head(glbrc_BCSE_with_ANPP)
+
+# get psesudo percent cover by dividing plant by total for ANPP...
+glbrc_BCSE_with_ANPP$Pseudo_PercCover <- glbrc_BCSE_with_ANPP$Biomass_g_m2 / glbrc_BCSE_with_ANPP$plot_biomass * 100
+head(glbrc_BCSE_with_ANPP)
+
+
+
+# Scaleup
+glbrc_scaleup_with_ANPP <- merge(glbrc_scaleup_grassland, anpp_glbrc_scaleup, by = c("Year", "Treatment", "Station" , 
+                                                                                     "Source"))
+head(glbrc_scaleup_with_ANPP)
+
+glbrc_scaleup_with_ANPP$Pseudo_PercCover <- glbrc_scaleup_with_ANPP$Biomass_g_m2 / glbrc_scaleup_with_ANPP$plot_biomass * 100
+
+head(glbrc_scaleup_with_ANPP)
+
+
+# bind together the GLBRC datasets, they should include species percent cover
+head(glbrc_BCSE_with_ANPP)
+head(glbrc_scaleup_with_ANPP)
+allGLBRC_SpComp <- dplyr:: bind_rows (glbrc_BCSE_with_ANPP, glbrc_scaleup_with_ANPP)
+
+allGLBRC_SpComp
+
+
+
+
+
+
+#
+
+
+
+
+
+
+########################################
+# bind all KBS dataset together???
+########################################
+
+# species comp
+head(allt7_SpComp)
+head(allGLBRC_SpComp)
+
+allkbsdata_spcomp <- dplyr:: bind_rows (allt7_SpComp, allGLBRC_SpComp)
+head(allkbsdata_spcomp)
+
+
+# anpp only
+head(anpp_KBS_T7)
+head(anpp_glbrc_KBS)
+allkbsdata_anpp <- dplyr:: bind_rows (anpp_KBS_T7, anpp_glbrc_KBS)
+
+
+
+###################################
+###################################
+#then join up with temp and precip
+###################################
+###################################
+
+
+head(weatherdaily)
+weatherdaily$Date <- lubridate::mdy(weatherdaily$date)
+head(weatherdaily)
+
+weatheryear <- weatherdaily %>% 
+  group_by(Year) %>% 
+  summarise (meantemp =mean(air_temp_mean, na.rm = TRUE), # na.rm cuz missing obs for temp.
+             annualprecip = sum(precipitation))
+
+weatheryear
+
+
+# Merge weather with sp comp data for both MCSE and GLBRC
+allkbsdata_spcomp_tp <- merge (allkbsdata_spcomp, weatheryear, by = "Year")
+
+allkbsdata_spcomp_tp
+
+
+
+# add site column
+  # made this LTER_Site for now. because GLBRC hamde 
+allkbsdata_spcomp_tp$lter_site <- "KBS"
+
+names(allkbsdata_spcomp_tp) <- tolower(names(allkbsdata_spcomp_tp))
+
+# write a new .csv with the cleaned and merged data and upload to the shared google drive L1 folder
+  
+write.csv(allkbsdata_spcomp_tp, file.path(L1_dir, "./KBS_MCSE_GLBRC_SpComp.csv"), row.names=F)
+#write.csv(allt7_SpComp_tp, "KBS_MCSE_T7_SpComp.csv")
+
+
+
+
+
+
+
+allkbsdata_anpp_tp <- merge(allkbsdata_anpp , weatheryear , by = "Year")
+
+# add site column
+# made this LTER_Site for now. because GLBRC hamde 
+allkbsdata_anpp_tp$lter_site <- "KBS"
+
+names(allkbsdata_anpp_tp) <- tolower(names(allkbsdata_anpp_tp))
+
+
+# write a new .csv with the cleaned and merged data and upload to the shared google drive L1 folder
+ 
+write.csv(allkbsdata_anpp_tp, file.path(L1_dir, "./KBS_MCSE_GLBRC_ANPP.csv"), row.names=F)
+#write.csv(allt7_ANPP_tp, "KBS_MCSE_T7_ANPP.csv")
+
+ggplot(allkbsdata_anpp_tp, aes (x = annualprecip, y = plot_biomass))
+
+
+
+
+
+
+
+
+
+###################################
 ###################################
 #then join up with temp and precip
 
@@ -188,6 +443,9 @@ names(allt7_SpComp_tp) <- tolower(names(allt7_SpComp_tp))
 # write a new .csv with the cleaned and merged data and upload to the shared google drive L1 folder
 write.csv(allt7_SpComp_tp, file.path(L1_dir, "./KBS_MCSE_T7_SpComp.csv"), row.names=F)
 #write.csv(allt7_SpComp_tp, "KBS_MCSE_T7_SpComp.csv")
+
+
+
 
 
 

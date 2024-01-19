@@ -42,7 +42,10 @@ df_A2_KNZ.clean <- df_A1_KNZ %>% rename(year = RecYear ) %>% mutate(site = "KNZ"
 
 ```
 
+##load files-using downloaded version of the data-issue with googledrive
+```{r}
+df_E1_KNZ<-read.csv("C:/Users/JAAJOWELE/Downloads/E1_PPL011_Sppcomp.csv")
+df_E2_KNZ<-read.csv("C:/Users/JAAJOWELE/Downloads/E2_PPL012_Biomass.csv")
 
 
-
-
+```

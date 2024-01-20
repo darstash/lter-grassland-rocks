@@ -75,7 +75,7 @@ df_E1_KNZ_clean<-df_E1_KNZ%>%
   #ready for richness/diversity calculation with codyn package
 ```
 
-#calculate diversity/richness and combine with biomass data
+#calculate diversity/richness/evenness
 ```{r}
 E1_richness<-df_E1_KNZ_clean%>%
   community_diversity(time.var="year",abundance.var="relative_abundance",
@@ -88,14 +88,22 @@ E1_diversity<-df_E1_KNZ_clean%>%
   separate_wider_delim(plot,"_", names=c("PlotID","Treatment"))
 #convert to integer to allow joining with biomass data
 E1_diversity$PlotID=as.integer(E1_diversity$PlotID)
-  
+```
+
 #clean and wrangle complementary biomass data and join with spcomp data
+```{r}
+#create a treatment key
+treatment_key=tibble(Treatment=levels(factor(df_E2_KNZ$Treatment)),                        treatment_key=c("control","N0P2.5","N0P5","N0P10",
+                                    "N10P0","N10P2.5","N10P5","N10P10"))
+
+#clean biomass data and join with spcomp data
 df_E1_E2_KNZ_clean<-df_E2_KNZ%>%
   rename(year=RecYear, plot_biomass=ANPP)%>%
   mutate(site="KNZ", fire_frequency=2, grazing="ungrazed", 
          watershed="2c")%>%
-  left_join(E1_diversity, by=c("year","Treatment", "PlotID"))
-#biomass and richness/diversity/evenness calculated
+  left_join(E1_diversity, by=c("year","Treatment", "PlotID"))%>%
+  left_join(treatment_key, by="Treatment")
+#ready to merge with other data set
 
 ```
 

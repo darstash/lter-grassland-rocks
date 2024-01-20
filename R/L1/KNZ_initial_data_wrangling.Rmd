@@ -1,6 +1,6 @@
 ---
 title: "KNZ_L0_data_wrangling"
-author: "Smriti Pehim Limbu"
+authors: "Smriti Pehim Limbu","Joshua Ajowele"
 Collaborators: Grassland Rocks working group
 date: "2023-12-11"
 output: html_document

@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 install.packages(pacman)
 library(pacman)
-pacman::p_load(readr, ggplot2, dplyr, tidyverse, gtools)
+pacman::p_load(readr, ggplot2, dplyr, tidyverse, gtools, codyn)
 
 ```
 
@@ -49,3 +49,53 @@ df_E2_KNZ<-read.csv("C:/Users/JAAJOWELE/Downloads/E2_PPL012_Biomass.csv")
 
 
 ```
+
+#cleaning data
+```{r}
+#check each column for uniqueness for E1 and E2 data
+unique(df_E1_KNZ$RecYear)#2020 missing due to covid
+unique(df_E2_KNZ$RecYear)#2020 data present
+unique(df_E1_KNZ$Treatment)#looks good, 8 treatments
+unique(df_E2_KNZ$Treatment)#looks good, 8 treatment
+unique(df_E1_KNZ$PlotID)#48 plots
+unique(df_E2_KNZ$PlotID)#48 plots
+
+#clean and wrangle sp comp data
+df_E1_KNZ_clean<-df_E1_KNZ%>%
+  rename(year=RecYear)%>%
+  unite(species_name,Genus,Species, sep = "_")%>%
+#unique(df_E1_KNZ_clean$species_name)#no obvious duplicate 
+  group_by(year, PlotID, Treatment)%>%
+  mutate(total_abundance=sum(Abundance))%>%
+  group_by(year, PlotID, Treatment, species_name)%>%
+  mutate(relative_abundance=(Abundance/total_abundance)*100)%>%
+  ungroup()%>%
+  #create unique identifier for codyn package for community metric
+  unite(plot, PlotID, Treatment, sep="_")
+  #ready for richness/diversity calculation with codyn package
+```
+
+#calculate diversity/richness and combine with biomass data
+```{r}
+E1_richness<-df_E1_KNZ_clean%>%
+  community_diversity(time.var="year",abundance.var="relative_abundance",
+                      replicate.var="plot",metric = "Shannon")
+E1_diversity<-df_E1_KNZ_clean%>%
+  #calculates richness and evenness as Evar
+  community_structure(time.var="year",abundance.var="relative_abundance",
+                      replicate.var="plot")%>%
+  left_join(E1_richness, by=c("year","plot"))%>%
+  separate_wider_delim(plot,"_", names=c("PlotID","Treatment"))
+#convert to integer to allow joining with biomass data
+E1_diversity$PlotID=as.integer(E1_diversity$PlotID)
+  
+#clean and wrangle complementary biomass data and join with spcomp data
+df_E1_E2_KNZ_clean<-df_E2_KNZ%>%
+  rename(year=RecYear, plot_biomass=ANPP)%>%
+  mutate(site="KNZ", fire_frequency=2, grazing="ungrazed", 
+         watershed="2c")%>%
+  left_join(E1_diversity, by=c("year","Treatment", "PlotID"))
+#biomass and richness/diversity/evenness calculated
+
+```
+

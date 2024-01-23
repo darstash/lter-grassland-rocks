@@ -15,7 +15,7 @@
 # e001: https://cedarcreek.umn.edu/research/experiments/e001
 #       Variables
 #       exp:         experiment e001 -> 1
-#       year:        1982 - 2018 (2012 missing)
+#       year:        1982 - 2022 (2012 missing)
 #       field:       A: fencing given up after 2004, burned annually after 2005
 #                    B: fencing given up after 2004, burned annually after 2005
 #                    C: fencing given up after 2004, burned annually after 2005 (half of the plots split into e172, that continued to be fenced)
@@ -26,11 +26,27 @@
 #       nitr_add:    
 #       n_atm_n_add: amount of n added plus atmospheric deposition (n_add + 1)
 #       species:     unique species name
-#       biomass:     
+#       biomass:    
+# e002: https://cedarcreek.umn.edu/research/experiments/e002
+#       Variables
+#       exp:         experiment e002 -> 2
+#       year:        1982 - 2022 (2012 missing)
+#       field:       A: fencing given up after 2004, burned annually after 2005
+#                    B: fencing given up after 2004, burned annually after 2005
+#                    C: fencing given up after 2004, burned annually after 2005 
+#                    D: burned after 1987 every 2-3 years, fencing given up after 2004
+#       plot:        1 - 54 in each field
+#       n_trt:       1 - 9 (1: control)
+#       n_add:       amount of n added
+#       nitr_add:    
+#       n_atm_n_add: amount of n added plus atmospheric deposition (n_add + 1)
+#       species:     unique species name
+#       biomass:
+#       note: e001 and e002 data in same initial df. only difference experimental design wise is that e002 was disced (plowed) before establishing nutrient treatments
 # e054: https://cedarcreek.umn.edu/research/experiments/e054
 #       Variables
 #       exp:         experiment e054 -> 54
-#       year:        1988 - 2018
+#       year:        1988 - 2022
 #       oldfield:    
 #       plot:        
 #       transect:   
@@ -99,20 +115,22 @@ e001e002_anpp <- read.csv(paste(L0_dir, "CDR/E001 E002 Aboveground Biomass for M
 #         "biomass"     = "V10"
 #  )
 
-e054_anpp <- 
-  read.table(paste(L0_dir, "CDR/e054_Plant_aboveground_biomass_data.txt", sep = "/"), 
-             sep  = "\t",
-             skip = 1
-  ) %>%
-  rename("exp"     = "V1", 
-         "year"    = "V2", 
-         "oldfield"= "V3",
-         "plot"    = "V4",
-         "transect"= "V5", 
-         "yearab"  = "V6", 
-         "species" = "V7", 
-         "biomass" = "V8"
-         )
+e054_anpp <- read.csv(paste(L0_dir, "CDR/e54_biomass_1221_ML.csv", sep = "/")) 
+
+#e054_anpp <- 
+#  read.table(paste(L0_dir, "CDR/E001 E002 Aboveground Biomass for ML through 2022.csv", sep = "/"), 
+#             sep  = "\t",
+#             skip = 1
+#  ) %>%
+#  rename("exp"     = "V1", 
+#         "year"    = "V2", 
+#         "oldfield"= "V3",
+#         "plot"    = "V4",
+#         "transect"= "V5", 
+#         "yearab"  = "V6", 
+#         "species" = "V7", 
+#         "biomass" = "V8"
+#         )
 
 e097_anpp <- 
   read.table(paste(L0_dir, "CDR/e097_Plant_aboveground_biomass_data.txt", sep = "/"), 
@@ -270,7 +288,8 @@ genus_sp_in_biomass <- c("Allium sp.",
                          "Viola sp.")
 
 non_plant_things_in_biomass <- c("Corn litter", 
-                                 "Fungi", 
+                                 "Fungi",
+                                 "Miscellaneous litter",
                                  "Mosses",
                                  "Mosses & lichens",
                                  "Mosses & lichens 2",
@@ -366,16 +385,73 @@ e001e002_anpp <- e001e002_anpp %>%
 e001e002_anpp <- e001e002_anpp %>%
   select(year, site, plot, higher_order_organization, species, abundance, relative_abundance, original_measurement_unit)
 
-#anpp data is now in correct format?
+#e001 and e002 anpp data is now in correct format
+#metadata still needs time since last burn and weather data
 
 
 ##e054####
 str(e054_anpp)
 names(e054_anpp)
 
-#need to work on e054 and other sets next as well.
+#adding study information and renaming columns to match master data sheet
+e054_anpp <- e054_anpp %>%
+  mutate(site="CDR",
+         higher_order_organization = paste("Experiment", Exp, " field", OldField), # note I added the field string, so that it is not a random A. Not sure this is needed
+         species = as.factor(Species_names), #to look at all the species and identify things to remove
+         Plot = case_when(Transect == "G" ~ 1, #sampling is done once in each transect within a field
+                          Transect == "R" ~ 2, #so we are denoting the transect as 1-4 where biomass was collected in this plot column
+                          Transect == "W" ~ 3,
+                          Transect == "Y" ~ 4)) 
+
+#make new column that designates if fertilized or not
+e054_anpp <- e054_anpp %>%
+  mutate(nutrients_added = "no_fertilizer",
+         nitrogen_amount = 0)
+
+#make new column designating fence treatment and burn treatment (based on cdr experimental design info from website - see flowchart for e001 and e002)
+e054_anpp <- e054_anpp %>%
+  mutate(grazing = "ungrazed",
+         fire_frequency = case_when(Burnt_started2007 == "Unburned" ~ 0,
+                                    Burnt_started2007 == "Burned" ~ 5,))
 
 
+
+
+# correct typos & kick out things that are in the kick out things on lists
+e054_anpp = e054_anpp %>%
+  merge(.,
+        species_list_CDR %>% 
+          select(Species, ITISRecognizedName) %>%
+          rename(species = Species),
+        by = "species",
+        all.x = T) %>%
+  filter(!species %in% non_plant_things_in_biomass)
+
+#metadata df#
+e054_metadata <- e054_anpp %>%
+  clean_names(.) %>%
+  select(site, year, plot, higher_order_organization, nutrients_added, nitrogen_amount, grazing, fire_frequency)
+
+#e054 still needs to add temp, precip, and other variables that the master datasheet will have
+
+#combine rows that have same species but different biomass - this would be due to error I assume (they measured biomass of a species and entered it, then had another of the same species and added that entry as well)
+e054_anpp <- e054_anpp %>%
+  group_by(Year, site, Plot, higher_order_organization, species) %>% # this removes nitr_add and n_atmn_n_add columns which we don't want for cleaned data
+  summarize(Biomass=sum(Biomass))
+
+e054_anpp <- e054_anpp %>%
+  group_by(Year, site, Plot, higher_order_organization) %>%
+  mutate(relative_abundance = Biomass/sum(Biomass),
+         abundance = Biomass,
+         original_measurement_unit = "biomass_g/m2") %>%
+  filter(abundance != 0) %>%
+  clean_names(.)
+
+e054_anpp <- e054_anpp %>%
+  select(year, site, plot, higher_order_organization, species, abundance, relative_abundance, original_measurement_unit)
+
+
+#e054_anpp matches data template - metadata still needs more info - precip, temp, time since last burn, etc..
 
 ##e245###
 # fix species names

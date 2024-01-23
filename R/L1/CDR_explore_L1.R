@@ -96,6 +96,8 @@ list.files(L0_dir)
 # Load data ####
 species_list_CDR <- read.csv(paste(L0_dir, "CDR/cc_plant_species.csv", sep = "/"))
 
+burns <- read.csv(paste(L0_dir, "CDR/CCESR_Burn_record_by_Burn_Unit_and_Year.csv", sep = "/"))
+
 e001e002_anpp <- read.csv(paste(L0_dir, "CDR/E001 E002 Aboveground Biomass for ML through 2022.csv", sep = "/"))
 
 #e001_anpp <-
@@ -453,7 +455,8 @@ e054_anpp <- e054_anpp %>%
 
 #e054_anpp matches data template - metadata still needs more info - precip, temp, time since last burn, etc..
 
-##e245###
+##e245####
+
 # fix species names
 e245_anpp <- e245_anpp %>%
   mutate(species = recode_factor(species,
@@ -481,10 +484,6 @@ e245_anpp <- e245_anpp %>%
   rename("abundance" = mass_g_m_2) %>%
   select(year, site, plot, higher_order_organization, species, abundance, relative_abundance, original_measurement_unit, treatment)
 
-e245_metadata <- e245_anpp %>%
-  select(year, site, plot, higher_order_organization, treatment) %>%
-  unique()
-
 e245_anpp <- e245_anpp %>%
   mutate(species = recode_factor(species,
                                  "Achillea millefolium(lanulosa)" = "Achillea millefolium (lanulosa)",
@@ -496,3 +495,51 @@ e245_anpp <- e245_anpp %>%
 
 e245_anpp <- e245_anpp %>%
   select(!treatment)
+
+
+
+
+### create metadata for this experiment
+
+# e245 is in burn unit 108. use a subset of the burns data to calculate years since fire for each year in the burn unit 108
+df <- burns %>%
+  select(Year, X108) %>%
+  filter(!Year %in% "2000 Fall") %>%
+  mutate(Year = ifelse(Year %in% "2000 Spring", "2000", Year),
+         Year = as.numeric(paste(Year)),
+         your_column = X108,
+         time_since_fire = 0)
+
+for (i in 2:nrow(df)) {
+  if (is.na(df$your_column[i]) || df$your_column[i] == "") {
+    df$time_since_fire[i] <- df$time_since_fire[i - 1] + 1
+  } else {
+    df$time_since_fire[i] <- 0
+  }
+}
+
+
+e245_metadata <- e245_anpp %>%
+  select(year, site, plot, higher_order_organization, treatment) %>%
+  rename(treatment_comment = treatment) %>%
+  unique() %>%
+  mutate(
+    treatment = ifelse(treatment_comment %in% "Control", "control", "treatment"),
+    nutrients_added = "no_fertilizer",
+    nitrogen_amount = 0,
+    disturbance = "undisturbed",
+    grazing = ifelse(treatment_comment %in% "Fenced", "ungrazed", "grazed"),
+    fire_frequency = 1/3,
+    diversity_manipulated = "naturally_assembled" 
+  ) %>%
+  merge(., 
+        df %>% select(Year, time_since_fire), 
+        by.x = "year", 
+        by.y = "Year",
+        all.x = TRUE) # %>%
+# merge(.,
+#       meteodata)
+# select(year, site, plot, higher_order_organization, temperature, 
+#        precipitation, nutrients_added,  treatment, nutrients_added, 
+#        nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire,
+#        treatment_comment, diversity_manipulated)

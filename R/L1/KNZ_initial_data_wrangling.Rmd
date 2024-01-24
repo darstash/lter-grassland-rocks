@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 install.packages(pacman)
 library(pacman)
-pacman::p_load(readr, ggplot2, dplyr, tidyverse, gtools)
+pacman::p_load(readr, ggplot2, dplyr, tidyverse, gtools, lubridate, codyn) #lubridate is to change the date format
 
 ```
 
@@ -26,23 +26,58 @@ L2_dir <- Sys.getenv("L2DIR")
 list.files(L0_dir)
 ```
 
-##Load files
+##Load files, more needs to be loaded
 
 ```{r}
 df_A1_KNZ <- read.csv(file.path(L0_dir, "KNZ/A1_CME011_Sppcomp.csv"), stringsAsFactors = FALSE)
 df_A2_KNZ <- read.csv(file.path(L0_dir, "KNZ/A2_CME012_Biomass.csv"), stringsAsFactors = FALSE)
+df_J1_KNZ <- read.csv(file.path(L0_dir, "KNZ/J1_CEE012_Sppcomp.csv"), stringsAsFactors = FALSE)
+df_J2_KNZ <- read.csv(file.path(L0_dir, "KNZ/J2_CEE014_Biomass.csv"), stringsAsFactors = FALSE)
+
 
 ```
 
-##start cleaning
+#climate data
 
 ```{r}
-df_A1_KNZ.clean <- df_A1_KNZ %>% rename(year = RecYear, species_name = Taxa)
-df_A2_KNZ.clean <- df_A1_KNZ %>% rename(year = RecYear ) %>% mutate(site = "KNZ") %>% unite(plot, site, Watershed,Plot, sep ="_", remove=FALSE)
+
+df_ppt <- read.csv(file.path(L0_dir, "KNZ/Precipitation_1982_2023.csv"), stringsAsFactors = FALSE)
+# Convert the date column to Date type 
+df_ppt$RecDate<- as.Date(df_ppt$RecDate, format = "%m/%d/%Y")
+
+# Extract the year from the date
+df_ppt$year <- year(df_ppt$RecDate)
+
 
 ```
 
 
+#Cleaning CEE data J1 and J2 
+
+```{r}
+
+#renaming variables
+
+df_J1_KNZ.clean <- df_J1_KNZ %>% rename(year = Year, species = Spnum2, abundance=Cover)
+
+#adding site name, watershed name, blocks, and higher_order_organization
+
+df_J2_KNZ.clean <- df_J2_KNZ %>% rename(year = Year)  %>% mutate(site = "KNZ") %>% mutate(watershed="HQ") %>% mutate(Block =case_when(Plot%in% c(101, 102, 103, 104, 105, 106, 107, 108, 109, 110)~"1", Plot%in% c(101, 102, 103, 104, 105, 106, 107, 108, 109, 110)~"1",Plot%in% c(201, 202,203, 204, 205, 206, 207, 208, 209, 210)~"2", Plot%in% c(301, 302, 303, 304, 305, 306, 307, 308, 309, 310)~"3",Plot%in% c(401, 402, 403, 404, 405, 406, 407, 408, 409, 410)~"4")) %>%  unite(higher_order_organization,site, watershed,Block,Plot, sep ="_", remove=FALSE)
+
+
+#calculate richness and evenness
+
+df_J1_richness_evenness <- community_structure(df_J1_KNZ.clean, time.var = "year", replicate.var = "Plot", abundance.var = "abundance", metric="SimpsonEvenness")
+
+#add richness and evenness to the biomass data
+
+df_J2_KNZ.clean.richness.evenness <- left_join (df_J2_KNZ.clean, df_J1_richness_evenness, by = c("year", "Plot"))
+
+
+```
+
+
+```
 
 
 

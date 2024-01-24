@@ -1,6 +1,6 @@
 ---
 title: "KNZ_L0_data_wrangling"
-author: "Smriti Pehim Limbu"
+authors: Smriti Pehim Limbu, Joshua Ajowele
 Collaborators: Grassland Rocks working group
 date: "2023-12-11"
 output: html_document
@@ -31,6 +31,12 @@ list.files(L0_dir)
 ```{r}
 df_A1_KNZ <- read.csv(file.path(L0_dir, "KNZ/A1_CME011_Sppcomp.csv"), stringsAsFactors = FALSE)
 df_A2_KNZ <- read.csv(file.path(L0_dir, "KNZ/A2_CME012_Biomass.csv"), stringsAsFactors = FALSE)
+
+#Joshua's directory
+df_E1_KNZ<-read.csv("C:/Users/JAAJOWELE/Downloads/E1_PPL011_Sppcomp.csv")
+df_E2_KNZ<-read.csv("C:/Users/JAAJOWELE/Downloads/E2_PPL012_Biomass.csv")
+
+
 df_J1_KNZ <- read.csv(file.path(L0_dir, "KNZ/J1_CEE012_Sppcomp.csv"), stringsAsFactors = FALSE)
 df_J2_KNZ <- read.csv(file.path(L0_dir, "KNZ/J2_CEE014_Biomass.csv"), stringsAsFactors = FALSE)
 
@@ -52,7 +58,7 @@ df_ppt$year <- year(df_ppt$RecDate)
 ```
 
 
-#Cleaning CEE data J1 and J2 
+#Cleaning CEE data J1 and J2 - Smriti
 
 ```{r}
 
@@ -76,8 +82,58 @@ df_J2_KNZ.clean.richness.evenness <- left_join (df_J2_KNZ.clean, df_J1_richness_
 
 ```
 
+#cleaning data E1 and E2 - Joshua
+```{r}
+#check each column for uniqueness for E1 and E2 data
+unique(df_E1_KNZ$RecYear)#2020 missing due to covid
+unique(df_E2_KNZ$RecYear)#2020 data present
+unique(df_E1_KNZ$Treatment)#looks good, 8 treatments
+unique(df_E2_KNZ$Treatment)#looks good, 8 treatment
+unique(df_E1_KNZ$PlotID)#48 plots
+unique(df_E2_KNZ$PlotID)#48 plots
+
+#clean and wrangle sp comp data
+df_E1_KNZ_clean<-df_E1_KNZ%>%
+  rename(year=RecYear)%>%
+  unite(species_name,Genus,Species, sep = "_")%>%
+#unique(df_E1_KNZ_clean$species_name)#no obvious duplicate 
+  group_by(year, PlotID, Treatment)%>%
+  mutate(total_abundance=sum(Abundance))%>%
+  group_by(year, PlotID, Treatment, species_name)%>%
+  mutate(relative_abundance=(Abundance/total_abundance)*100)%>%
+  ungroup()%>%
+  #create unique identifier for codyn package for community metric
+  unite(plot, PlotID, Treatment, sep="_")
+  #ready for richness/diversity calculation with codyn package
+
+#calculate diversity/richness/evenness
+
+E1_richness<-df_E1_KNZ_clean%>%
+  community_diversity(time.var="year",abundance.var="relative_abundance",
+                      replicate.var="plot",metric = "Shannon")
+E1_diversity<-df_E1_KNZ_clean%>%
+  #calculates richness and evenness as Evar
+  community_structure(time.var="year",abundance.var="relative_abundance",
+                      replicate.var="plot")%>%
+  left_join(E1_richness, by=c("year","plot"))%>%
+  separate_wider_delim(plot,"_", names=c("PlotID","Treatment"))
+#convert to integer to allow joining with biomass data
+E1_diversity$PlotID=as.integer(E1_diversity$PlotID)
+
+#clean and wrangle complementary biomass data and join with spcomp data
+
+#create a treatment key
+treatment_key=tibble(Treatment=levels(factor(df_E2_KNZ$Treatment)),                        treatment_key=c("control","N0P2.5","N0P5","N0P10",
+                                    "N10P0","N10P2.5","N10P5","N10P10"))
+
+#clean biomass data and join with spcomp data
+df_E1_E2_KNZ_clean<-df_E2_KNZ%>%
+  rename(year=RecYear, plot_biomass=ANPP)%>%
+  mutate(site="KNZ", fire_frequency=2, grazing="ungrazed", 
+         watershed="2c")%>%
+  left_join(E1_diversity, by=c("year","Treatment", "PlotID"))%>%
+  left_join(treatment_key, by="Treatment")
+#ready to merge with other data set
 
 ```
-
-
 

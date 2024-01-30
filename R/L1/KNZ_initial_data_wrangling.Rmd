@@ -40,21 +40,25 @@ df_E2_KNZ<-read.csv("C:/Users/JAAJOWELE/Downloads/E2_PPL012_Biomass.csv")
 df_J1_KNZ <- read.csv(file.path(L0_dir, "KNZ/J1_CEE012_Sppcomp.csv"), stringsAsFactors = FALSE)
 df_J2_KNZ <- read.csv(file.path(L0_dir, "KNZ/J2_CEE014_Biomass.csv"), stringsAsFactors = FALSE)
 
-
+#Alex's directory
+df_C1_KNZ <- read.csv("C:\\Users\\jasig\\Downloads\\C1_WAT012_Sppcomp.csv")
+df_C2_KNZ <- read.csv("C:\\Users\\jasig\\Downloads\\C2_WAT013_Biomass.csv")
+df_ppt <- read.csv("C:\\Users\\jasig\\Downloads\\Precipitation_1982_2023.csv")
+#(Alex is dumb & is taking this approach) Convert the date column to Date type 
+df_ppt$RecDate<- as.Date(df_ppt$RecDate, format = "%m/%d/%Y")
+#Extract the year from the date
+df_ppt$year <- year(df_ppt$RecDate)
 ```
 
 #climate data
 
 ```{r}
-
 df_ppt <- read.csv(file.path(L0_dir, "KNZ/Precipitation_1982_2023.csv"), stringsAsFactors = FALSE)
 # Convert the date column to Date type 
 df_ppt$RecDate<- as.Date(df_ppt$RecDate, format = "%m/%d/%Y")
 
 # Extract the year from the date
 df_ppt$year <- year(df_ppt$RecDate)
-
-
 ```
 
 
@@ -134,6 +138,105 @@ df_E1_E2_KNZ_clean<-df_E2_KNZ%>%
   left_join(E1_diversity, by=c("year","Treatment", "PlotID"))%>%
   left_join(treatment_key, by="Treatment")
 #ready to merge with other data set
+
+```
+
+#Cleaning data C1 & C2 - Alex
+```{r}
+##Species comp
+#Merging Genus & Species columns
+df_C1_KNZ$species <- paste(df_C1_KNZ$Genus,df_C1_KNZ$Species)
+#Removing unnecessary columns
+df_C1_KNZ = df_C1_KNZ %>%
+  select(-c("Rectype","Genus","Species"))
+#Renaming columns
+df_C1_KNZ.clean <- df_C1_KNZ %>% rename(year = RecYear, treatment = Trt, transect = Transect, plot = Plot, species_code = Spcode, abundance=Cover)
+#Adding columns
+df_C1_KNZ.clean <- df_C1_KNZ.clean %>% 
+  mutate(site = "KNZ")
+#Checking columns for uniqueness
+unique(df_C1_KNZ.clean$year) #1991-2022
+unique(df_C1_KNZ.clean$treatment) #Three treatments (c starts in 2018)
+unique(df_C1_KNZ.clean$plot) #30 plots (no #9?, added plots in 1993)
+unique(df_C1_KNZ.clean$transect) #Four transects
+## Must consider treatment reversal for this experiment ##
+
+#clean and wrangle spp comp data
+df_C1_KNZ.clean<-df_C1_KNZ.clean%>%
+  group_by(year, plot, treatment)%>%
+  mutate(total_abundance=sum(abundance))%>%
+  group_by(year, plot, treatment, species)%>%
+  mutate(relative_abundance=(abundance/total_abundance)*100)%>%
+  ungroup()%>%
+  #create unique identifier for codyn package for community metric
+  unite(plot_trt, plot, treatment, sep="_", remove=FALSE)
+
+#calculate diversity/richness/evenness
+C1_richness<-df_C1_KNZ.clean%>%
+  community_diversity(time.var="year",abundance.var="relative_abundance",
+                      replicate.var="plot_trt",metric = "Shannon")
+C1_diversity<-df_C1_KNZ.clean%>%
+  #calculates richness and evenness as Evar
+  community_structure(time.var="year",abundance.var="relative_abundance",
+                      replicate.var="plot_trt")%>%
+  left_join(C1_richness, by=c("year","plot_trt"))%>%
+  separate_wider_delim(plot_trt,"_", names=c("plot","treatment"))
+#convert to integer to allow joining with biomass data
+C1_diversity$plot=as.integer(C1_diversity$plot)
+
+#Adding in precip data
+df_ppt$ppt = as.numeric(df_ppt$ppt)
+df_ppt[is.na(df_ppt)] <- 0
+df_ppt = df_ppt %>% 
+  group_by(year) %>%
+  mutate(annualprecip = sum(ppt))
+df_ppt = df_ppt %>% 
+  distinct(year, annualprecip, .keep_all = TRUE)
+df_ppt = df_ppt[-c(1:6)]
+
+df_C1_KNZ.cleanest <- df_C1_KNZ.clean %>%
+right_join(df_ppt, by=c("year"))
+
+#Writing sppcomp dataset to upload to L1 folder
+write.csv(df_C1_KNZ.cleanest,"C:\\Users\\jasig\\Downloads\\df_C1_KNZ.cleanest.csv", row.names=FALSE)
+
+## Species comp data is clean ##
+## There are issues with naming conventions, such as transect and treatment being interchanged between datasets
+
+
+##Biomass data
+df_C2_KNZ.cleaner <- df_C2_KNZ %>%
+  select(-c("RECMONTH","CURRENTDEAD","COMMENTS")) %>%
+  rename(DataCode=DATACODE, year=RECYEAR, watershed=WATERSHED, treatment=TRANSECT, plot=PLOT, replicate=REPLICATE, livegrass=LIVEGRASS, forbs=FORBS, woody=WOODY)
+#Creating ANPP column
+df_C2_KNZ.cleaner$livegrass = as.numeric(df_C2_KNZ.cleaner$livegrass)
+df_C2_KNZ.cleaner$forbs = as.numeric(df_C2_KNZ.cleaner$forbs)
+df_C2_KNZ.cleaner$woody = as.numeric(df_C2_KNZ.cleaner$woody)
+df_C2_KNZ.cleaner$total_biomass = df_C2_KNZ.cleaner$livegrass + df_C2_KNZ.cleaner$forbs + df_C2_KNZ.cleaner$woody
+
+unique(df_C2_KNZ.cleaner$treatment) 
+
+#Calculating plot_biomass and more
+df_C2_KNZ.clean <- df_C2_KNZ.cleaner %>%
+  group_by(year, plot) %>%
+  mutate(plot_biomass = sum(total_biomass)) %>%
+  mutate(mean_livegrass_rep = mean(livegrass)) %>%
+  mutate(mean_forbs_rep = mean(forbs)) %>%
+  mutate(mean_woody_rep = mean(woody)) %>%
+  mutate(mean_biomass_rep = mean(total_biomass)) %>%
+  mutate(site = "KNZ")
+
+#Subsetting to just include plots and their total biomass (excluding reps)
+df_C2_KNZ.noreps <- df_C2_KNZ.clean %>% 
+  distinct(year, plot, plot_biomass, .keep_all = T)
+df_C2_KNZ.noreps <- df_C2_KNZ.noreps[-c(6:9)]
+df_C2_KNZ.noreps <- df_C2_KNZ.noreps[-c(6)]
+
+#Joining dataframes
+df_C1_C2_KNZ_clean<-df_C2_KNZ.noreps%>%
+  left_join(C1_diversity, by=c("year","plot"))
+
+## Running into issues with naming, would like to chat at next Konza working hours ##
 
 ```
 

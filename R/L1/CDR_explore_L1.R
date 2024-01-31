@@ -361,7 +361,7 @@ e001e002_anpp = e001e002_anpp %>%
          species_fixed = gsub(species_fixed, pattern = "Pycnan Vir",            replacement = "Pycnanthemum virginianum"),
          species_fixed = gsub(species_fixed, pattern = "ranoncolos rhombiodeus",replacement = "Ranunculus rhomboideus"),	
          species_fixed = gsub(species_fixed, pattern = "Taraxicum officinalis", replacement = "Taraxacum officinalis")
-         ) %>%
+  ) %>%
   # filter(!species %in% maybe_plant_things_in_biomass) %>%
   filter(!species %in% non_plant_things_in_biomass)
 
@@ -369,7 +369,7 @@ e001e002_anpp = e001e002_anpp %>%
 e001e002_metadata <- e001e002_anpp %>%
   clean_names(.) %>%
   select(site, year, plot, higher_order_organization, nutrients_added, nitrogen_amount, grazing, fire_frequency)
-  
+
 #e001 still needs to add temp, precip, and other variables that the master datasheet will have
 
 #combine rows that have same species but different biomass - this would be due to error I assume (they measured biomass of a species and entered it, then had another of the same species and added that entry as well)

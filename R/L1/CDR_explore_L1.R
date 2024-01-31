@@ -175,6 +175,28 @@ e245_anpp <- read.delim(paste(L0_dir, "CDR/e245_Plant_aboveground_biomass_data.t
   clean_names() 
 
 
+e061_anpp <- read.delim(paste(L0_dir, "CDR/e061_Plant_aboveground_biomass_data.txt", sep = "/")) %>%
+  rename("field" = "Field.number.letter",
+         "experiment" =  "Experiment.number",
+         "macroplot" = "Macroplot.Number",
+         "plot" = "Plot.number",
+         "treatment" = "Bird.treatment..1.BAL.birds.allow..2.BEX.birds.exclude.",
+         "fert_trt" = "Nitrogen.Treatment",
+         "species" = "Species.Name",
+         "mass_g_m_2" = "Species.Biomass..g.m2." ,
+         "year" = "Year"
+  ) %>%
+  mutate(year = as.integer(paste(year)),
+         field = as.factor(field),
+         macroplot = as.integer(paste(macroplot)),
+         plot = as.integer(paste(plot)),
+         treatment = as.factor(toupper(treatment)),
+         fert_trt = factor(fert_trt),
+         species = factor(species),
+         species = str_squish(species),
+         species = str_to_sentence(species),
+         species = as.factor(species))
+
 # Clean data ####
 ##e001 and e002####
 str(e001e002_anpp)

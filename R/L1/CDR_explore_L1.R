@@ -188,14 +188,21 @@ e061_anpp <- read.delim(paste(L0_dir, "CDR/e061_Plant_aboveground_biomass_data.t
   ) %>%
   mutate(year = as.integer(paste(year)),
          field = as.factor(field),
-         macroplot = as.integer(paste(macroplot)),
+         macroplot = as.integer(paste(macroplot)), # Note: Warnign NAs introduced by coercion is ok. It replaces empty cells with NA
          plot = as.integer(paste(plot)),
          treatment = as.factor(toupper(treatment)),
          fert_trt = factor(fert_trt),
          species = factor(species),
          species = str_squish(species),
          species = str_to_sentence(species),
-         species = as.factor(species))
+         species = as.factor(species),
+         field   = "B",
+         experiment = "e061") %>%
+  # biomass was collected in 1989, 1990 and then consecutively only from 1996-2003. Focus on this part!
+  filter(year %in% c(1996:2003))
+
+
+
 
 # Clean data ####
 ##e001 and e002####
@@ -250,6 +257,17 @@ merge(e001e002_anpp,
   filter(ITISRecognizedName %in% c(NA, ""))
 
 merge(e245_anpp,
+      species_list_CDR %>% 
+        select(Species, ITISRecognizedName) %>%
+        rename(species = Species),
+      by = "species",
+      all.x = T) %>% 
+  select(species, ITISRecognizedName) %>%
+  unique() %>%
+  arrange(species) %>%
+  filter(ITISRecognizedName %in% c(NA, ""))
+
+merge(e061_anpp,
       species_list_CDR %>% 
         select(Species, ITISRecognizedName) %>%
         rename(species = Species),
@@ -318,6 +336,7 @@ non_plant_things_in_biomass <- c("Corn litter",
                                  "Mosses & lichens",
                                  "Mosses & lichens 2",
                                  "moses & lichens",
+                                 "Mosses and lichens",
                                  "Lichens",
                                  "Pine litter",
                                  "Pine cones",
@@ -565,3 +584,57 @@ e245_metadata <- e245_anpp %>%
 #        precipitation, nutrients_added,  treatment, nutrients_added, 
 #        nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire,
 #        treatment_comment, diversity_manipulated)
+
+
+##e061####
+e061_anpp  <- e061_anpp %>%
+  mutate(site = "CDR",
+         plot = paste(macroplot, plot, sep= "."),
+         higher_order_organization = paste("e061_fieldB_macroplot", macroplot, sep = ""),
+         abundance = mass_g_m_2,
+         original_measurement_unit = "biomass_g/m2",
+         species = ifelse(species %in% "Chenopodiium album", "Chenopodium album", paste(species)),
+         species = ifelse(species %in% "Polyganum cilinode", "Polygonum cilinode", paste(species)),
+         species = ifelse(species %in% "Schizhyrium scoparium", "Schizachyrium scoparium", paste(species)),
+         species = ifelse(species %in% "Selaria lutescens (glauca)", "Setaria lutescens (glauca)", paste(species))) %>%
+  filter(!species %in% non_plant_things_in_biomass) %>%
+  group_by(site, field, experiment, macroplot, plot, treatment, year) %>%
+  mutate(relative_abundance        = abundance/sum(abundance )) 
+
+  
+# create metadata  
+
+# notes for metadata: 
+# fert_trt I: control, G: fertilized with 26g/m2 ammonium nitrate. ammonium 
+# nitrate contains 34% or 34.5% of N. ~ 8.9 gN/m2. I still need to find out if
+# this was added consequtively or just in the year 1990 when it is in the data.
+# e061 is located in field B in the same macroplots than e004 and e060. Field B
+# was fenced until 2004. So there is no grazing. The  burn information data 
+# set has a column names "Part of field B(e004?)". This field was last burned in
+# 1995. So it can be classified as fire frequency of zero (data used here starts 
+# 1996). Time since fire is therefore year-1995
+
+# TO DO: INCORPORATE NUTRIENT TREATMENT (WAIT FOR DANS EMAIL ANSWER)
+
+e061_metadata  <- e061_anpp %>%
+  ungroup() %>%
+  select(year, site, plot, higher_order_organization, treatment, fert_trt) %>%
+  unique() %>%
+  mutate(treatment_comment = ifelse(treatment %in% "BEX", "birds excluded", "control"),
+         treatment = ifelse(treatment %in% "BEX", "treatment", "control"),
+         # nutrients_added = NA,
+         disturbance = "undisturbed",
+         grazing = "ungrazed",
+         fire_frequency = 0,
+         time_since_fire = year-1995) # %>%
+# merge(.,
+#       meteodata)
+# select(year, site, plot, higher_order_organization, temperature, 
+#        precipitation, nutrients_added,  treatment, nutrients_added, 
+#        nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire,
+#        treatment_comment, diversity_manipulated)
+
+
+e061_anpp %>%
+  select(year, site, plot, higher_order_organization, species, abundance, relative_abundance, original_measurement_unit)
+  

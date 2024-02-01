@@ -13,7 +13,7 @@
 
 # * Species level Biomass (and cover data if available) from those CDR experiments:
 # e001: https://cedarcreek.umn.edu/research/experiments/e001
-#       Variables
+#       Biomass Data Variables
 #       exp:         experiment e001 -> 1
 #       year:        1982 - 2022 (2012 missing)
 #       field:       A: fencing given up after 2004, burned annually after 2005
@@ -28,7 +28,7 @@
 #       species:     unique species name
 #       biomass:    
 # e002: https://cedarcreek.umn.edu/research/experiments/e002
-#       Variables
+#       Biomass Data Variables
 #       exp:         experiment e002 -> 2
 #       year:        1982 - 2022 (2012 missing)
 #       field:       A: fencing given up after 2004, burned annually after 2005
@@ -44,7 +44,7 @@
 #       biomass:
 #       note: e001 and e002 data in same initial df. only difference experimental design wise is that e002 was disced (plowed) before establishing nutrient treatments
 # e054: https://cedarcreek.umn.edu/research/experiments/e054
-#       Variables
+#       Biomass Data Variables
 #       exp:         experiment e054 -> 54
 #       year:        1988 - 2022
 #       oldfield:    
@@ -54,7 +54,7 @@
 #       species:     unique species name
 #       biomass:     
 # e097: https://cedarcreek.umn.edu/research/experiments/e097
-#       Variables
+#       Biomass Data Variables
 #       field:       
 #       exp:        
 #       plot:        
@@ -65,29 +65,69 @@
 #       species:    
 #       biomass:     
 # e245: https://cedarcreek.umn.edu/research/experiments/e245
-#       Variables
-#       year:        2008 - 2021
-#       date:        exact sampling date
-#       plot:        1-48 (1-6 in block 1, 7-12 in block 2, ... 43-48 in block 3)
-#       subplot:     after 2019 divided in half, west subplots received fertilizer treatment (see ferttrt)
-#       treatment:   Control, FoliarFungicide, Insecticide, SoilDrenchFungicide, AllPesticides, Fenced
-#       ferttrt:     fertility treatment y (yes), n (no)
-#       species:     unique species name
-#       biomass:     g.m-1 biomass collected in a 10cm x 1m strip (exact location varies between years)
-#       strip:       in 2017 and 2018 two instead of just one 10cm x 1m strip was sampled for biomass
+#       Biomass Data Variables
+#        year:        2008 - 2021
+#        date:        exact sampling date
+#        plot:        1-48 (1-6 in block 1, 7-12 in block 2, ... 43-48 in block 3)
+#        subplot:     after 2019 divided in half, west subplots received fertilizer treatment (see ferttrt)
+#        treatment:   Control, FoliarFungicide, Insecticide, SoilDrenchFungicide, AllPesticides, Fenced
+#        ferttrt:     fertility treatment y (yes), n (no)
+#        species:     unique species name
+#        biomass:     g.m-1 biomass collected in a 10cm x 1m strip (exact location varies between years)
+#        strip:       in 2017 and 2018 two instead of just one 10cm x 1m strip was sampled for biomass
 # e061: https://cedarcreek.umn.edu/research/experiments/e061
-#       Variables
-#       Field.number.letter:  Letter B. Cedar Creek Ecosystem Science Reserve is subsetted into different fields. e061 is located in field B in the  macroplots of the experiments e004 and e060. Field burned in 1989, 1990, 1992, 1995
-#       Experiment.number:    61 (experiment 61 = e061)
-#       Macroplot.Number:     macroplots 2, 3, 4, 6, 7, and 10 of experiment e004 and e060 were used here
-#       Plot.number:          in each plot there were 3 plots (1,2,3)
-#       Bird.treatment:       In each plot there was a subplot with either birds exlcuded (BEX) or birds allowed (BAL)
-#       Nitrogen.Treatment:   Nitrogen treatment I: control, G: 26g/m2 ammonium nitrate added (~8.9g/m^2 nitrogen) UNSURE IF ONLY IN 1990 OR ALL YEARS
-#       Sampling.year:        Sampling year. Incomplete column. Probably a mistake column (There is a Year column, too)
-#       Species.Name:         Species names
-#       Species.Biomass:      Species biomass in g/m2
-#       Sampling.date:        Sampling date in YYMMDD format
+#       Biomass Data Variables
+#        Field.number.letter:  Letter B. Cedar Creek Ecosystem Science Reserve is subsetted into different fields. e061 is located in field B in the  macroplots of the experiments e004 and e060. Field burned in 1989, 1990, 1992, 1995
+#        Experiment.number:    61 (experiment 61 = e061)
+#        Macroplot.Number:     macroplots 2, 3, 4, 6, 7, and 10 of experiment e004 and e060 were used here
+#        Plot.number:          in each plot there were 3 plots (1,2,3)
+#        Bird.treatment:       In each plot there was a subplot with either birds exlcuded (BEX) or birds allowed (BAL)
+#        Nitrogen.Treatment:   Nitrogen treatment I: control, G: 26g/m2 ammonium nitrate added (~8.9g/m^2 nitrogen) UNSURE IF ONLY IN 1990 OR ALL YEARS
+#        Sampling.year:        Sampling year. Incomplete column. Probably a mistake column (There is a Year column, too)
+#        Species.Name:         Species names
+#        Species.Biomass:      Species biomass in g/m2
+#        Sampling.date:        Sampling date in YYMMDD format
 #       Year:                 Sampling year 1989, 1990, 1996-2003
+# e247: https://cedarcreek.umn.edu/research/experiments/e247
+#       Biomass Data Variables
+#        year:                 sampling year
+#        site_name:            "Cedar Creek LTER" site name within entire NutNet
+#        site_code:            "cdr.us" site code identifier within entire NutNet
+#        year_trt:             year of treatment = experiment duration at time of measurement. (Not all Nutrient Network sites started their treatments at the same year)
+#        trt:                  Control, NP, NPK, K, N, PK, NPK+Fence etc. categorical treatment varialbe
+#        block:                block within site (5 blocks in Cedar Creek LTER NutNet site)
+#        plot:                 unique plot number within Cdar Creek LTER NutNet site (1-60)
+#        subplot:              a random subplot (out of 4) is used for biomass sampling (always the same per plot)
+#        N:                    0: no N added, 1: N added
+#        P:                    0: no P added, 1: P added
+#        K:                    0: no K added, 1: K added
+#        Exclose:              0: no Fence, 1: Fence
+#        Nitrogen.fertilizer:  Additional treatments within the N treatments: variable amount of N 0, 1, 5, 10 gN/m2/y
+#        Aboveground.biomass:  dried mass (g/m2), Biomass collected in 2 0.1 x 1m strips and sorted to functional group.
+#        category:             functional group, to which biomass was sorted.
+#       Cover Data Variables
+#        year:                 sampling year
+#        site_name:            "Cedar Creek LTER" site name within entire NutNet
+#        site_code:            "cdr.us" site code identifier within entire NutNet
+#        year_trt:             year of treatment = experiment duration at time of measurement. (Not all Nutrient Network sites started their treatments at the same year)
+#        trt:                  Control, NP, NPK, K, N, PK, NPK+Fence etc. categorical treatment varialbe
+#        block:                block within site (5 blocks in Cedar Creek LTER NutNet site)
+#        plot:                 unique plot number within Cdar Creek LTER NutNet site (1-60)
+#        subplot:              a random subplot (out of 4) is used for cover measurements (always the same per plot)
+#        N:                    0: no N added, 1: N added
+#        P:                    0: no P added, 1: P added
+#        K:                    0: no K added, 1: K added
+#        Exclose:              0: no Fence, 1: Fence
+#        Nitrogen.fertilizer:  Additional treatments within the N treatments: variable amount of N 0, 1, 5, 10 gN/m2/y            
+#        Family:               Taxonomy
+#        Taxon:                Species
+#        live                  dead or alive (0/1)
+#        local_provenance      locally assigned provenance of taxon
+#        local_lifeform        locally assigned lifeform of taxon
+#        local_lifespan        locally assinged lifespan of taxon
+#        functional_group      = category in biomass data
+#        N_fixer               nitrogen fixin yes or no (0/1)     
+#        max_cover             maximum observed percent cover of taxon in plot for year indicated
 
 # Clear all existing data
 rm(list=ls())
@@ -215,6 +255,19 @@ e061_anpp <- read.delim(paste(L0_dir, "CDR/e061_Plant_aboveground_biomass_data.t
   filter(year %in% c(1996:2003))
 
 
+e247_anpp <- read.delim(paste(L0_dir, "CDR/e247_Aboveground_Standing_Crop_Biomass.txt", sep = "/"))
+
+e247_cover <- read.delim(paste(L0_dir, "CDR/e247_Plant_Species_Composition_percent_cover.txt", sep = "/")) %>%
+  rename(
+    "species" = "Taxon",
+    "abundance" = "max_cover",
+    "nitrogen_amount" = "Nitrogen.added.to.plot") %>%
+  mutate(
+    species = str_squish(species),
+    species = str_to_sentence(species),
+  )
+
+
 
 
 # Clean data ####
@@ -269,7 +322,29 @@ merge(e001e002_anpp,
   arrange(species) %>%
   filter(ITISRecognizedName %in% c(NA, ""))
 
-merge(e245_anpp,
+# merge(e245_anpp,
+#       species_list_CDR %>% 
+#         select(Species, ITISRecognizedName) %>%
+#         rename(species = Species),
+#       by = "species",
+#       all.x = T) %>% 
+#   select(species, ITISRecognizedName) %>%
+#   unique() %>%
+#   arrange(species) %>%
+#   filter(ITISRecognizedName %in% c(NA, ""))
+# 
+# merge(e061_anpp,
+#       species_list_CDR %>% 
+#         select(Species, ITISRecognizedName) %>%
+#         rename(species = Species),
+#       by = "species",
+#       all.x = T) %>% 
+#   select(species, ITISRecognizedName) %>%
+#   unique() %>%
+#   arrange(species) %>%
+#   filter(ITISRecognizedName %in% c(NA, ""))
+
+merge(e247_cover,
       species_list_CDR %>% 
         select(Species, ITISRecognizedName) %>%
         rename(species = Species),
@@ -278,23 +353,16 @@ merge(e245_anpp,
   select(species, ITISRecognizedName) %>%
   unique() %>%
   arrange(species) %>%
-  filter(ITISRecognizedName %in% c(NA, ""))
+  filter(ITISRecognizedName %in% c(NA, "")) %>%
+  filter(!species %in% genus_sp_in_biomass & !species %in% non_plant_things_in_biomass & !species %in% maybe_plant_things_in_biomass)
 
-merge(e061_anpp,
-      species_list_CDR %>% 
-        select(Species, ITISRecognizedName) %>%
-        rename(species = Species),
-      by = "species",
-      all.x = T) %>% 
-  select(species, ITISRecognizedName) %>%
-  unique() %>%
-  arrange(species) %>%
-  filter(ITISRecognizedName %in% c(NA, ""))
-
-genus_sp_in_biomass <- c("Allium sp.",
+genus_sp_in_biomass <- c("Acer sp.",
+                         "Allium sp.",
+                         "Alnus sp.",
                          "Apocynum sp.",
                          "Arabis sp.",
                          "Aristida sp.",
+                         "Asclepias sp.",
                          "Aster sp.",
                          "Bromus sp.",
                          "Calamovilfa sp.",
@@ -305,6 +373,7 @@ genus_sp_in_biomass <- c("Allium sp.",
                          "Digitaria sp.",
                          "Digitaria sp.",
                          "Equisetum sp.",
+                         "Eragrostis sp.",
                          "Erigeron sp.",
                          "Galium sp.",
                          "Helianthus sp.",
@@ -320,6 +389,7 @@ genus_sp_in_biomass <- c("Allium sp.",
                          "Parthenocissus sp.",
                          "Penstemon sp.",
                          "Pinus sp.",
+                         "Plantago sp.",
                          "Poa sp.",
                          "Polygala sp.",
                          "Polygonatum sp.",
@@ -329,6 +399,7 @@ genus_sp_in_biomass <- c("Allium sp.",
                          "Quercus sp.",
                          "Ranunculus sp.",
                          "Rhus sp.",
+                         "Rudbeckia sp.",
                          "Rubus sp.",
                          "Rumex sp.",
                          "Salix sp.",
@@ -339,18 +410,25 @@ genus_sp_in_biomass <- c("Allium sp.",
                          "Solidago sp.",
                          "Sporobolus sp.",
                          "Tradescantia sp.",
+                         "Tragopogon sp.",
                          "Trifolium sp.",
                          "Viola sp.")
 
 non_plant_things_in_biomass <- c("Corn litter", 
                                  "Fungi",
+                                 "Fungi sp.",
+                                 "Ground",
                                  "Miscellaneous litter",
                                  "Mosses",
                                  "Mosses & lichens",
                                  "Mosses & lichens 2",
                                  "moses & lichens",
                                  "Mosses and lichens",
+                                 "Lichen",
                                  "Lichens",
+                                 "Other",
+                                 "Other animal diggings",
+                                 "Other litter",
                                  "Pine litter",
                                  "Pine cones",
                                  "pine needles",
@@ -363,9 +441,12 @@ non_plant_things_in_biomass <- c("Corn litter",
 
 maybe_plant_things_in_biomass <- c("Grass seedlings",
                                    "1st year woody",
+                                   "Bryophyte",
                                    "C3 grasses",
                                    "C4 grasses",
+                                   "Forb",
                                    "Forb seedlings",
+                                   "Forb sp.",
                                    "Forbes",
                                    "Legumes",
                                    "Miscellaneous forb",
@@ -394,6 +475,11 @@ maybe_plant_things_in_biomass <- c("Grass seedlings",
                                    "Miscellaneous woody plants 1",
                                    "Miscellaneous woody plants 2",
                                    "Miscellaneous woody litter",
+                                   "Unknown",
+                                   "Unknown cupressaceae sp.",
+                                   "Unknown fabaceae",
+                                   "Unknown lamiaceae",
+                                   "Unknown sp.",
                                    "Sedges")
 
 
@@ -602,8 +688,8 @@ e245_metadata <- e245_anpp %>%
 ##e061####
 e061_anpp  <- e061_anpp %>%
   mutate(site = "CDR",
-         plot = paste(macroplot, plot, treatment, sep= "."),
-         higher_order_organization = paste("e061_fieldB_macroplot", macroplot, sep = ""),
+         plot = paste("e061_macroplot", macroplot, "_plot", plot, "_", treatment, sep= ""),
+         higher_order_organization = "e061_fieldB",
          abundance = mass_g_m_2,
          original_measurement_unit = "biomass_g/m2",
          species = ifelse(species %in% "Chenopodiium album", "Chenopodium album", paste(species)),
@@ -650,6 +736,66 @@ e061_metadata  <- e061_anpp %>%
 #        treatment_comment, diversity_manipulated)
 
 
-e061_anpp %>%
+e061_anpp <- e061_anpp %>%
   select(year, site, plot, higher_order_organization, species, abundance, relative_abundance, original_measurement_unit)
-  
+
+
+## e247 ####
+e247_anpp <- e247_anpp %>%
+  group_by(year, block, plot) %>%
+  summarize(plot_biomass = sum(Aboveground.biomass))
+
+e247_cover <- e247_cover %>%
+  mutate(site = "CDR",
+         plot = paste("e247_block_", block, "plot_", plot, sep = ""),
+         higher_order_organization = paste("e247_block_", block, sep = ""),
+         # these species names do not exist in the cedar creek species list. One could look them up and match them, so they would be easier to match for other things.
+         # species = ifelse(species %in% "Achillea millefolium",             "", species),
+         # species = ifelse(species %in% "Agrostis capillaris",              "", species),
+         # species = ifelse(species %in% "Agrostis stolonifera",             "", species),
+         # species = ifelse(species %in% "Ambrosia artemisiifolia",          "", species),
+         # species = ifelse(species %in% "Anaphalis margaritacea",           "", species),
+         # species = ifelse(species %in% "Andropogon gerardii",              "", species),
+         # species = ifelse(species %in% "Anemone canadensis",               "", species),
+         # species = ifelse(species %in% "Conyza canadensis",                "", species),
+         # species = ifelse(species %in% "Cyperus grayi",                    "", species),
+         # species = ifelse(species %in% "Cyperus lupulinus",                "", species),
+         # species = ifelse(species %in% "Echinacea serotina",               "", species),
+         # species = ifelse(species %in% "Elymus repens",                    "", species),
+         # species = ifelse(species %in% "Fallopia convolvulus",             "", species),
+         # species = ifelse(species %in% "Lychnis latifolia ssp. Alba",      "", species),
+         # species = ifelse(species %in% "Panicum acuminatum",               "", species),
+         # species = ifelse(species %in% "Pennisetum glaucum",               "", species),
+         # species = ifelse(species %in% "Rudbeckia hirta",                  "", species),
+         # species = ifelse(species %in% "Rudbeckia hirta var. Pulcherrima", "", species),
+         # species = ifelse(species %in% "Silene latifolia",                 "", species),
+         # species = ifelse(species %in% "Symphyotrichum boreale",           "", species),
+         # species = ifelse(species %in% "Toxicodendron radicans",           "", species),
+         # species = ifelse(species %in% "Tragopogon dubius",                "", species),
+         original_measurement_unit = "%") %>%
+  group_by(year, plot) %>%
+  mutate(relative_abundance        = abundance/sum(abundance ))
+
+e247_metadata <- e247_cover %>%
+  select(year, plot, trt, Exclose, nitrogen_amount) %>%
+  unique() %>%
+  mutate(treatment = ifelse(trt %in% "Control", "control", "treatment"),
+         nutrients_added = trt,
+         nutrients_added = gsub(nutrients_added, pattern = "+Fence",  replacement = ""),
+         nutrients_added = gsub(nutrients_added, pattern = "Fence",   replacement = "no_fertlizier"),
+         nutrients_added = gsub(nutrients_added, pattern = "Control", replacement = "no_fertilizer"),
+         disturbance = "undisturbed",
+         grazing = ifelse(trt %in% c("NPK+Fence", "Fence"), "ungrazed", "grazed"),
+         # fire_frequency = NA,
+         # time_since_fire = NA,
+         measurement_scale_biomass = "0.2m^2",
+         measurement_scale_cover = "1m^2") # %>%
+# merge(.,
+#       meteodata)
+# select(year, site, plot, higher_order_organization, temperature, 
+#        precipitation, treatment, nutrients_added, 
+#        nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire,
+#        treatment_comment, diversity_manipulated)
+
+e247_cover <- e247_cover %>%
+  select(year, site, plot, higher_order_organization, species, abundance, relative_abundance, original_measurement_unit)

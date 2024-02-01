@@ -75,6 +75,19 @@
 #       species:     unique species name
 #       biomass:     g.m-1 biomass collected in a 10cm x 1m strip (exact location varies between years)
 #       strip:       in 2017 and 2018 two instead of just one 10cm x 1m strip was sampled for biomass
+# e061: https://cedarcreek.umn.edu/research/experiments/e061
+#       Variables
+#       Field.number.letter:  Letter B. Cedar Creek Ecosystem Science Reserve is subsetted into different fields. e061 is located in field B in the  macroplots of the experiments e004 and e060. Field burned in 1989, 1990, 1992, 1995
+#       Experiment.number:    61 (experiment 61 = e061)
+#       Macroplot.Number:     macroplots 2, 3, 4, 6, 7, and 10 of experiment e004 and e060 were used here
+#       Plot.number:          in each plot there were 3 plots (1,2,3)
+#       Bird.treatment:       In each plot there was a subplot with either birds exlcuded (BEX) or birds allowed (BAL)
+#       Nitrogen.Treatment:   Nitrogen treatment I: control, G: 26g/m2 ammonium nitrate added (~8.9g/m^2 nitrogen) UNSURE IF ONLY IN 1990 OR ALL YEARS
+#       Sampling.year:        Sampling year. Incomplete column. Probably a mistake column (There is a Year column, too)
+#       Species.Name:         Species names
+#       Species.Biomass:      Species biomass in g/m2
+#       Sampling.date:        Sampling date in YYMMDD format
+#       Year:                 Sampling year 1989, 1990, 1996-2003
 
 # Clear all existing data
 rm(list=ls())
@@ -589,7 +602,7 @@ e245_metadata <- e245_anpp %>%
 ##e061####
 e061_anpp  <- e061_anpp %>%
   mutate(site = "CDR",
-         plot = paste(macroplot, plot, sep= "."),
+         plot = paste(macroplot, plot, treatment, sep= "."),
          higher_order_organization = paste("e061_fieldB_macroplot", macroplot, sep = ""),
          abundance = mass_g_m_2,
          original_measurement_unit = "biomass_g/m2",
@@ -607,7 +620,7 @@ e061_anpp  <- e061_anpp %>%
 # notes for metadata: 
 # fert_trt I: control, G: fertilized with 26g/m2 ammonium nitrate. ammonium 
 # nitrate contains 34% or 34.5% of N. ~ 8.9 gN/m2. I still need to find out if
-# this was added consequtively or just in the year 1990 when it is in the data.
+# this was added consecutively or just in the year 1990 when it is in the data.
 # e061 is located in field B in the same macroplots than e004 and e060. Field B
 # was fenced until 2004. So there is no grazing. The  burn information data 
 # set has a column names "Part of field B(e004?)". This field was last burned in
@@ -623,14 +636,16 @@ e061_metadata  <- e061_anpp %>%
   mutate(treatment_comment = ifelse(treatment %in% "BEX", "birds excluded", "control"),
          treatment = ifelse(treatment %in% "BEX", "treatment", "control"),
          # nutrients_added = NA,
+         # nitrogen_amount = NA,
          disturbance = "undisturbed",
          grazing = "ungrazed",
+         diversity_manipulated = "naturally_assembled",
          fire_frequency = 0,
          time_since_fire = year-1995) # %>%
 # merge(.,
 #       meteodata)
 # select(year, site, plot, higher_order_organization, temperature, 
-#        precipitation, nutrients_added,  treatment, nutrients_added, 
+#        precipitation, treatment, nutrients_added, 
 #        nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire,
 #        treatment_comment, diversity_manipulated)
 

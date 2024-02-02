@@ -151,6 +151,8 @@ species_list_CDR <- read.csv(paste(L0_dir, "CDR/cc_plant_species.csv", sep = "/"
 
 burns <- read.csv(paste(L0_dir, "CDR/CCESR_Burn_record_by_Burn_Unit_and_Year.csv", sep = "/"))
 
+climate <- read.csv(paste(L0_dir, "CDR/e080_Daily climate summary.csv", sep="/"))
+
 e001e002_anpp <- read.csv(paste(L0_dir, "CDR/E001 E002 Aboveground Biomass for ML through 2022.csv", sep = "/"))
 
 #e001_anpp <-
@@ -271,6 +273,21 @@ e247_cover <- read.delim(paste(L0_dir, "CDR/e247_Plant_Species_Composition_perce
 
 
 # Clean data ####
+#climate data to be included in metadata for all datasets
+climate <- climate %>%
+  separate(Date, into=c("Month", "Day", "Year")) %>%
+  group_by(Year) %>%
+  mutate(AvgTemp.defF. = (MaxTemp.degF.+MinTemp.degF.)/2) %>% #average the daily max and min to a single daily avg value
+  summarize(temperature = mean(AvgTemp.defF.),
+            precipitation = sum(Precip.inches.)) %>%
+  mutate(temperature = (temperature-32) * (5/9), #convert temp to celcius and precipitation to mm
+         precipitation = precipitation * 25.4,
+         Year = as.numeric(Year)) %>%
+  select(Year, temperature, precipitation)
+
+#note that 1962 is clearly an error but we don't use that year of data anyway in our datasets right???
+#now can add temp (mean temp for a given year) and precip (total precip) to metadata by merging based on years
+
 ##e001 and e002####
 str(e001e002_anpp)
 names(e001e002_anpp)
@@ -280,6 +297,9 @@ e001e002_anpp <- e001e002_anpp %>%
   mutate(site="CDR",
          higher_order_organization = paste("Experiment", Exp, " field", Field), # note I added the field string, so that it is not a random A. Not sure this is needed
          species = as.factor(Species)) #to look at all the species and identify things to remove
+
+#adding climate information
+e001e002_anpp <- inner_join(e001e002_anpp, climate, by="Year", multiple="all")
 
 #make new column that designates if fertilized or not
 e001e002_anpp <- e001e002_anpp %>%
@@ -304,6 +324,24 @@ e001e002_anpp <- e001e002_anpp %>%
                                     Exp == 2 & Field == "A" ~ 0,
                                     Exp == 2 & Field == "B" ~ 0,
                                     Exp == 2 & Field == "C" ~ 0,))
+
+#time since last burn
+df <- burns %>%
+  select(Year, Field.A..e001.) %>%
+  filter(!Year %in% "2000 Fall") %>%
+  mutate(Year = ifelse(Year %in% "2000 Spring", "2000", Year),
+         Year = as.numeric(paste(Year)),
+         your_column = Field.A..e001.,
+         time_since_fire = 0)
+
+for (i in 2:nrow(df)) {
+  if (is.na(df$your_column[i]) || df$your_column[i] == "") {
+    df$time_since_fire[i] <- df$time_since_fire[i - 1] + 1
+  } else {
+    df$time_since_fire[i] <- 0
+  }
+}
+
 
 #remove none plant species data, is there a better way to do this? --> use 
 # species list first and then create a second lists of things to kick out (list
@@ -507,8 +545,12 @@ e001e002_anpp = e001e002_anpp %>%
 
 #metadata df#
 e001e002_metadata <- e001e002_anpp %>%
+  merge(., 
+        df %>% select(Year, time_since_fire), 
+        by.y = "Year",
+        all.x = TRUE) %>%
   clean_names(.) %>%
-  select(site, year, plot, higher_order_organization, nutrients_added, nitrogen_amount, grazing, fire_frequency)
+  select(site, year, plot, higher_order_organization, temperature, precipitation, nutrients_added, nitrogen_amount, grazing, fire_frequency, time_since_fire)
 
 #e001 still needs to add temp, precip, and other variables that the master datasheet will have
 
@@ -528,7 +570,7 @@ e001e002_anpp <- e001e002_anpp %>%
   select(year, site, plot, higher_order_organization, species, abundance, relative_abundance, original_measurement_unit)
 
 #e001 and e002 anpp data is now in correct format
-#metadata still needs time since last burn and weather data
+#metadata includes most of our targets - still needs diversity-manipulated column and also a unique identifier column (higher_order + plot)
 
 
 ##e054####

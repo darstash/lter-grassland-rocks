@@ -296,7 +296,8 @@ names(e001e002_anpp)
 e001e002_anpp <- e001e002_anpp %>%
   mutate(site="CDR",
          higher_order_organization = paste("Experiment", Exp, " field", Field), # note I added the field string, so that it is not a random A. Not sure this is needed
-         species = as.factor(Species)) #to look at all the species and identify things to remove
+         species = as.factor(Species),
+         uniqueid = paste(higher_order_organization, " plot", Plot)) 
 
 #adding climate information
 e001e002_anpp <- inner_join(e001e002_anpp, climate, by="Year", multiple="all")
@@ -325,6 +326,10 @@ e001e002_anpp <- e001e002_anpp %>%
                                     Exp == 2 & Field == "B" ~ 0,
                                     Exp == 2 & Field == "C" ~ 0,))
 
+#new column for disturbance (e001 is undisturbed, e002 is disturbed)
+e001e002_anpp <- e001e002_anpp %>%
+  mutate(disturbance = case_when(Exp == 1 ~ "undisturbed",
+                                 Exp == 2 ~ "disturbed"))
 #time since last burn
 df <- burns %>%
   select(Year, Field.A..e001.) %>%
@@ -550,28 +555,29 @@ e001e002_metadata <- e001e002_anpp %>%
         by.y = "Year",
         all.x = TRUE) %>%
   clean_names(.) %>%
-  select(site, year, plot, higher_order_organization, temperature, precipitation, nutrients_added, nitrogen_amount, grazing, fire_frequency, time_since_fire)
+  mutate(diversity_manipulated = "naturally_assembled") %>%
+  select(site, year, plot, uniqueid, higher_order_organization, temperature, precipitation, 
+         nutrients_added, nitrogen_amount, grazing, fire_frequency, time_since_fire,
+         disturbance, diversity_manipulated)
 
 #e001 still needs to add temp, precip, and other variables that the master datasheet will have
 
 #combine rows that have same species but different biomass - this would be due to error I assume (they measured biomass of a species and entered it, then had another of the same species and added that entry as well)
 e001e002_anpp <- e001e002_anpp %>%
-  group_by(Year, site, Plot, higher_order_organization, species) %>% # this removes nitr_add and n_atmn_n_add columns which we don't want for cleaned data
+  group_by(Year, site, Plot, uniqueid, higher_order_organization, species) %>% # this removes nitr_add and n_atmn_n_add columns which we don't want for cleaned data
   summarize(Biomass.g.m2.=sum(Biomass.g.m2.))
 
 e001e002_anpp <- e001e002_anpp %>%
-  group_by(Year, site, Plot, higher_order_organization) %>%
+  group_by(Year, site, Plot, uniqueid, higher_order_organization) %>%
   mutate(relative_abundance = Biomass.g.m2./sum(Biomass.g.m2.),
          abundance = Biomass.g.m2.,
          original_measurement_unit = "biomass_g/m2") %>%
   clean_names(.)
 
 e001e002_anpp <- e001e002_anpp %>%
-  select(year, site, plot, higher_order_organization, species, abundance, relative_abundance, original_measurement_unit)
+  select(year, site, plot, higher_order_organization, uniqueid, species, abundance, relative_abundance, original_measurement_unit)
 
 #e001 and e002 anpp data is now in correct format
-#metadata includes most of our targets - still needs diversity-manipulated column and also a unique identifier column (higher_order + plot)
-
 
 ##e054####
 str(e054_anpp)
@@ -585,7 +591,11 @@ e054_anpp <- e054_anpp %>%
          Plot = case_when(Transect == "G" ~ 1, #sampling is done once in each transect within a field
                           Transect == "R" ~ 2, #so we are denoting the transect as 1-4 where biomass was collected in this plot column
                           Transect == "W" ~ 3,
-                          Transect == "Y" ~ 4)) 
+                          Transect == "Y" ~ 4),
+         uniqueid = paste(higher_order_organization," plot", Plot)) 
+
+#adding climate information
+e054_anpp <- inner_join(e054_anpp, climate, by="Year", multiple="all")
 
 #make new column that designates if fertilized or not
 e054_anpp <- e054_anpp %>%
@@ -614,17 +624,21 @@ e054_anpp = e054_anpp %>%
 #metadata df#
 e054_metadata <- e054_anpp %>%
   clean_names(.) %>%
-  select(site, year, plot, higher_order_organization, nutrients_added, nitrogen_amount, grazing, fire_frequency)
+  mutate(disturbance = "undisturbed",
+         diversity_manipulated = "naturally_assembled") %>%
+  select(site, year, plot, higher_order_organization, uniqueid, 
+         temperature, precipitation, disturbance,
+         nutrients_added, nitrogen_amount, grazing, fire_frequency, diversity_manipulated)
 
-#e054 still needs to add temp, precip, and other variables that the master datasheet will have
+#e054 still needs to time since fire and other variables that the master datasheet will have
 
 #combine rows that have same species but different biomass - this would be due to error I assume (they measured biomass of a species and entered it, then had another of the same species and added that entry as well)
 e054_anpp <- e054_anpp %>%
-  group_by(Year, site, Plot, higher_order_organization, species) %>% # this removes nitr_add and n_atmn_n_add columns which we don't want for cleaned data
+  group_by(Year, site, Plot, higher_order_organization, uniqueid, species) %>% # this removes nitr_add and n_atmn_n_add columns which we don't want for cleaned data
   summarize(Biomass=sum(Biomass))
 
 e054_anpp <- e054_anpp %>%
-  group_by(Year, site, Plot, higher_order_organization) %>%
+  group_by(Year, site, Plot, higher_order_organization, uniqueid) %>%
   mutate(relative_abundance = Biomass/sum(Biomass),
          abundance = Biomass,
          original_measurement_unit = "biomass_g/m2") %>%
@@ -632,10 +646,10 @@ e054_anpp <- e054_anpp %>%
   clean_names(.)
 
 e054_anpp <- e054_anpp %>%
-  select(year, site, plot, higher_order_organization, species, abundance, relative_abundance, original_measurement_unit)
+  select(year, site, plot, higher_order_organization, uniqueid, species, abundance, relative_abundance, original_measurement_unit)
 
 
-#e054_anpp matches data template - metadata still needs more info - precip, temp, time since last burn, etc..
+#e054_anpp matches data template - metadata still needs more info - time since last burn, etc..
 
 ##e245####
 
@@ -662,9 +676,16 @@ e245_anpp <- e245_anpp %>%
                                                plot %in% c(37:42) ~ "e245_block7",
                                                plot %in% c(43:48) ~ "e245_block8"),
          original_measurement_unit = "g/m2",
-         relative_abundance        = mass_g_m_2/sum(mass_g_m_2)) %>%
+         relative_abundance        = mass_g_m_2/sum(mass_g_m_2),
+         uniqueid = paste(higher_order_organization," plot", plot)) %>%
   rename("abundance" = mass_g_m_2) %>%
-  select(year, site, plot, higher_order_organization, species, abundance, relative_abundance, original_measurement_unit, treatment)
+  select(year, site, plot, higher_order_organization, uniqueid, species, abundance, relative_abundance, original_measurement_unit, treatment)
+
+#adding climate information
+e245_anpp <- climate %>%
+  mutate(year = Year) %>%
+  select(year, temperature, precipitation) %>%
+  inner_join(e245_anpp, ., by="year", multiple="all")
 
 e245_anpp <- e245_anpp %>%
   mutate(species = recode_factor(species,
@@ -702,7 +723,7 @@ for (i in 2:nrow(df)) {
 
 
 e245_metadata <- e245_anpp %>%
-  select(year, site, plot, higher_order_organization, treatment) %>%
+  select(year, site, plot, higher_order_organization, uniqueid, temperature, precipitation, treatment) %>%
   rename(treatment_comment = treatment) %>%
   unique() %>%
   mutate(
@@ -732,6 +753,7 @@ e061_anpp  <- e061_anpp %>%
   mutate(site = "CDR",
          plot = paste("e061_macroplot", macroplot, "_plot", plot, "_", treatment, sep= ""),
          higher_order_organization = "e061_fieldB",
+         uniqueid = paste(higher_order_organization," plot", plot),
          abundance = mass_g_m_2,
          original_measurement_unit = "biomass_g/m2",
          species = ifelse(species %in% "Chenopodiium album", "Chenopodium album", paste(species)),
@@ -759,7 +781,7 @@ e061_anpp  <- e061_anpp %>%
 
 e061_metadata  <- e061_anpp %>%
   ungroup() %>%
-  select(year, site, plot, higher_order_organization, treatment, fert_trt) %>%
+  select(year, site, plot, higher_order_organization, uniqueid, treatment, fert_trt) %>%
   unique() %>%
   mutate(treatment_comment = ifelse(treatment %in% "BEX", "birds excluded", "control"),
          treatment = ifelse(treatment %in% "BEX", "treatment", "control"),
@@ -770,6 +792,12 @@ e061_metadata  <- e061_anpp %>%
          diversity_manipulated = "naturally_assembled",
          fire_frequency = 0,
          time_since_fire = year-1995) # %>%
+
+#adding climate information
+e061_metadata <- climate %>%
+  mutate(year = Year) %>%
+  select(year, temperature, precipitation) %>%
+  inner_join(e061_metadata, ., by="year", multiple="all")
 # merge(.,
 #       meteodata)
 # select(year, site, plot, higher_order_organization, temperature, 
@@ -779,7 +807,8 @@ e061_metadata  <- e061_anpp %>%
 
 
 e061_anpp <- e061_anpp %>%
-  select(year, site, plot, higher_order_organization, species, abundance, relative_abundance, original_measurement_unit)
+  ungroup() %>%
+  select(year, site, plot, higher_order_organization,uniqueid, species, abundance, relative_abundance, original_measurement_unit)
 
 
 ## e247 ####
@@ -791,6 +820,7 @@ e247_cover <- e247_cover %>%
   mutate(site = "CDR",
          plot = paste("e247_block_", block, "plot_", plot, sep = ""),
          higher_order_organization = paste("e247_block_", block, sep = ""),
+###      #uniqueid = paste(higher_order_organization," plot", plot), #this is redundant with the previous code assigning for plot
          # these species names do not exist in the cedar creek species list. One could look them up and match them, so they would be easier to match for other things.
          # species = ifelse(species %in% "Achillea millefolium",             "", species),
          # species = ifelse(species %in% "Agrostis capillaris",              "", species),
@@ -832,6 +862,13 @@ e247_metadata <- e247_cover %>%
          # time_since_fire = NA,
          measurement_scale_biomass = "0.2m^2",
          measurement_scale_cover = "1m^2") # %>%
+
+#adding climate information
+e247_metadata <- climate %>%
+  mutate(year = Year) %>%
+  select(year, temperature, precipitation) %>%
+  inner_join(e247_metadata, ., by="year", multiple="all")
+
 # merge(.,
 #       meteodata)
 # select(year, site, plot, higher_order_organization, temperature, 

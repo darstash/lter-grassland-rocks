@@ -195,7 +195,9 @@ df_ppt = df_ppt %>%
 df_ppt = df_ppt[-c(1:6)]
 
 df_C1_KNZ.cleanest <- df_C1_KNZ.clean %>%
-right_join(df_ppt, by=c("year"))
+right_join(df_ppt, by=c("year")) %>%
+  unite(higher_order_organization,site,plot_trt, sep ="_", remove=FALSE) %>%
+  mutate(method="sorted_to_species")
 
 #Writing sppcomp dataset to upload to L1 folder
 write.csv(df_C1_KNZ.cleanest,"C:\\Users\\jasig\\Downloads\\df_C1_KNZ.cleanest.csv", row.names=FALSE)
@@ -224,15 +226,25 @@ df_C2_KNZ.clean <- df_C2_KNZ.cleaner %>%
   mutate(mean_forbs_rep = mean(forbs)) %>%
   mutate(mean_woody_rep = mean(woody)) %>%
   mutate(mean_biomass_rep = mean(total_biomass)) %>%
-  mutate(site = "KNZ")
+  mutate(site = "KNZ") %>%
+#create unique identifier to consolidate reps
+  unite(plot_trt, plot, treatment, sep="_", remove=FALSE)
 
-#Subsetting to just include plots and their total biomass (excluding reps)
+#Subsetting to just include plots and their average biomass per functional group (to account for four reps each)
 df_C2_KNZ.noreps <- df_C2_KNZ.clean %>% 
-  distinct(year, plot, plot_biomass, .keep_all = T)
-df_C2_KNZ.noreps <- df_C2_KNZ.noreps[-c(6:9)]
-df_C2_KNZ.noreps <- df_C2_KNZ.noreps[-c(6)]
+  distinct(year, plot_trt, plot_biomass, .keep_all = T)
+df_C2_KNZ.noreps <- df_C2_KNZ.noreps[-c(7:11)] %>%
+  unite(higher_order_organization,site,plot_trt, sep ="_", remove=FALSE)
 
-#Joining dataframes
+#Adding precip data
+df_C2_KNZ.cleanest <- df_C2_KNZ.noreps %>%
+right_join(df_ppt, by=c("year"))
+
+#Writing biomass dataset to upload to L1 folder
+write.csv(df_C2_KNZ.cleanest,"C:\\Users\\jasig\\Downloads\\df_C2_KNZ.cleanest.csv", row.names=FALSE)
+
+
+#Joining dataframes (Not ready yet)
 df_C1_C2_KNZ_clean<-df_C2_KNZ.noreps%>%
   left_join(C1_diversity, by=c("year","plot"))
 

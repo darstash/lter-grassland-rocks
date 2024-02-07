@@ -23,7 +23,6 @@ L0_dir <- Sys.getenv("L0DIR")
 L1_dir <- Sys.getenv("L1DIR")
 list.files(L0_dir)
 
-#setwd("~/Downloads")
 
 # Read in CSV files
 # bring in mcse data 
@@ -85,13 +84,25 @@ t7$Nutrients_added <- "no_fertilizer"
 # We'll need to go through this more and see if we need to change or delete anything (like none plant stuff). 
 # I wonder if we should make a master list of species between our 3 sites?
 unique(t7$Species)
+# REMOVE: "UnSorted" COULD BE MANY SP, "Standing Dead" and "Surface Litter" FROM LAST YEAR
+# OK for sp richness and ANPP calcs:
+# Genus sp., for example (""Hieracium sp. (*)")
+# "Unknown dicot (*)"
+# "Unknown grass" 
+# "Dicots"
+# "Monocots"
+# "Moss"  
 
-# calculate total ANPP: sum up ANPP for each species
-anpp_t7 <- t7 %>% 
+t7_nounknown <- t7 %>% 
+  filter(Species != "UnSorted" & 
+           Species != "Surface Litter" &
+           Species != "Standing Dead")
+# calculate total ANPP and richness: sum up ANPP for each plot, count rows for each plot
+anpp_rich_t7 <- t7_nounknown %>% 
   group_by(Year, Treatment, Replicate, Station, Source) %>% 
-  summarise(plot_biomass = sum(Biomass_g_m2))
+  summarise(plot_biomass = sum(Biomass_g_m2), # add up biomass
+            plot_richness = n()) # count number of rows for richness
 
-anpp_t7
 
 
 
@@ -110,11 +121,25 @@ micro$Source <- "MCSE Microplot (Table 154)"
 # anpp per treatment replicate disturbance regime....
 
 names(micro)
-anpp_micro <-  micro %>% 
-  group_by(Year, Treatment, Replicate, Disturbed_Microplot, Fertilized_Microplot,Source) %>% 
-  summarise (plot_biomass = sum (Biomass_g_m2))
+unique(micro$Species)
+#REMOVE:
+"Unknown" 
+"UnSorted"
+"Surface Litter"
+"Standing Dead"
+# leaving in unknown grass/forb, only known to family/genus, etc.
 
-head(anpp_micro)
+micro_nounknown <- micro %>% 
+  filter(Species != "Unknown" &  # should we take out unknown????
+           Species != "UnSorted" &  # take out.
+           Species != "Surface Litter" &  # take out
+           Species != "Standing Dead") # take out
+anpp_rich_micro <-  micro_nounknown %>% 
+  group_by(Year, Treatment, Replicate, Disturbed_Microplot, Fertilized_Microplot,Source) %>% 
+  summarise (plot_biomass = sum (Biomass_g_m2), # get plot biomass
+             plot_richness = n()) # get plot richness
+
+head(anpp_rich_micro)
 
 # add columns
 micro$Nutrients_added <- "N+"
@@ -122,24 +147,24 @@ micro$Nutrients_added <- "N+"
 
 
 
-####################################################################
-############ MCSE: combine these datasets into ANPP df and SPCOMP df
-####################################################################
+#########################################################################
+############ MCSE: combine these datasets into ANPP/rich df and SPCOMP df
+########################################################################
 
 
 #FIRST:
 # combine these ANPP datasets for microplot and normal Mcse
-names(anpp_t7)
-names(anpp_micro)
+names(anpp_rich_t7)
+names(anpp_rich_micro)
 
 
 # merge main MCSE with microplot
-anpp_KBS_T7 <- rbind(anpp_t7, anpp_micro)
+anpp_rich_KBS_T7 <- rbind(anpp_rich_t7, anpp_rich_micro)
 
-head(anpp_KBS_T7 )
-unique(anpp_KBS_T7$Treatment) # dope.
+head(anpp_rich_KBS_T7 )
+unique(anpp_rich_KBS_T7$Treatment) # dope.
 
-hist(anpp_KBS_T7$plot_biomass)
+hist(anpp_rich_KBS_T7$plot_biomass)
 
 
 # NEXT : GET Percent cover dataset (sp comp)
@@ -149,7 +174,7 @@ head(micro)
 
 
 # merge main MCSE with microplot
-t7_with_ANPP <- merge(t7, anpp_t7, by = c("Year", "Treatment", "Station",
+t7_with_ANPP <- merge(t7_nounknown, anpp_rich_t7, by = c("Year", "Treatment", "Station",
                                           "Replicate", "Source"))
 head(t7_with_ANPP)
 
@@ -158,7 +183,7 @@ t7_with_ANPP$Pseudo_PercCover <- t7_with_ANPP$Biomass_g_m2 / t7_with_ANPP$plot_b
 head(t7_with_ANPP)
 
 # micro
-micro_with_ANPP <- merge(micro, anpp_micro, by = c("Year", "Treatment", "Disturbed_Microplot", "Fertilized_Microplot",
+micro_with_ANPP <- merge(micro_nounknown, anpp_rich_micro, by = c("Year", "Treatment", "Disturbed_Microplot", "Fertilized_Microplot",
                                                    "Replicate", "Source"))
 head(micro_with_ANPP)
 
@@ -209,12 +234,22 @@ glbrc_grassland <- glbrc %>%
             Year <2018) # 2018 on is not sorted yet
 unique(glbrc_grassland$Treatment)
 
-# calculate total ANPP: sum up ANPP for ALL species
-anpp_glbrc <- glbrc_grassland %>% 
-  group_by(Year, Treatment, Site, Replicate, Station,Source) %>% 
-  summarise(plot_biomass = sum(Biomass_g_m2))
 
-anpp_glbrc
+unique(glbrc_grassland$Species)
+# remove: "UnSorted",   ,"Unknown" ,  "Standing Dead",  "Surface Litter"   
+
+glbrc_grassland_nounknown <- glbrc_grassland %>% 
+  filter(Species != "UnSorted" & 
+           Species != "Unknown" & 
+           Species != "Standing Dead" & 
+           Species != "Surface Litter"  )
+# calculate total ANPP: sum up ANPP for ALL species
+anpp_rich_glbrc <- glbrc_grassland_nounknown %>% 
+  group_by(Year, Treatment, Site, Replicate, Station,Source) %>% 
+  summarise(plot_biomass = sum(Biomass_g_m2),
+            plot_richness = n())
+
+anpp_rich_glbrc
 
 
 
@@ -239,18 +274,31 @@ glbrc_scaleup$Nutrients_added <- "no_fertilizer"
 
 
 # filter to only be trts we caare about
-# ALSO 
+# ALSO REMOVE 2009, there are only 2 species (Bromus, )
 glbrc_scaleup_grassland <- glbrc_scaleup %>% 
-  filter( (Treatment == "M2" | # CRP --> Prairie
-             Treatment == "L3") )  # AGR --> Prairie
+  filter( (Treatment == "M2" | # CRP --> Prairie 
+             Treatment == "L3" ) &  # AGR --> Prairie
+             Fraction == "whole" & # the first year they were separating grain, crops...
+           Year > 2009) # actually just remove that first year, looks like it was crops  
 unique(glbrc_scaleup_grassland$Treatment)
+unique(glbrc_scaleup_grassland$Year)
+unique(glbrc_scaleup_grassland$Fraction)
 
-# calculate total ANPP: sum up ANPP for each species
-anpp_glbrc_scaleup <- glbrc_scaleup_grassland %>% 
+unique(glbrc_scaleup_grassland$Species)
+# remove"UnSorted" ,    "Surface Litter",     "Standing Dead"
+
+glbrc_scaleup_grassland_nounknown <- glbrc_scaleup_grassland %>% 
+  filter(Species != "UnSorted" &
+           Species !=  "Surface Litter" &
+           Species != "Standing Dead" )
+
+# calculate total ANPP and rich: sum up ANPP for each plot, count rows
+anpp_rich_glbrc_scaleup <- glbrc_scaleup_grassland_nounknown %>% 
   group_by(Year, Treatment,  Station,Source) %>% 
-  summarise(plot_biomass = sum(Biomass_g_m2))
+  summarise(plot_biomass = sum(Biomass_g_m2),
+            plot_richness = n()) # SOMETHING GOING ON IN 2009!
 
-anpp_glbrc_scaleup
+anpp_rich_glbrc_scaleup
 
 
 
@@ -262,28 +310,28 @@ anpp_glbrc_scaleup
 
 #FIRST:
 # combine these ANPP datasets
-names(anpp_glbrc)
-names(anpp_glbrc_scaleup)
+names(anpp_rich_glbrc)
+names(anpp_rich_glbrc_scaleup)
 
 
 # merge main BCSE with scale up (ANPP)
-anpp_glbrc_KBS <- rbind(anpp_glbrc, anpp_glbrc_scaleup)
+anpp_rich_glbrc_KBS <- rbind(anpp_rich_glbrc, anpp_rich_glbrc_scaleup)
 
-head(anpp_glbrc_KBS )
-unique(anpp_glbrc_KBS$Treatment) 
+head(anpp_rich_glbrc_KBS )
+unique(anpp_rich_glbrc_KBS$Treatment) 
 
-hist(anpp_KBS_T7$plot_biomass)
-hist(anpp_glbrc_KBS$plot_biomass)
+hist(anpp_rich_KBS_T7$plot_biomass)
+hist(anpp_rich_glbrc_KBS$plot_biomass)
 
 
 # NEXT : GET Percent cover dataset (sp comp) for GLBRC
 
-head(glbrc_grassland )
-head(glbrc_scaleup_grassland)
+head(glbrc_grassland_nounknown )
+head(glbrc_scaleup_grassland_nounknown)
 
 
 # BCSE - merge main witih scaleup
-glbrc_BCSE_with_ANPP <- merge(glbrc_grassland, anpp_glbrc, by = c("Year", "Treatment", "Station", "Site",
+glbrc_BCSE_with_ANPP <- merge(glbrc_grassland_nounknown, anpp_rich_glbrc, by = c("Year", "Treatment", "Station", "Site",
                                                                   "Replicate", "Source"))
 head(glbrc_BCSE_with_ANPP)
 
@@ -294,7 +342,7 @@ head(glbrc_BCSE_with_ANPP)
 
 
 # Scaleup
-glbrc_scaleup_with_ANPP <- merge(glbrc_scaleup_grassland, anpp_glbrc_scaleup, by = c("Year", "Treatment", "Station" , 
+glbrc_scaleup_with_ANPP <- merge(glbrc_scaleup_grassland_nounknown, anpp_rich_glbrc_scaleup, by = c("Year", "Treatment", "Station" , 
                                                                                      "Source"))
 head(glbrc_scaleup_with_ANPP)
 
@@ -335,9 +383,9 @@ head(allkbsdata_spcomp)
 
 
 # anpp only
-head(anpp_KBS_T7)
-head(anpp_glbrc_KBS)
-allkbsdata_anpp <- dplyr:: bind_rows (anpp_KBS_T7, anpp_glbrc_KBS)
+head(anpp_rich_KBS_T7)
+head(anpp_rich_glbrc_KBS)
+allkbsdata_anpp <- dplyr:: bind_rows (anpp_rich_KBS_T7, anpp_rich_glbrc_KBS)
 
 
 
@@ -395,10 +443,14 @@ names(allkbsdata_anpp_tp) <- tolower(names(allkbsdata_anpp_tp))
 
 # write a new .csv with the cleaned and merged data and upload to the shared google drive L1 folder
 
-write.csv(allkbsdata_anpp_tp, file.path(L1_dir, "./KBS_MCSE_GLBRC_ANPP.csv"), row.names=F)
+write.csv(allkbsdata_anpp_tp, file.path(L1_dir, "./KBS_MCSE_GLBRC_ANPP_RICH.csv"), row.names=F)
 #write.csv(allt7_ANPP_tp, "KBS_MCSE_T7_ANPP.csv")
 
 ggplot(allkbsdata_anpp_tp, aes (x = annualprecip, y = plot_biomass)) + 
+  geom_point()
+
+
+ggplot(allkbsdata_anpp_tp, aes (x = annualprecip, y = plot_richness)) + 
   geom_point()
 
 
@@ -410,7 +462,7 @@ ggplot(allkbsdata_anpp_tp, aes (x = annualprecip, y = plot_biomass)) +
 
 
 
-
+# do not think we need this bit at the end anymore.
 ###################################
 
 ###################################
@@ -443,7 +495,7 @@ write.csv(allt7_SpComp_tp, file.path(L1_dir, "./KBS_MCSE_T7_SpComp.csv"), row.na
 
 
 
-allt7_ANPP_tp <- merge(anpp_KBS_T7, weatheryear, by = "Year")
+allt7_ANPP_tp <- merge(anpp_rich_KBS_T7, weatheryear, by = "Year")
 
 allt7_ANPP_tp
 

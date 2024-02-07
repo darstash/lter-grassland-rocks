@@ -52,6 +52,10 @@ glbrc_scaleup <- read.csv(file.path(L0_dir, "KBS/180-biomass+of+the+glbrc+scale+
 weatherdaily <- read.csv(file.path(L0_dir, "KBS/7-lter+weather+station+daily+precip+and+air+temp+1698756534_L0.csv"))
 #weatherdaily <- read.csv("7-lter+weather+station+daily+precip+and+air+temp+1698756534.csv", stringsAsFactors = FALSE)
 
+# bring in full weather data
+weatherdaily_all <- read.csv(file.path(L0_dir, "KBS/12-lter+weather+station+daily+weather+all+variates+1707331925.csv"))
+
+
 head(mcse)
 head(micro)
 head(glbrc)
@@ -99,7 +103,7 @@ t7_nounknown <- t7 %>%
            Species != "Standing Dead")
 # calculate total ANPP and richness: sum up ANPP for each plot, count rows for each plot
 anpp_rich_t7 <- t7_nounknown %>% 
-  group_by(Year, Treatment, Replicate, Station, Source) %>% 
+  group_by(Year, Treatment, Replicate, Station, Source, Nutrients_added) %>% 
   summarise(plot_biomass = sum(Biomass_g_m2), # add up biomass
             plot_richness = n()) # count number of rows for richness
 
@@ -129,20 +133,20 @@ unique(micro$Species)
 "Standing Dead"
 # leaving in unknown grass/forb, only known to family/genus, etc.
 
+# add columns
+micro$Nutrients_added <- "N+"
+
 micro_nounknown <- micro %>% 
   filter(Species != "Unknown" &  # should we take out unknown????
            Species != "UnSorted" &  # take out.
            Species != "Surface Litter" &  # take out
            Species != "Standing Dead") # take out
 anpp_rich_micro <-  micro_nounknown %>% 
-  group_by(Year, Treatment, Replicate, Disturbed_Microplot, Fertilized_Microplot,Source) %>% 
+  group_by(Year, Treatment, Replicate, Disturbed_Microplot, Fertilized_Microplot,Source, Nutrients_added) %>% 
   summarise (plot_biomass = sum (Biomass_g_m2), # get plot biomass
              plot_richness = n()) # get plot richness
 
 head(anpp_rich_micro)
-
-# add columns
-micro$Nutrients_added <- "N+"
 
 
 
@@ -175,7 +179,7 @@ head(micro)
 
 # merge main MCSE with microplot
 t7_with_ANPP <- merge(t7_nounknown, anpp_rich_t7, by = c("Year", "Treatment", "Station",
-                                          "Replicate", "Source"))
+                                          "Replicate", "Source", "Nutrients_added"))
 head(t7_with_ANPP)
 
 # get psesudo percent cover by dividing plant by total for ANPP...
@@ -184,7 +188,7 @@ head(t7_with_ANPP)
 
 # micro
 micro_with_ANPP <- merge(micro_nounknown, anpp_rich_micro, by = c("Year", "Treatment", "Disturbed_Microplot", "Fertilized_Microplot",
-                                                   "Replicate", "Source"))
+                                                   "Replicate", "Source", "Nutrients_added"))
 head(micro_with_ANPP)
 
 micro_with_ANPP$Pseudo_PercCover <- micro_with_ANPP$Biomass_g_m2 / micro_with_ANPP$plot_biomass * 100
@@ -245,7 +249,7 @@ glbrc_grassland_nounknown <- glbrc_grassland %>%
            Species != "Surface Litter"  )
 # calculate total ANPP: sum up ANPP for ALL species
 anpp_rich_glbrc <- glbrc_grassland_nounknown %>% 
-  group_by(Year, Treatment, Site, Replicate, Station,Source) %>% 
+  group_by(Year, Treatment, Site, Replicate, Station,Source, Nutrients_added) %>% 
   summarise(plot_biomass = sum(Biomass_g_m2),
             plot_richness = n())
 
@@ -294,7 +298,7 @@ glbrc_scaleup_grassland_nounknown <- glbrc_scaleup_grassland %>%
 
 # calculate total ANPP and rich: sum up ANPP for each plot, count rows
 anpp_rich_glbrc_scaleup <- glbrc_scaleup_grassland_nounknown %>% 
-  group_by(Year, Treatment,  Station,Source) %>% 
+  group_by(Year, Treatment,  Station,Source, Nutrients_added) %>% 
   summarise(plot_biomass = sum(Biomass_g_m2),
             plot_richness = n()) # SOMETHING GOING ON IN 2009!
 
@@ -332,7 +336,7 @@ head(glbrc_scaleup_grassland_nounknown)
 
 # BCSE - merge main witih scaleup
 glbrc_BCSE_with_ANPP <- merge(glbrc_grassland_nounknown, anpp_rich_glbrc, by = c("Year", "Treatment", "Station", "Site",
-                                                                  "Replicate", "Source"))
+                                                                  "Replicate", "Source", "Nutrients_added"))
 head(glbrc_BCSE_with_ANPP)
 
 # get psesudo percent cover by dividing plant by total for ANPP...
@@ -343,7 +347,7 @@ head(glbrc_BCSE_with_ANPP)
 
 # Scaleup
 glbrc_scaleup_with_ANPP <- merge(glbrc_scaleup_grassland_nounknown, anpp_rich_glbrc_scaleup, by = c("Year", "Treatment", "Station" , 
-                                                                                     "Source"))
+                                                                                     "Source", "Nutrients_added"))
 head(glbrc_scaleup_with_ANPP)
 
 glbrc_scaleup_with_ANPP$Pseudo_PercCover <- glbrc_scaleup_with_ANPP$Biomass_g_m2 / glbrc_scaleup_with_ANPP$plot_biomass * 100

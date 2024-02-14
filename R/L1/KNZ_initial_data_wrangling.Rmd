@@ -389,3 +389,226 @@ RaMPs_PlantCommunityComposition <- ramps %>%
 
 ```
 
+
+# Cleaning data A1 & A2 (ConSME)- Maya
+Note: for ConSME, it looks like there are only 4 years of species comp data, and 2 years of biomass data. There should be more biomass data for sure though. 
+```{r}
+
+#Reading in the data
+df_A1_KNZ <- read.csv(file.path(L0_dir, "KNZ/A1_CME011_Sppcomp.csv"), stringsAsFactors = FALSE)
+df_A2_KNZ <- read.csv(file.path(L0_dir, "KNZ/A2_CME012_Biomass.csv"), stringsAsFactors = FALSE)
+df_A3_KNZ <- read.csv(file.path(L0_dir, "KNZ/A3_CME01_treatments.csv"), stringsAsFactors = FALSE)
+
+#I added the Konza species list to the drive as well
+spplist <- read.csv(file.path(L0_dir, "KNZ/KNZ_specieslist_PPS011.csv"), stringsAsFactors = FALSE)
+
+
+# Initial checks 
+unique(df_A1_KNZ$RecYear) ##There are only 4 years of recorded species comp data: 2019-2022.  
+unique(df_A2_KNZ$Recyear) ##There are only 2 years of recorded biomass data: 2020 & 2021.
+unique(df_A1_KNZ$Watershed) ##2 watersheds: N1A & N4B
+unique(df_A2_KNZ$Watershed) ##Same two watersheds: N1A & N4B
+unique(sort(df_A1_KNZ$Block)) ##Blocks A-R
+unique(sort(df_A2_KNZ$Block)) ##Same blocks A-R
+unique(sort(df_A1_KNZ$Taxa)) ## Some non-plant observations that need to be removed; 
+
+
+### A1 - sppcomp
+
+## I am going to go ahead and remove non-plant things, and make invalid (negative) entries into 0's (NOT SURE IF THIS IS THE RIGHT PROTOCOL)
+df_A1_KNZ.clean <- subset(df_A1_KNZ, !(Taxa %in% c("NA NA", "Dung ", "Rock ", 
+                                                   "Litter", "Litter ", "Unknown seedlings")))
+df_A1_KNZ.clean$Cover <- replace(df_A1_KNZ.clean$Cover, df_A1_KNZ.clean$Cover < 0, 0) 
+
+
+## Looking through the dataset, I noticed some species names are different/misspelled and some entries are labelled with the wrong species number, so I am going to double check some species numbers, then just merge with the Konza species list to take care of the misspellings.
+
+for(i in 1:nrow(df_A1_KNZ.clean)){
+  if(df_A1_KNZ.clean$Taxa[i] == "Symphyotrichym (Aster) ericoides"){df_A1_KNZ.clean$Sppnum[i] <- 58}
+  if(df_A1_KNZ.clean$Taxa[i] == "Symphyotrichym (Aster) oblongifolium"){df_A1_KNZ.clean$Sppnum[i] <- 59}
+}
+
+
+#Taking just the columns I want (for now) from the species list
+spplist_short <- spplist %>% 
+  unite(species, genus:species, sep = "_" ) %>%
+  mutate(Sppnum = code) %>%
+  dplyr::select(Sppnum, species) %>%
+  add_case(Sppnum =c(-999, 0), 
+           species = c("unknown","bare_ground"))
+
+#Joining the species list and data together, so now we have correct spellings of species.
+df_A1_KNZ.clean <- left_join(df_A1_KNZ.clean, spplist_short, by = "Sppnum")
+
+
+#Rename columns to match datasheet outline
+df_A1_KNZ.clean <- df_A1_KNZ.clean %>%
+  mutate(site = as.factor("KNZ"),
+         rectype = RecType,
+         datacode = Datacode,
+         year = as.numeric(RecYear),
+         recdate = RecDate,
+         season = as.factor(Season),
+         watershed = as.factor(Watershed),
+         block = Block,
+         plot = Plot,
+         sppcode = Sppnum,
+         species = species,
+         abundance = Cover,
+         comments = Comments,
+         experiment  = "ConSME",
+         .keep = "unused") %>%
+  unite(higher_order_organization, 
+        experiment, site, watershed, 
+        block, sep = "_", remove = FALSE) %>%
+  unite(uniqueid, higher_order_organization, plot, sep = "_", remove = FALSE) %>%
+  mutate(higher_order_organization = as.factor(higher_order_organization),
+         uniqueid = as.factor(uniqueid),
+         measurement_scale_cover = "1m2")
+
+#Keeping the highest plot/species cover per season by summarizing data by the max abundance for every variable but season... there is probably a better way to do this lol.
+df_A1_KNZ.clean <- df_A1_KNZ.clean %>% group_by(datacode, experiment, year, 
+                                                 recdate, higher_order_organization, uniqueid, 
+                                                 site, watershed, block,
+                                                 plot, sppcode, species, Taxa, measurement_scale_cover, comments) %>% 
+  summarize(abundance = max(abundance))
+
+
+## Calculating relative abundance
+df_A1_KNZ.clean <- df_A1_KNZ.clean %>%
+ group_by(year, plot, uniqueid, watershed)%>%
+  mutate(total_abundance = sum(abundance))%>%
+  group_by(year, plot, uniqueid, watershed, species)%>%
+  mutate(relative_abundance = (abundance/total_abundance) * 100)%>%
+  ungroup()
+
+## Calculating richness and evenness
+A1_richness <- df_A1_KNZ.clean %>%
+  community_diversity(time.var = "year",
+                      abundance.var = "relative_abundance",
+                      replicate.var = "uniqueid", metric = "Shannon")
+
+A1_diversity <- df_A1_KNZ.clean %>% 
+  #calculates richness and evenness as Evar
+  community_structure(time.var = "year", 
+                      abundance.var = "relative_abundance",
+                      replicate.var = "uniqueid",
+                      metric = "SimpsonEvenness") %>%
+  left_join(A1_richness, by = c("year","uniqueid"))
+
+
+#Creating an dataframe for all the distinct descriptive columns
+df_A1_KNZ.env <- df_A1_KNZ.clean %>% 
+    distinct(datacode, experiment, year, 
+             higher_order_organization, uniqueid, 
+             site, watershed, block, plot)
+
+#Joining the diversity dataframe to the distinct columns dataframe
+A1_diversity <- left_join(A1_diversity, df_A1_KNZ.env, by = c("year", "uniqueid"), keep = FALSE) %>%
+  mutate(plot = as.factor(plot))
+    
+
+
+### A2-biomass
+
+#Renaming variables so they match the sppcomp data (and so that they're all lowercase because I'm weird and I need things to match)
+df_A2_KNZ.clean <- df_A2_KNZ %>%
+  rename(datacode = DataCode,
+         rectype = RecType,
+         year = Recyear,
+         watershed = Watershed,
+         block = Block,
+         plot = Plot,
+         strip = Strip,
+         lvgrass = Lvgrass,
+         forb = Forb,
+         woody = Woody,
+         pdead = Pdead,
+         comments = Comments
+         ) %>% 
+  mutate(site = "KNZ",
+         experiment  = "ConSME") %>%
+  unite(higher_order_organization, 
+        experiment, site, watershed, 
+        block, sep = "_", remove = FALSE) %>%
+  unite(uniqueid, higher_order_organization, plot, sep = "_", remove = FALSE) %>%
+  mutate(higher_order_organization = as.factor(higher_order_organization),
+         uniqueid = as.factor(uniqueid))
+
+#Replacing values that were recorded as -999 to 0 (NOT SURE IF THIS IS THE RIGHT PROTOCOL)
+df_A2_KNZ.clean$lvgrass <- replace(df_A2_KNZ.clean$lvgrass, df_A2_KNZ.clean$lvgrass < 0, 0) 
+df_A2_KNZ.clean$forb <- replace(df_A2_KNZ.clean$forb, df_A2_KNZ.clean$forb < 0, 0)
+df_A2_KNZ.clean$woody <- replace(df_A2_KNZ.clean$woody, df_A2_KNZ.clean$woody < 0, 0)
+df_A2_KNZ.clean$pdead <- replace(df_A2_KNZ.clean$pdead, df_A2_KNZ.clean$pdead < 0, 0)
+
+#Since biomass was taken in 2 strips (both 1m2) per plot, I'm going to average the two strips for each plot... not sure if this is what we want... unfortunately, this gets rid of comments 
+df_A2_KNZ.clean <- df_A2_KNZ.clean %>% group_by(datacode, year, higher_order_organization, uniqueid, watershed, block, plot) %>%
+  summarize(lvgrass_avg = mean(lvgrass),
+            forb_avg = mean(forb),
+            woody_avg = mean(woody),
+            pdead_avg = mean(pdead)) %>% 
+  ungroup() %>%
+  group_by(year, watershed, uniqueid, plot) %>% # Summing the biomass together -- does not include pdead
+  mutate(plot_biomass = sum(lvgrass_avg, forb_avg, woody_avg),
+         plot = as.factor(plot)) %>%
+  ungroup()
+
+
+
+
+# Putting A1_diversity and A2 together
+df_A1_A2_KNZ.clean <- left_join(A1_diversity, df_A2_KNZ.clean,
+                                by = c("year", "higher_order_organization", "uniqueid", 
+                                       "watershed", "block", "plot"), keep = FALSE) %>%
+  mutate(measurement_scale_cover = "1m2",
+         measurement_scale_biomass = "0.1m2") %>%
+  rename(source = datacode.x)
+
+#END RESULTs: 
+view(df_A1_KNZ.clean)
+view(df_A1_A2_KNZ.clean)
+
+
+
+
+
+
+#Taking the extra info and putting it into a new metadata data frame?
+A1_A2_metadata <- df_A1_KNZ.env %>% mutate(fire_frequency = NA,
+                                              grazing = "ungrazed",
+                                              time_since_fire = NA,
+                                           nutrients_added = NA,
+                                           nitrogen_amount = NA,
+                                           disturbance = NA) #I am unsure what we are counting as disturbance... like is bison grazing considered a disturbance?
+
+#Choosing just the columns I want from the treatment dataset
+df_A3_KNZ.short <- df_A3_KNZ %>% select(watershed, block, plot, trt)
+
+
+#Joining the species comp data and treatment datasets
+A1_A2_metadata <- left_join(A1_A2_metadata, df_A3_KNZ.short, by = c("watershed", "block", "plot")) %>%
+  mutate(treatment = factor(trt),
+         watershed = as.factor(watershed),
+         .keep = "unused",
+         treatment_comment = NA)
+
+#NOTE: for treatment, the presence of an "B" mean bison were allowed on the plot, "S" means small mammals had access to the plot, and "I" means insects had access. The "X" in place of any of these letters means the herbivore was excluded.
+
+#Adding in the fire and grazing info
+for(i in 1:nrow(A1_A2_metadata)){
+  if(A1_A2_metadata$watershed[i] == "N1A"){A1_A2_metadata$fire_frequency[i] <- 1}
+  if(A1_A2_metadata$watershed[i] == "N4B"){A1_A2_metadata$fire_frequency[i] <- 4}
+  if(A1_A2_metadata$watershed[i] == "N1A"){A1_A2_metadata$time_since_fire[i] <- 0}
+  if(A1_A2_metadata$watershed[i] == "N4B" & A1_A2_metadata$year[i] == 2019){A1_A2_metadata$time_since_fire[i] <- 0}
+  if(A1_A2_metadata$watershed[i] == "N4B" & A1_A2_metadata$year[i] == 2020){A1_A2_metadata$time_since_fire[i] <- 1} #I should put code to calculate this instead of writing it by hand so that it is more integrative, but there are only two watersheds and 4 years of data and I just wanna do it the dumb way for now
+  if(A1_A2_metadata$watershed[i] == "N4B" & A1_A2_metadata$year[i] == 2021){A1_A2_metadata$time_since_fire[i] <- 2}
+  if(A1_A2_metadata$watershed[i] == "N4B" & A1_A2_metadata$year[i] == 2022){A1_A2_metadata$time_since_fire[i] <- 3}
+  if(A1_A2_metadata$treatment[i] == "BSI"){A1_A2_metadata$grazing[i] <- "grazed"}
+  if(A1_A2_metadata$treatment[i] == "BSX"){A1_A2_metadata$grazing[i] <- "grazed"}
+}
+
+
+#I have not yet done the precip and temp data
+
+
+```

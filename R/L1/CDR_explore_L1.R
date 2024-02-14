@@ -189,21 +189,22 @@ e054_anpp <- read.csv(paste(L0_dir, "CDR/e54_biomass_1221_ML.csv", sep = "/"))
 #         "biomass" = "V8"
 #         )
 
-e097_anpp <- 
-  read.table(paste(L0_dir, "CDR/e097_Plant_aboveground_biomass_data.txt", sep = "/"), 
-             sep  = "\t", 
-             skip = 1
-  ) %>%
-  rename("field"       = "V1", 
-         "exp"         = "V2", 
-         "plot"        = "V3",
-         "date"        = "V4",
-         "ntrt"        = "V5", 
-         "nadd"        = "V6", 
-         "ntrtreceived"= "V7", 
-         "species"     = "V8",  
-         "biomass"     = "V9"
-  )
+#no longer including this as it is a subset of e001/e002
+#e097_anpp <- 
+#  read.table(paste(L0_dir, "CDR/e097_Plant_aboveground_biomass_data.txt", sep = "/"), 
+#             sep  = "\t", 
+#             skip = 1
+#  ) %>%
+#  rename("field"       = "V1", 
+#         "exp"         = "V2", 
+#         "plot"        = "V3",
+#         "date"        = "V4",
+#         "ntrt"        = "V5", 
+#         "nadd"        = "V6", 
+#         "ntrtreceived"= "V7", 
+#         "species"     = "V8",  
+#         "biomass"     = "V9"
+#  )
 
 
 e245_anpp <- read.delim(paste(L0_dir, "CDR/e245_Plant_aboveground_biomass_data.txt", sep = "/")) %>%
@@ -387,17 +388,17 @@ merge(e001e002_anpp,
 #   arrange(species) %>%
 #   filter(ITISRecognizedName %in% c(NA, ""))
 
-merge(e247_cover,
-      species_list_CDR %>% 
-        select(Species, ITISRecognizedName) %>%
-        rename(species = Species),
-      by = "species",
-      all.x = T) %>% 
-  select(species, ITISRecognizedName) %>%
-  unique() %>%
-  arrange(species) %>%
-  filter(ITISRecognizedName %in% c(NA, "")) %>%
-  filter(!species %in% genus_sp_in_biomass & !species %in% non_plant_things_in_biomass & !species %in% maybe_plant_things_in_biomass)
+#merge(e247_cover,
+#      species_list_CDR %>% 
+#        select(Species, ITISRecognizedName) %>%
+#        rename(species = Species),
+#      by = "species",
+#      all.x = T) %>% 
+#  select(species, ITISRecognizedName) %>%
+##  unique() %>%
+#  arrange(species) %>%
+#  filter(ITISRecognizedName %in% c(NA, "")) %>%
+#  filter(!species %in% genus_sp_in_biomass & !species %in% non_plant_things_in_biomass & !species %in% maybe_plant_things_in_biomass)
 
 genus_sp_in_biomass <- c("Acer sp.",
                          "Allium sp.",
@@ -751,8 +752,8 @@ e245_metadata <- e245_anpp %>%
 ##e061####
 e061_anpp  <- e061_anpp %>%
   mutate(site = "CDR",
-         plot = paste("e061_macroplot", macroplot, "_plot", plot, "_", treatment, sep= ""),
-         higher_order_organization = "e061_fieldB",
+         #plot = paste("e061_macroplot", macroplot, "_plot", plot, "_", treatment, sep= ""),
+         higher_order_organization = paste("e061_fieldB","macroplot", macroplot,sep= ""),
          uniqueid = paste(higher_order_organization," plot", plot),
          abundance = mass_g_m_2,
          original_measurement_unit = "biomass_g/m2",
@@ -812,15 +813,11 @@ e061_anpp <- e061_anpp %>%
 
 
 ## e247 ####
-e247_anpp <- e247_anpp %>%
-  group_by(year, block, plot) %>%
-  summarize(plot_biomass = sum(Aboveground.biomass))
-
 e247_cover <- e247_cover %>%
   mutate(site = "CDR",
-         plot = paste("e247_block_", block, "plot_", plot, sep = ""),
+         #plot = paste("e247_block_", block, "plot_", plot, sep = ""),
          higher_order_organization = paste("e247_block_", block, sep = ""),
-###      #uniqueid = paste(higher_order_organization," plot", plot), #this is redundant with the previous code assigning for plot
+         uniqueid = paste(higher_order_organization," plot", plot),
          # these species names do not exist in the cedar creek species list. One could look them up and match them, so they would be easier to match for other things.
          # species = ifelse(species %in% "Achillea millefolium",             "", species),
          # species = ifelse(species %in% "Agrostis capillaris",              "", species),
@@ -845,11 +842,11 @@ e247_cover <- e247_cover %>%
          # species = ifelse(species %in% "Toxicodendron radicans",           "", species),
          # species = ifelse(species %in% "Tragopogon dubius",                "", species),
          original_measurement_unit = "%") %>%
-  group_by(year, plot) %>%
+  group_by(year, plot, uniqueid) %>%
   mutate(relative_abundance        = abundance/sum(abundance ))
 
 e247_metadata <- e247_cover %>%
-  select(year, plot, trt, Exclose, nitrogen_amount) %>%
+  select(year, plot, uniqueid, trt, Exclose, nitrogen_amount) %>%
   unique() %>%
   mutate(treatment = ifelse(trt %in% "Control", "control", "treatment"),
          nutrients_added = trt,
@@ -877,4 +874,48 @@ e247_metadata <- climate %>%
 #        treatment_comment, diversity_manipulated)
 
 e247_cover <- e247_cover %>%
-  select(year, site, plot, higher_order_organization, species, abundance, relative_abundance, original_measurement_unit)
+  select(year, site, plot, higher_order_organization, uniqueid, species, abundance, relative_abundance, original_measurement_unit)
+
+#ANPP and Richness#####
+e001e002_metrics <- e001e002_anpp %>%
+  group_by(year, site, higher_order_organization, plot,  uniqueid, original_measurement_unit) %>%
+  summarize(plot_biomass = sum(abundance),
+            richness = n())
+
+e054_metrics <- e054_anpp %>%
+  group_by(year, site, higher_order_organization, plot,  uniqueid, original_measurement_unit) %>%
+  summarize(plot_biomass = sum(abundance),
+            richness = n())
+
+e245_metrics <- e245_anpp %>%
+  group_by(year, site, higher_order_organization, plot,  uniqueid, original_measurement_unit) %>%
+  summarize(plot_biomass = sum(abundance),
+            richness = n())
+
+e061_metrics <- e061_anpp %>%
+  group_by(year, site, higher_order_organization, plot,  uniqueid, original_measurement_unit) %>%
+  summarize(plot_biomass = sum(abundance),
+            richness = n())
+
+#for e247 need to calculate richness from cover data and biomass from anpp data then merge dataframes
+e247_anpp <- e247_anpp %>%
+  group_by(year, block, plot) %>%
+  summarize(plot_biomass = sum(Aboveground.biomass)) %>%
+  ungroup() %>%
+  select(year, plot, plot_biomass)
+
+e247_richness <- e247_cover %>%
+  group_by(year, site, plot, higher_order_organization, uniqueid, original_measurement_unit) %>%
+  summarize(richness = n())
+
+e247_metrics <- merge(e247_richness, e247_anpp, by=c("year", "plot"))
+
+#Combine CDR datasets####
+
+cdr_data <- e001e002_metrics %>%
+  rbind(e054_metrics) %>%
+  rbind(e245_metrics) %>%
+  rbind(e061_metrics) %>%
+  rbind(e247_metrics)
+
+#so this has all the bareminimum variables - no metadata information - need to confirm and work on checking off all variables for each data set - then can consider making a master metadata df too????

@@ -252,3 +252,140 @@ df_C1_C2_KNZ_clean<-df_C2_KNZ.noreps%>%
 
 ```
 
+
+# Cleaning data D1 and D2 - Matt
+```{r}
+
+## bring in RaMPs data
+# ramps <- read.csv("D1_D2_RMP011_Sppcomp_Biomass .csv",header = TRUE, sep = ",") # NOTICE there is a space before the .csv
+#Note from Maya: I am going to read in data from the shared Google drive instead
+
+ramps <- read.csv(file.path(L0_dir, "KNZ/D1_D2_RMP011_Sppcomp_Biomass .csv"), header = TRUE, sep = ",", stringsAsFactors = FALSE) # NOTICE there is a space before the .csv
+
+ramps$RecYear <- as.factor(ramps$RecYear)
+ramps$season <- as.factor(ramps$season)
+ramps$RampNo <- as.factor(ramps$RampNo)
+ramps$Species <- as.factor(ramps$Species)
+
+
+##### ANPP #####
+RaMPs_ANPP_working <- ramps %>% 
+  mutate(A_g_m2 = A*10,
+         B_g_m2 = B*10,
+         C_g_m2 = C*10,
+         D_g_m2 = D*10) %>% 
+  group_by(RecYear, season, RampNo) %>% 
+  summarize(A_ANPP = sum(A_g_m2),
+            B_ANPP = sum(B_g_m2),
+            C_ANPP = sum(C_g_m2),
+            D_ANPP = sum(D_g_m2)) %>% 
+  tidyr::gather(key="plot", value="plot_biomass", A_ANPP, B_ANPP, C_ANPP, D_ANPP) %>% 
+  mutate(plot = plyr::revalue(plot, c("A_ANPP" = "A",
+                                      "B_ANPP" = "B",
+                                      "C_ANPP" = "C",
+                                      "D_ANPP" = "D")))
+
+ambient_ramps <- c(3, 4, 6, 7, 11, 15)
+altered_ramps <- c(2,5,9, 10, 12, 13)
+control_ramps <- c(1, 8, 14)
+
+levels(as.factor(RaMPs_ANPP_working$RampNo))
+class(RaMPs_ANPP_working$RampNo)
+
+RaMPs_ANPP <- RaMPs_ANPP_working %>% 
+  dplyr::rename(year = RecYear,
+                subplot = plot) %>% 
+  mutate(site = "KNZ",
+         ramps = "RampNo",
+         experiment = "RaMPs",
+         treatment  = case_when(RampNo %in% ambient_ramps ~ "ambient",
+                                RampNo %in% altered_ramps ~ "altered",
+                                RampNo %in% control_ramps ~ "control"),
+         block = case_when(RampNo %in% c(1:5) ~ "Block1",
+                           RampNo %in% c(6:10) ~ "Block2",
+                           RampNo %in% c(11:15) ~ "Block3")) %>%
+  filter(year != "1997") %>% # 1997 was year before shelters were put up
+  #group_by(year, season, RampNo, site, ramps, experiment, treatment) %>% 
+  #summarize(plot_biomass = mean(plot_biomass)) %>% 
+  tidyr::unite("higher_order_organization", c(experiment, block), remove = F) %>% #ramps, RampNo
+  tidyr::unite("uniqueID", c(higher_order_organization, ramps, RampNo, subplot), remove = F) %>%
+  dplyr::rename(plot = RampNo) %>% 
+  dplyr::select(year, season, site, plot, higher_order_organization, uniqueID, treatment, plot_biomass) %>% 
+  mutate(nutrients_added = "no_fertilizer",
+         nitrogen_added = 0,
+         disturbance = "undisturbed",
+         grazing = "ungrazed",
+         fire_frequency = 1,
+         time_since_fire = NA,
+         diversity_manipulated = "naturally_assembled",
+         measurement_scale_biomass = NA,
+         richness = NA,
+         evenness = NA,
+         measurement_scale_cover = NA) %>% 
+  mutate(treatment_comment = case_when(treatment == "altered" & as.numeric(year) <= 2001 ~ "Could be reduced quantity, altered pattern, or both",
+                                       treatment == "altered" & as.numeric(year) == 2001 ~ "Reduced quantity ended",
+                                       treatment == "altered" & as.numeric(year) >= 2003 ~ "Heat lamps added to two random subplots",
+                                       treatment == "control" ~ "Unsheltered controls to account for effects from shelter infrastructure"))
+
+
+# factors we need: year, site, plot, higher_order_organization, temperature, 
+# precipitation, nutrients_added, nitrogen_amount, disturbance, grazing, 
+# fire_frequency, time_since_fire, treatment comment, diversity_manipulated,
+# plot_biomass, measurement_scale_biomass, richness, evenness, measurement_scale_cover
+
+
+##### Community composition #####
+ambient_ramps <- c(3, 4, 6, 7, 11, 15)
+altered_ramps <- c(2,5,9, 10, 12, 13)
+control_ramps <- c(1, 8, 14)
+
+RaMPs_PlantCommunityComposition <- ramps %>% 
+  mutate(A_g_m2 = A*10,
+         B_g_m2 = B*10,
+         C_g_m2 = C*10,
+         D_g_m2 = D*10) %>% 
+  dplyr::select(RecType,RecYear,season,RampNo,Species,A_g_m2,B_g_m2,C_g_m2,D_g_m2) %>% 
+  dplyr::rename(A = A_g_m2,
+                B = B_g_m2,
+                C = C_g_m2,
+                D = D_g_m2) %>% 
+  tidyr::gather(key="plot", value="plot_biomass_spp", A, B, C, D) %>% 
+  merge(., RaMPs_ANPP_working, 
+        by=c("RecYear", "season", "RampNo", "plot")) %>% 
+  mutate(Pseudo_PercCover = plot_biomass_spp/plot_biomass*100) %>% 
+  dplyr::rename(year = RecYear,
+                subplot = plot) %>% 
+  mutate(site = "KNZ",
+         ramps = "RampNo",
+         experiment = "RaMPs",
+         treatment  = case_when(RampNo %in% ambient_ramps ~ "ambient",
+                                RampNo %in% altered_ramps ~ "altered",
+                                RampNo %in% control_ramps ~ "control"),
+         block = case_when(RampNo %in% c(1:5) ~ "Block1",
+                           RampNo %in% c(6:10) ~ "Block2",
+                           RampNo %in% c(11:15) ~ "Block3")) %>% 
+  filter(year != "1997") %>% # 1997 was year before shelters were put up
+  #group_by(year, season, RampNo, site, ramps, experiment, treatment) %>% 
+  #summarize(plot_biomass = mean(plot_biomass)) %>% 
+  tidyr::unite("higher_order_organization", c(experiment, block), remove = F) %>% #ramps, RampNo
+  tidyr::unite("uniqueID", c(higher_order_organization, ramps, RampNo, subplot), remove = F) %>%
+  dplyr::rename(plot = RampNo) %>% 
+  dplyr::select(year, season, site, plot, higher_order_organization, uniqueID, treatment, Pseudo_PercCover, Species) %>% 
+  mutate(nutrients_added = "no_fertilizer",
+         nitrogen_added = 0,
+         disturbance = "undisturbed",
+         grazing = "ungrazed",
+         fire_frequency = 1,
+         time_since_fire = NA,
+         diversity_manipulated = "naturally_assembled",
+         measurement_scale_biomass = NA,
+         richness = NA,
+         evenness = NA,
+         measurement_scale_cover = NA) %>% 
+  mutate(treatment_comment = case_when(treatment == "altered" & as.numeric(year) <= 2001 ~ "Could be reduced quantity, altered pattern, or both",
+                                       treatment == "altered" & as.numeric(year) == 2001 ~ "Reduced quantity ended",
+                                       treatment == "altered" & as.numeric(year) >= 2003 ~ "Heat lamps added to two random subplots",
+                                       treatment == "control" ~ "Unsheltered controls to account for effects from shelter infrastructure"))
+
+```
+

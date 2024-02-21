@@ -51,8 +51,12 @@ kbsdata_anpp_div <- merge (kbsdata, kbs_shannon, by = c("year", "treatment", "st
 kbsdata_anpp_div$evenness <- kbsdata_anpp_div$shannon / log (kbsdata_anpp_div$plot_richness)
 
 
+
 idcols <- c("year", "treatment", "station", "replicate" ,"nutrients_added", "disturbance")
 plotid <- c( "treatment", "station", "replicate" ,"nutrients_added", "disturbance")
+# ID cols - plot ID sampled at particular time point (so basically row ID)
+# plot ID - same space sampled year after year
+
 
 kbsdata_anpp_div$unique_id <- apply( kbsdata_anpp_div[ , idcols ] , 1 , paste , collapse = "_" )
 kbsdata_anpp_div$plot_id <- apply( kbsdata_anpp_div[ , plotid ] , 1 , paste , collapse = "_" )
@@ -60,10 +64,9 @@ kbsdata_anpp_div$unique_id
 kbsdata_anpp_div$plot_id
 
 
-# questions - 
+# super basic questions - 
 
 # across all expts and trts does diversity increase ANPP?
-
 ggplot(kbsdata_anpp_div, aes (x = plot_richness, y = plot_biomass)) +  # richness
   geom_point() +
   geom_smooth() + 
@@ -85,36 +88,48 @@ ggplot(kbsdata_anpp_div, aes (x = shannon, y = plot_biomass)) +  # div
 
 
 
-
-# look at 2012 dr
+################################
+# look at 2012 drought
+################################
 kbs_anpp_div_2012dr <- kbsdata_anpp_div %>% 
-  filter(year > 2010 & year < 2014)
+  filter(year > 2010 & year < 2014) # subset 2011, 2012, 2013 data (before, during, after)
 head(kbs_anpp_div_2012dr)
 table(kbs_anpp_div_2012dr$year)
 
-# average biomass per richness for each year? i dont know
 
 
+# convert to wide format 
 kbs_anpp_div_2012dr_wide <- kbs_anpp_div_2012dr %>% 
-  select (c (year, plot_id, plot_biomass)) %>% 
-  pivot_wider(names_from= year, values_from = plot_biomass) %>% 
-  mutate (perc_change_dr = ((`2012`- `2011`) / `2011`) * 100) %>% 
-  mutate (perc_change_recov = ((`2013`- `2012`) / `2012`) * 100)
+  select (c (year, plot_id, plot_biomass)) %>%  # select columns I will use
+  pivot_wider(names_from= year, values_from = plot_biomass) %>%  # pivot wider so each year is own column
+  mutate (perc_change_dr = ((`2012`- `2011`) / `2011`) * 100) %>% # add column for perc change during drought
+  mutate (perc_change_recov = ((`2013`- `2011`) / `2011`) * 100) # add column for perc recovery back to 2011
 
 
 kbs_rich_2011 <- kbs_anpp_div_2012dr %>% 
-  filter(year == 2011)
+  filter(year == 2011) # just get richness for 2011
 
+# merger 2011 richness for each plot with the wide-format biomass data fror 
 kbs_anpp_div_2012dr_wide_wrich <- merge (kbs_anpp_div_2012dr_wide, kbs_rich_2011 , by = "plot_id")
  
-ggplot(kbs_anpp_div_2012dr_wide_wrich, aes (x = plot_richness, y = perc_change_dr )) +  # evenness
+
+# drought resistance
+ggplot(kbs_anpp_div_2012dr_wide_wrich, aes (x = plot_richness, y = perc_change_dr )) +  
   geom_point(aes (color = as.character(year)) )+
   scale_color_manual(values = c("blue", "red","green")) + 
   geom_hline(yintercept=0, col = "red") + 
-  geom_smooth() + 
-  xlab("rich") + ylab("perc change with drought")
+  geom_smooth(method = "lm") + 
+  xlab("rich") + ylab("perc change with drought") 
+  # can add facet by treatment here! such as nutrients_added
+  # does N addition change sensitivity to dr
   
-
+# drought recovery
+ggplot(kbs_anpp_div_2012dr_wide_wrich, aes (x = plot_richness, y = perc_change_recov )) + 
+  geom_point(aes (color = as.character(year)) )+
+  scale_color_manual(values = c("blue", "red","green")) + 
+  geom_hline(yintercept=0, col = "red") + 
+  geom_smooth(method = "lm") + 
+  xlab("rich") + ylab("perc recovery") 
 
 
 

@@ -35,19 +35,35 @@ names(met)
   # just doing na.rm for now, we can talk about this later!!!
 
 
-
+# add month and doy column. 
 met$date <- lubridate::mdy(met$date)
 met$month <- month(met$date)
+met$doy <- yday(met$date)
+
+head(met)
 
 met_month <- met %>% 
-  select(-date) %>% 
   group_by(Year, month) %>% 
   summarise(air_temp_min = mean(air_temp_min, na.rm = TRUE),  #AVERAGE of all the temp stuff?
             air_temp_max = mean(air_temp_max, na.rm = TRUE), #AVERAGE of all the temp stuff?
             air_temp_mean = mean(air_temp_mean, na.rm = TRUE), #AVERAGE of all the temp stuff?
             precip_sum = sum(precipitation, na.rm = TRUE)) # but use the SUM of the months precip...
 
+met %>% 
+  filter(doy > 84 & doy < 249) %>% 
+  group_by(month ) %>% 
+  count() # based on robinson paper cutoffs far fewer obs for march and sept
 
+#two different ways to get gs precip - toggle back and forth
+    # doy cutoff vs month cutoff
+met_month_gs <- met %>% 
+  #filter(doy > 84 & doy < 249)  %>% # robinson paper: GS 85–248
+  filter(month > 3 & month < 9) %>% 
+  group_by(Year, month) %>% 
+  summarise(air_temp_min = mean(air_temp_min, na.rm = TRUE),  #AVERAGE of all the temp stuff?
+            air_temp_max = mean(air_temp_max, na.rm = TRUE), #AVERAGE of all the temp stuff?
+            air_temp_mean = mean(air_temp_mean, na.rm = TRUE), #AVERAGE of all the temp stuff?
+            precip_sum = sum(precipitation, na.rm = TRUE)) # but use the SUM of the months precip...
 
 # calculate. PET
 # method 1: hargreaves
@@ -56,23 +72,40 @@ met_month$PET <- SPEI::hargreaves(Tmin= met_month$air_temp_min ,Tmax = met_month
  # Tmax: a numeric vector, tsvector, matrix, tsmatrix, or 3-d array of monthly mean daily maximum temperatures, ºC.
  # Pre: optional, a numeric vector, tsvector, matrix, tsmatrix, or 3-d array of monthly total precipitation, mm.
  # looked up the latitude for kbs...
-
+# same for gs
+met_month_gs$PET <- SPEI::hargreaves(Tmin= met_month_gs$air_temp_min ,Tmax = met_month_gs$air_temp_max, Pre= met_month_gs$precip_sum, lat=42.4, na.rm = TRUE, verbose = TRUE)
 # method 2: thornthwaite. this seemed less complicated but perhaps less precise
 #met_month$PET <- SPEI::thornthwaite(met_month$air_temp_mean , lat=42.4, na.rm = TRUE)
 
 
 # calculate climatic water balance
 met_month$BAL <- met_month$precip_sum - met_month$PET
-
+met_month_gs$BAL <- met_month_gs$precip_sum - met_month_gs$PET
 # calculate SPEI by month. 
 spei <- spei(met_month$BAL, 1, na.rm = T)
 spei$fitted
-
 met_month$spei <- as.vector (spei$fitted )
 
+spei_gs <- spei(met_month_gs$BAL, 1, na.rm = T)
+spei_gs$fitted
+met_month_gs$spei <- as.vector (spei_gs$fitted )
 
+
+# whole year: 
 ggplot(met_month, aes (x = month, y = spei)) +
-  geom_hline(yintercept=0, color = "red") + 
+  geom_hline(yintercept=0, color = "blue") + 
+  geom_hline(yintercept=-1, color = "orange") +  # slette paper - moderately dry
+  geom_hline(yintercept=-1.5, color = "red") +  # slette paper - severely dry
+  geom_hline(yintercept=-2, color = "darkred") +  # slette paper - extremely dry
+  geom_line(linewidth = 1.2) +
+  facet_wrap(vars(Year)) # notice the very dry 2012
+
+#growing season
+ggplot(met_month_gs, aes (x = month, y = spei)) +
+  geom_hline(yintercept=0, color = "blue") + 
+  geom_hline(yintercept=-1, color = "orange") +  # slette paper - moderately dry
+  geom_hline(yintercept=-1.5, color = "red") +  # slette paper - severely dry
+  geom_hline(yintercept=-2, color = "darkred") +  # slette paper - extremely dry
   geom_line(linewidth = 1.2) +
   facet_wrap(vars(Year)) # notice the very dry 2012
 
@@ -85,9 +118,21 @@ met_year <- met_month %>%
 print(met_year, n=40) # cool that this already highlights the ones below 0....
 
 
+met_year_gs <- met_month_gs %>%  
+  group_by(Year) %>% 
+  summarise(meanspei = mean(spei),
+            totalrain = sum(precip_sum)) 
+print(met_year_gs, n=40) # cool that this already highlights the ones below 0....
+
+
 # how close does total RAIN track my calculated SPEI????
 ggplot(met_year, aes (x = totalrain, y = meanspei)) +
   geom_point() # not too bad!
+
+
+ggplot(met_year_gs, aes (x = totalrain, y = meanspei)) +
+  geom_point() # only growing season
+
 
 # which years are super dry?
 ggplot(met_year, aes (x = totalrain, y = meanspei, label = Year)) +
@@ -97,4 +142,13 @@ ggplot(met_year, aes (x = totalrain, y = meanspei, label = Year)) +
 # 1996 and 1998 also dry esp by total precip
 
 
+ggplot(met_year_gs, aes (x = totalrain, y = meanspei, label = Year)) +
+  geom_text() +
+  theme_classic() # 
 
+
+ggplot(met_year, aes (x = meanspei)) +
+  geom_density()
+
+  ggplot(met_year_gs, aes (x = meanspei)) +
+           geom_density()

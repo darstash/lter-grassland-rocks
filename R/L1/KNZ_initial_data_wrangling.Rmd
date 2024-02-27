@@ -48,17 +48,30 @@ df_ppt <- read.csv("C:\\Users\\jasig\\Downloads\\Precipitation_1982_2023.csv")
 df_ppt$RecDate<- as.Date(df_ppt$RecDate, format = "%m/%d/%Y")
 #Extract the year from the date
 df_ppt$year <- year(df_ppt$RecDate)
+#Reading temp data
+df_temp <- read.csv("C:\\Users\\jasig\\Downloads\\Temperature_1982_2023.csv")
 ```
 
 #climate data
 
 ```{r}
 df_ppt <- read.csv(file.path(L0_dir, "KNZ/Precipitation_1982_2023.csv"), stringsAsFactors = FALSE)
+df_temp <- read.csv(file.path(L0_dir, "KNZ/Temperature_1982_2023.csv"), stringsAsFactors = FALSE)
 # Convert the date column to Date type 
 df_ppt$RecDate<- as.Date(df_ppt$RecDate, format = "%m/%d/%Y")
-
 # Extract the year from the date
 df_ppt$year <- year(df_ppt$RecDate)
+
+# Summarizing temperature data
+# Averaging across months
+df_temp_ave_month <- df_temp %>% 
+  group_by(RECYEAR, RECMONTH) %>%
+  summarize(mean=mean(as.numeric(TAVE)))
+
+# Averaging across years
+df_temp_ave_year <- df_temp %>% 
+  group_by(RECYEAR) %>%
+  summarize(mean=mean(as.numeric(TAVE)))
 ```
 
 

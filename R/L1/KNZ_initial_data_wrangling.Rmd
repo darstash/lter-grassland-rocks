@@ -196,8 +196,20 @@ df_ppt = df_ppt[-c(1:6)]
 
 df_C1_KNZ.cleanest <- df_C1_KNZ.clean %>%
 right_join(df_ppt, by=c("year")) %>%
-  unite(higher_order_organization,site,plot_trt, sep ="_", remove=FALSE) %>%
-  mutate(method="sorted_to_species")
+  mutate(method="sorted_to_species",
+         experiment="WAT01",
+         nutrients_added = "no_fertilizer",
+         nitrogen_added = NA,
+         disturbance = "undisturbed",
+         grazing = "ungrazed",
+         fire_frequency = 1,
+         time_since_fire = NA,
+         diversity_manipulated = "naturally_assembled",
+         measurement_scale_biomass = NA,
+         richness = NA,
+         evenness = NA,
+         measurement_scale_cover = NA) %>%
+  unite(higher_order_organization,site,experiment,plot_trt, sep ="_", remove=FALSE)
 
 #Writing sppcomp dataset to upload to L1 folder
 write.csv(df_C1_KNZ.cleanest,"C:\\Users\\jasig\\Downloads\\df_C1_KNZ.cleanest.csv", row.names=FALSE)

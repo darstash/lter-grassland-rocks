@@ -156,7 +156,7 @@ df_C1_KNZ.clean <- df_C1_KNZ.clean %>%
   mutate(site = "KNZ")
 #Checking columns for uniqueness
 unique(df_C1_KNZ.clean$year) #1991-2022
-unique(df_C1_KNZ.clean$treatment) #Three treatments (c starts in 2018)
+unique(df_C1_KNZ.clean$treatment) #Three treatments (a & i, c starts in 2018)
 unique(df_C1_KNZ.clean$plot) #30 plots (no #9?, added plots in 1993)
 unique(df_C1_KNZ.clean$transect) #Four transects
 ## Must consider treatment reversal for this experiment ##
@@ -250,7 +250,22 @@ df_C2_KNZ.noreps <- df_C2_KNZ.noreps[-c(7:11)] %>%
 
 #Adding precip data
 df_C2_KNZ.cleanest <- df_C2_KNZ.noreps %>%
-right_join(df_ppt, by=c("year"))
+right_join(df_ppt, by=c("year")) %>%
+  mutate(experiment="WAT01",
+         nutrients_added = "no_fertilizer",
+         nitrogen_added = NA,
+         disturbance = "undisturbed",
+         grazing = "ungrazed",
+         fire_frequency = 1,
+         time_since_fire = NA,
+         diversity_manipulated = "naturally_assembled",
+         measurement_scale_biomass = NA,
+         richness = NA,
+         evenness = NA,
+         measurement_scale_cover = NA) %>%
+  unite(higher_order_organization,site,experiment,plot_trt, sep ="_", remove=FALSE)
+
+unique(df_C2_KNZ.cleanest$treatment) #6 unique treatment (i, c, ni, b, d, a)
 
 #Writing biomass dataset to upload to L1 folder
 write.csv(df_C2_KNZ.cleanest,"C:\\Users\\jasig\\Downloads\\df_C2_KNZ.cleanest.csv", row.names=FALSE)

@@ -152,6 +152,53 @@ ggplot(cdr_data_dr_wide, aes (x = richness, y = log(resilience) )) +
   xlab("rich") + ylab("log resilience") + 
   labs(title="1988 Drought")
 
+#try averaging normal years and comparing to climate events then compare results
 
+cdr_normal <- cdr_data %>%
+  filter(year != 2012 | year != 1988) %>%
+  group_by(uniqueid) %>%
+  summarize(norm_biomass = mean(plot_biomass),
+            norm_richness = mean(richness))
 
+cdr_dr <- cdr_data %>%
+  ungroup() %>%
+  filter(year == 2012) %>%
+  mutate(drought_biomass = plot_biomass) %>%
+  select(uniqueid, drought_biomass)
 
+cdr_recovery <- cdr_data %>%
+  ungroup() %>%
+  filter(year == 2013) %>%
+  mutate(recovery_biomass = plot_biomass) %>%
+  select(uniqueid, recovery_biomass)
+
+cdr_compare <- merge(cdr_normal, cdr_dr, by="uniqueid", all=TRUE)
+cdr_compare <- merge(cdr_compare, cdr_recovery, by="uniqueid", all=TRUE)
+
+cdr_compare <- cdr_compare %>%
+  mutate (resistance = norm_biomass/abs(drought_biomass - norm_biomass)) %>% # resistance based on Isbell 2015
+  mutate (resilience = abs((drought_biomass - norm_biomass)/(recovery_biomass- norm_biomass)))
+
+# drought resistance
+ggplot(cdr_compare, aes (x = norm_richness, y = log(resistance) )) +  
+  geom_point()+
+  #scale_color_manual(values = c("blue", "red","green")) + 
+  geom_hline(yintercept=0, col = "red") + 
+  geom_smooth(method = "lm") + 
+  stat_cor() +
+  xlab("rich") + ylab("log scale resistance") + 
+  #scale_y_continuous(limits=c(0,6))
+  labs(title="2012 Drought with 'normal year' biomass metric")
+
+# can add facet by treatment here! such as nutrients_added
+# does N addition change sensitivity to dr
+
+# drought resilience
+ggplot(cdr_compare, aes (x = norm_richness, y = log(resilience))) + 
+  geom_point()+
+  #scale_color_manual(values = c("blue", "red","green")) + 
+  geom_hline(yintercept=0, col = "red") + 
+  geom_smooth(method = "lm") + 
+  stat_cor() +
+  xlab("rich") + ylab("log resilience") + 
+  labs(title="2012 Drought with 'normal year' biomass metric")

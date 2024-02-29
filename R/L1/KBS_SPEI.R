@@ -81,18 +81,30 @@ met_month_gs$PET <- SPEI::hargreaves(Tmin= met_month_gs$air_temp_min ,Tmax = met
 # calculate climatic water balance
 met_month$BAL <- met_month$precip_sum - met_month$PET
 met_month_gs$BAL <- met_month_gs$precip_sum - met_month_gs$PET
-# calculate SPEI by month. 
+# calculate SPEI by month. (SPEI-1) 
 spei <- spei(met_month$BAL, 1, na.rm = T)
 spei$fitted
 met_month$spei <- as.vector (spei$fitted )
 
-spei_gs <- spei(met_month_gs$BAL, 1, na.rm = T)
+spei_gs <- spei(met_month_gs$BAL, 1, na.rm = T) # This may be wrong. spei assumes we start in January and it's a 12 month time series
 spei_gs$fitted
 met_month_gs$spei <- as.vector (spei_gs$fitted )
+
+# Calculate SPEI-12
+spei_12 <- spei(met_month$BAL, 12, na.rm = T)
+spei_12$fitted
+met_month$spei_12 <- as.vector(spei_12$fitted )
 
 
 # whole year: 
 ggplot(met_month, aes (x = month, y = spei)) +
+  geom_hline(yintercept=0, color = "blue") + 
+  geom_hline(yintercept=-1, color = "orange") +  # slette paper - moderately dry
+  geom_hline(yintercept=-1.5, color = "red") +  # slette paper - severely dry
+  geom_hline(yintercept=-2, color = "darkred") +  # slette paper - extremely dry
+  geom_line(linewidth = 1.2) +
+  facet_wrap(vars(Year)) # notice the very dry 2012
+ggplot(met_month, aes (x = month, y = spei_12)) +
   geom_hline(yintercept=0, color = "blue") + 
   geom_hline(yintercept=-1, color = "orange") +  # slette paper - moderately dry
   geom_hline(yintercept=-1.5, color = "red") +  # slette paper - severely dry
@@ -109,8 +121,12 @@ ggplot(met_month_gs, aes (x = month, y = spei)) +
   geom_line(linewidth = 1.2) +
   facet_wrap(vars(Year)) # notice the very dry 2012
 
+# filter out SPEI for August (harvest date)
+met_month_aug <- met_month %>%
+  filter(month == 8)
 
-# calculate SPEI (and total ppt) for each year
+# calculate SPEI (and total ppt) for each year 
+# not sure if you can take a mean like this
 met_year <- met_month %>%  
   group_by(Year) %>% 
   summarise(meanspei = mean(spei),
@@ -123,7 +139,6 @@ met_year_gs <- met_month_gs %>%
   summarise(meanspei = mean(spei),
             totalrain = sum(precip_sum)) 
 print(met_year_gs, n=40) # cool that this already highlights the ones below 0....
-
 
 # how close does total RAIN track my calculated SPEI????
 ggplot(met_year, aes (x = totalrain, y = meanspei)) +
@@ -152,3 +167,98 @@ ggplot(met_year, aes (x = meanspei)) +
 
   ggplot(met_year_gs, aes (x = meanspei)) +
            geom_density()
+  
+met_year <- met_year %>%
+  mutate(drought_cat = case_when(
+    meanspei <= -1 ~ "moderately_dry",
+    meanspei > -1 & meanspei <= -0.5 ~ "slightly_dry",
+    meanspei > -0.5 & meanspei < 0.5 ~ "normal",
+    meanspei > 0.5 ~ "slightly_wet"
+  ))
+
+met_year_gs <- met_year_gs %>%
+  mutate(drought_cat = case_when(
+    meanspei <= -1 ~ "moderately_dry",
+    meanspei > -1 & meanspei <= -0.5 ~ "slightly_dry",
+    meanspei > -0.5 & meanspei < 0.5 ~ "normal",
+    meanspei > 0.5 ~ "slightly_wet"
+  ))
+  
+# Mean yearly SPEI over time
+ggplot(met_year, aes (x = Year, y = meanspei)) +
+  geom_hline(yintercept=1, color = "blue") + 
+  geom_hline(yintercept=0.5, color = "lightblue") + 
+  geom_hline(yintercept=0, color = "black") + 
+  geom_hline(yintercept=-0.5, color = "gold") +  
+  geom_hline(yintercept=-1, color = "orange") +  # slette paper - moderately dry
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2.5, aes(color = drought_cat)) +
+  scale_color_manual(values = c("slightly_dry" = "gold", "normal" = "black", "slightly_wet" = "lightblue")) +
+  theme_bw() +
+  theme(legend.position="none")
+             
+
+# Mean growing season SPEI over time
+ggplot(met_year_gs, aes (x = Year, y = meanspei)) +
+  geom_hline(yintercept=1, color = "blue") + 
+  geom_hline(yintercept=0.5, color = "lightblue") + 
+  geom_hline(yintercept=0, color = "black") + 
+  geom_hline(yintercept=-0.5, color = "gold") +  
+  geom_hline(yintercept=-1, color = "orange") +  # slette paper - moderately dry
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2.5, aes(color = drought_cat)) +
+  scale_color_manual(values = c("slightly_dry" = "gold", "normal" = "black", "slightly_wet" = "lightblue")) +
+  theme_bw() +
+  theme(legend.position="none")
+
+met_month_aug <- met_month_aug %>%
+  mutate(drought_cat_12 = case_when(
+    spei_12 <= -1.5 ~ "severely_dry",
+    spei_12 > -1.5 & spei_12 <= -1 ~ "moderately_dry",
+    spei_12 > -1 & spei_12 <= -0.5 ~ "slightly_dry",
+    spei_12 > -0.5 & spei_12 < 0.5 ~ "normal",
+    spei_12 >= 0.5 & spei_12 < 1 ~ "slightly_wet",
+    spei_12 >= 1 & spei_12 < 1.5 ~ "moderately_wet",
+    spei_12 >= 1.5 ~ "severely_wet"
+  ))
+met_month_aug <- met_month_aug %>%
+  mutate(drought_cat_1 = case_when(
+    spei <= -1.5 ~ "severely_dry",
+    spei > -1.5 & spei <= -1 ~ "moderately_dry",
+    spei > -1 & spei <= -0.5 ~ "slightly_dry",
+    spei > -0.5 & spei < 0.5 ~ "normal",
+    spei >= 0.5 & spei < 1 ~ "slightly_wet",
+    spei >= 1 & spei < 1.5 ~ "moderately_wet",
+    spei >= 1.5 ~ "severely_wet"
+  ))
+
+# SPEI-12 for August (harvest month)
+ggplot(met_month_aug, aes (x = Year, y = spei_12)) +
+  geom_hline(yintercept=1.5, color = "darkblue") + 
+  geom_hline(yintercept=1, color = "blue") + 
+  geom_hline(yintercept=0.5, color = "lightblue") + 
+  geom_hline(yintercept=0, color = "black") + 
+  geom_hline(yintercept=-0.5, color = "gold") +  
+  geom_hline(yintercept=-1, color = "orange") +  # slette paper - moderately dry
+  geom_hline(yintercept=-1.5, color = "red") +  # slette paper - severely dry
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2.5, aes(color = drought_cat_12)) +
+  scale_color_manual(values = c("severely_dry" = "red", "moderately_dry" = "orange", "slightly_dry" = "gold", "normal" = "black", "slightly_wet" = "lightblue", "moderately_wet" = "blue", "severely_wet" = "darkblue")) +
+  theme_bw() +
+  theme(legend.position="none")
+
+# SPEI-1 for August (harvest month)
+# I don't think SPEI-1 makes much sense. SPEI-3 seems like a minimum
+ggplot(met_month_aug, aes (x = Year, y = spei)) +
+  geom_hline(yintercept=1.5, color = "darkblue") + 
+  geom_hline(yintercept=1, color = "blue") + 
+  geom_hline(yintercept=0.5, color = "lightblue") + 
+  geom_hline(yintercept=0, color = "black") + 
+  geom_hline(yintercept=-0.5, color = "gold") +  
+  geom_hline(yintercept=-1, color = "orange") +  # slette paper - moderately dry
+  geom_hline(yintercept=-1.5, color = "red") +  # slette paper - severely dry
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2.5, aes(color = drought_cat_1)) +
+  scale_color_manual(values = c("severely_dry" = "red", "moderately_dry" = "orange", "slightly_dry" = "gold", "normal" = "black", "slightly_wet" = "lightblue", "moderately_wet" = "blue", "severely_wet" = "darkblue")) +
+  theme_bw() +
+  theme(legend.position="none")

@@ -89,8 +89,6 @@ t7 <- mcse %>%
   filter(treatment == "T7" & campaign == "Peak Biomass")
 
 
-idcols <- c("year", "treatment", "station", "replicate" ,"nutrients_added", "disturbance")
-plotid <- c( "treatment", "station", "replicate" ,"nutrients_added", "disturbance")
 
 
 # add columns
@@ -101,6 +99,8 @@ t7$grazing <- "ungrazed"
 t7$fire_frequency <- 1
 t7$time_since_fire <- with(t7, ifelse(year == 2007, 2, 1)) # not really true, only a few months since fire # not burned in 2007
 t7$experiment <- "mcse"
+
+
 
 # We'll need to go through this more and see if we need to change or delete anything (like none plant stuff). 
 # I wonder if we should make a master list of species between our 3 sites?
@@ -141,9 +141,15 @@ anpp_rich_t7 <- t7_nounknown %>%
 ###### microplots in t7
 ############################
 
+# note that microplots had mutliple sampling events per season for some years
+  # i will remove this based on sven graph
+
 micro$date <- lubridate::mdy(micro$date)
 
 micro$year <- lubridate::year(micro$date)
+
+# this one will have month to filter by !!!!
+micro$month <- lubridate::month(micro$date)
 
 table(lubridate::month(micro$date))
 table( micro$year, lubridate::month(micro$date))
@@ -172,6 +178,8 @@ micro$fire_frequency <- 1
 micro$time_since_fire <- with(micro, ifelse(year == 2007, 2, 1)) # not really true, only a few months since fire # not burned in 2007
 micro$experiment <- "microplots"
 
+
+
 micro_nounknown <- micro %>% 
   filter(species != "Unknown" &  # should we take out unknown????
            species != "UnSorted" &  # take out.
@@ -180,21 +188,40 @@ micro_nounknown <- micro %>%
 
 # check to make sure all grouping variables good - number of rows should be 1
 micro_nounknown %>% 
-  group_by(year, treatment, replicate, nutrients_added, nitrogen_amount,
+  group_by(year, treatment, replicate,  nutrients_added, nitrogen_amount,
            disturbance, grazing, fire_frequency, time_since_fire, species) %>% 
   count() %>% 
   View() # there are >1 : there are repeats
   # species found in different sampling months in the same year same plot....
 
+# remove sampling events that occurred at nonpeak times
+  # sven email 3-6-2024
+micro_norepeatsampling_a <-micro_nounknown %>% 
+  filter (year> 1989) # took out 1989 not all trts implemented yet
+micro_norepeatsampling_b <- micro_norepeatsampling_a %>% 
+  filter(  !(year == 1991 & month == 7)) #remove july sampling 1991 keep august
+micro_norepeatsampling_c <- micro_norepeatsampling_b %>% 
+  filter(  !(year == 1993 & month == 7))#remove july sampling 1993 keep august
+micro_clean <- micro_norepeatsampling_c %>% 
+  filter(  !(year == 1996 & month == 6)) #remove july sampling 1996 keep august
+
+
+# now lets check
+micro_clean %>% 
+  group_by(year, treatment, replicate,  nutrients_added, nitrogen_amount,
+           disturbance, grazing, fire_frequency, time_since_fire, species) %>% 
+  count() %>% 
+  View() # just down to the unknowns now. 
+  # not sure where to go from here. maybe just leave it?
+  # make decisions later?
+
+
+table( micro$year, micro$month)
+table( micro_clean$year, micro_clean$month)
 
 
 
-micro_norepeats <- micro_repeats %>% 
-  group_by(across(c(-biomass_g_m2))) %>% 
-  top_n(1, biomass_g_m2) # this should take out the repeats for the 
-# # however, this removes the extra "unknown dicot" or whatever...
-
-anpp_rich_micro <-  micro_nounknown %>% 
+anpp_rich_micro <-  micro_clean %>% 
   group_by(year, treatment, replicate, experiment, nutrients_added,
            nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire) %>% 
   summarise (plot_biomass = sum (biomass_g_m2), # get plot biomass
@@ -245,7 +272,7 @@ t7_with_ANPP$pseudo_PercCover <- t7_with_ANPP$biomass_g_m2 / t7_with_ANPP$plot_b
 head(t7_with_ANPP)
 
 # micro
-micro_with_ANPP <- merge(micro_nounknown, anpp_rich_micro, by = c("year", "treatment",
+micro_with_ANPP <- merge(micro_clean, anpp_rich_micro, by = c("year", "treatment",
                                                    "replicate", "experiment", "nutrients_added",
                                                    "nitrogen_amount", "disturbance", "grazing",
                                                    "fire_frequency", "time_since_fire"))
@@ -498,12 +525,17 @@ allkbsdata_spcomp_tp <- merge (allkbsdata_spcomp, weatheryear, by = "year")
 
 allkbsdata_spcomp_tp
 
-
+idcols <- c("year", "treatment", "station", "replicate" ,"nutrients_added", "disturbance")
+plotid <- c( "treatment", "station", "replicate" ,"nutrients_added", "disturbance")
 
 # add site column
 # made this LTER_Site for now. because GLBRC hamde 
 allkbsdata_spcomp_tp$lter_site <- "KBS"
 
+
+
+allkbsdata_spcomp_tp$unique_id <- apply( allkbsdata_spcomp_tp[ , idcols ] , 1 , paste , collapse = "_" )
+allkbsdata_spcomp_tp$plot_id <- apply( allkbsdata_spcomp_tp[ , plotid ] , 1 , paste , collapse = "_" )
 
 
 # write a new .csv with the cleaned and merged data and upload to the shared google drive L1 folder
@@ -523,7 +555,13 @@ allkbsdata_anpp_tp <- merge(allkbsdata_anpp , weatheryear , by = "year")
 # made this LTER_Site for now. because GLBRC hamde 
 allkbsdata_anpp_tp$lter_site <- "KBS"
 
-names(allkbsdata_anpp_tp) <- tolower(names(allkbsdata_anpp_tp))
+
+
+allkbsdata_anpp_tp$unique_id <- apply( allkbsdata_anpp_tp[ , idcols ] , 1 , paste , collapse = "_" )
+allkbsdata_anpp_tp$plot_id <- apply( allkbsdata_anpp_tp[ , plotid ] , 1 , paste , collapse = "_" )
+
+
+
 
 
 # write a new .csv with the cleaned and merged data and upload to the shared google drive L1 folder

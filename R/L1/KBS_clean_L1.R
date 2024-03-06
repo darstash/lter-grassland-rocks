@@ -56,11 +56,17 @@ weatherdaily <- read.csv(file.path(L0_dir, "KBS/7-lter+weather+station+daily+pre
 weatherdaily_all <- read.csv(file.path(L0_dir, "KBS/12-lter+weather+station+daily+weather+all+variates+1707331925.csv"))
 
 
-head(mcse)
-head(micro)
-head(glbrc)
-head(glbrc_scaleup)
-head(weatherdaily)
+names(mcse)
+names(micro)
+names(glbrc)
+names(glbrc_scaleup)
+names(weatherdaily)
+
+names(mcse) <- tolower(names(mcse))
+names(micro) <- tolower(names(micro))
+names(glbrc) <- tolower(names(glbrc))
+names(glbrc_scaleup) <- tolower(names(glbrc_scaleup))
+names(weatherdaily) <- tolower(names(weatherdaily))
 
 
 ############################
@@ -69,31 +75,36 @@ head(weatherdaily)
 ############################
 ############################
 
-unique(mcse$Treatment)
-unique(mcse$Campaign)
+unique(mcse$treatment)
+unique(mcse$campaign)
 
 # make column indicating that this is 291: main MCSE table
-mcse$Source <- "MCSE (Table 291)"
+mcse$source <- "MCSE (Table 291)"
 
-mcse$Date <- lubridate::mdy(mcse$Date)
+mcse$date <- lubridate::mdy(mcse$date)
 
 
 # filter to only be t7
 t7 <- mcse %>% 
-  filter(Treatment == "T7" & Campaign == "Peak Biomass")
+  filter(treatment == "T7" & campaign == "Peak Biomass")
+
+
+idcols <- c("year", "treatment", "station", "replicate" ,"nutrients_added", "disturbance")
+plotid <- c( "treatment", "station", "replicate" ,"nutrients_added", "disturbance")
+
 
 # add columns
-t7$Nutrients_added <- "no_fertilizer"
+t7$nutrients_added <- "no_fertilizer"
 t7$nitrogen_amount <- NA
 t7$disturbance <- "undisturbed"
 t7$grazing <- "ungrazed"
 t7$fire_frequency <- 1
-t7$time_since_fire <- with(t7, ifelse(Year == 2007, 2, 1)) # not really true, only a few months since fire # not burned in 2007
-
+t7$time_since_fire <- with(t7, ifelse(year == 2007, 2, 1)) # not really true, only a few months since fire # not burned in 2007
+t7$experiment <- "mcse"
 
 # We'll need to go through this more and see if we need to change or delete anything (like none plant stuff). 
 # I wonder if we should make a master list of species between our 3 sites?
-unique(t7$Species)
+unique(t7$species)
 # REMOVE: "UnSorted" COULD BE MANY SP, "Standing Dead" and "Surface Litter" FROM LAST YEAR
 # OK for sp richness and ANPP calcs:
 # Genus sp., for example (""Hieracium sp. (*)")
@@ -104,14 +115,23 @@ unique(t7$Species)
 # "Moss"  
 
 t7_nounknown <- t7 %>% 
-  filter(Species != "UnSorted" & 
-           Species != "Surface Litter" &
-           Species != "Standing Dead")
+  filter(species != "UnSorted" & 
+           species != "Surface Litter" &
+           species != "Standing Dead")
+
+
+# check to make sure all grouping variables good - number of rows should be 1
+t7_nounknown %>% 
+  group_by(year, treatment, replicate, station, nutrients_added, nitrogen_amount,
+           disturbance, grazing, fire_frequency, time_since_fire, species) %>% 
+  count() %>% 
+  View() # if there were >1, more than 1 sp entry for each "group"
+
 # calculate total ANPP and richness: sum up ANPP for each plot, count rows for each plot
 anpp_rich_t7 <- t7_nounknown %>% 
-  group_by(Year, Treatment, Replicate, Station, Source, Nutrients_added, nitrogen_amount,
+  group_by(year, treatment, replicate, station, experiment, nutrients_added, nitrogen_amount,
            disturbance, grazing, fire_frequency, time_since_fire) %>% 
-  summarise(plot_biomass = sum(Biomass_g_m2), # add up biomass
+  summarise(plot_biomass = sum(biomass_g_m2), # add up biomass
             plot_richness = n()) # count number of rows for richness
 
 
@@ -121,18 +141,21 @@ anpp_rich_t7 <- t7_nounknown %>%
 ###### microplots in t7
 ############################
 
-micro$Date <- lubridate::mdy(micro$Date)
+micro$date <- lubridate::mdy(micro$date)
 
-micro$Year <- lubridate::year(micro$Date)
+micro$year <- lubridate::year(micro$date)
+
+table(lubridate::month(micro$date))
+table( micro$year, lubridate::month(micro$date))
 
 # make column indicating that this is 154: microplot from MCSE
-micro$Source <- "MCSE Microplot (Table 154)"
+micro$source <- "MCSE Microplot (Table 154)"
 
 # this is already summed across i think subplots (the 0.1 m2 samples) cuz total area sampled is 1
 # anpp per treatment replicate disturbance regime....
 
 names(micro)
-unique(micro$Species)
+unique(micro$species)
 #REMOVE:
 "Unknown" 
 "UnSorted"
@@ -141,26 +164,45 @@ unique(micro$Species)
 # leaving in unknown grass/forb, only known to family/genus, etc.
 
 # add columns
-micro$Nutrients_added <- with(micro, ifelse(Fertilized_Microplot == "fertilized", "N+", "no_fertilizer"))
-micro$nitrogen_amount <- with(micro, ifelse(Fertilized_Microplot == "fertilized", 12.3, NA)) # g N m^-2 as granular ammonium nitrate 
-micro$disturbance <- with(micro, ifelse(Disturbed_Microplot == "disturbed", "disturbed", "undisturbed"))
+micro$nutrients_added <- with(micro, ifelse(fertilized_microplot == "fertilized", "N+", "no_fertilizer"))
+micro$nitrogen_amount <- with(micro, ifelse(fertilized_microplot == "fertilized", 12.3, NA)) # g N m^-2 as granular ammonium nitrate 
+micro$disturbance <- with(micro, ifelse(disturbed_microplot == "disturbed", "disturbed", "undisturbed"))
 micro$grazing <- "ungrazed"
 micro$fire_frequency <- 1
-micro$time_since_fire <- with(micro, ifelse(Year == 2007, 2, 1)) # not really true, only a few months since fire # not burned in 2007
-
+micro$time_since_fire <- with(micro, ifelse(year == 2007, 2, 1)) # not really true, only a few months since fire # not burned in 2007
+micro$experiment <- "microplots"
 
 micro_nounknown <- micro %>% 
-  filter(Species != "Unknown" &  # should we take out unknown????
-           Species != "UnSorted" &  # take out.
-           Species != "Surface Litter" &  # take out
-           Species != "Standing Dead") # take out
+  filter(species != "Unknown" &  # should we take out unknown????
+           species != "UnSorted" &  # take out.
+           species != "Surface Litter" &  # take out
+           species != "Standing Dead") # take out
+
+# check to make sure all grouping variables good - number of rows should be 1
+micro_nounknown %>% 
+  group_by(year, treatment, replicate, nutrients_added, nitrogen_amount,
+           disturbance, grazing, fire_frequency, time_since_fire, species) %>% 
+  count() %>% 
+  View() # there are >1 : there are repeats
+  # species found in different sampling months in the same year same plot....
+
+
+
+
+micro_norepeats <- micro_repeats %>% 
+  group_by(across(c(-biomass_g_m2))) %>% 
+  top_n(1, biomass_g_m2) # this should take out the repeats for the 
+# # however, this removes the extra "unknown dicot" or whatever...
+
 anpp_rich_micro <-  micro_nounknown %>% 
-  group_by(Year, Treatment, Replicate,Source, Nutrients_added,
+  group_by(year, treatment, replicate, experiment, nutrients_added,
            nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire) %>% 
-  summarise (plot_biomass = sum (Biomass_g_m2), # get plot biomass
+  summarise (plot_biomass = sum (biomass_g_m2), # get plot biomass
              plot_richness = n()) # get plot richness
 
 head(anpp_rich_micro)
+
+
 
 
 
@@ -180,7 +222,7 @@ names(anpp_rich_micro)
 anpp_rich_KBS_T7 <- rbind(anpp_rich_t7, anpp_rich_micro)
 
 head(anpp_rich_KBS_T7 )
-unique(anpp_rich_KBS_T7$Treatment) # dope.
+unique(anpp_rich_KBS_T7$treatment) # dope.
 
 hist(anpp_rich_KBS_T7$plot_biomass)
 
@@ -192,24 +234,24 @@ head(micro)
 
 
 # merge main MCSE with microplot
-t7_with_ANPP <- merge(t7_nounknown, anpp_rich_t7, by = c("Year", "Treatment", "Station",
-                                          "Replicate", "Source", "Nutrients_added",
+t7_with_ANPP <- merge(t7_nounknown, anpp_rich_t7, by = c("year", "treatment", "station",
+                                          "replicate", "experiment", "nutrients_added",
                                           "nitrogen_amount", "disturbance", "grazing",
                                           "fire_frequency", "time_since_fire"))
 head(t7_with_ANPP)
 
 # get psesudo percent cover by dividing plant by total for ANPP...
-t7_with_ANPP$Pseudo_PercCover <- t7_with_ANPP$Biomass_g_m2 / t7_with_ANPP$plot_biomass * 100
+t7_with_ANPP$pseudo_PercCover <- t7_with_ANPP$biomass_g_m2 / t7_with_ANPP$plot_biomass * 100
 head(t7_with_ANPP)
 
 # micro
-micro_with_ANPP <- merge(micro_nounknown, anpp_rich_micro, by = c("Year", "Treatment",
-                                                   "Replicate", "Source", "Nutrients_added",
+micro_with_ANPP <- merge(micro_nounknown, anpp_rich_micro, by = c("year", "treatment",
+                                                   "replicate", "experiment", "nutrients_added",
                                                    "nitrogen_amount", "disturbance", "grazing",
                                                    "fire_frequency", "time_since_fire"))
 head(micro_with_ANPP)
 
-micro_with_ANPP$Pseudo_PercCover <- micro_with_ANPP$Biomass_g_m2 / micro_with_ANPP$plot_biomass * 100
+micro_with_ANPP$Pseudo_PercCover <- micro_with_ANPP$biomass_g_m2 / micro_with_ANPP$plot_biomass * 100
 
 head(micro_with_ANPP)
 
@@ -230,54 +272,54 @@ allt7_SpComp
 ############################
 
 names(glbrc)
-unique(glbrc$Treatment)
+unique(glbrc$treatment)
 # https://lter.kbs.msu.edu/research/long-term-experiments/glbrc-intensive-experiment/
 # G10 =  restored prairie
 # G5 = Switchgrass
 # G6 = Miscanthus
 # G7 Native Grasses  - a mix of 4 species
 # G9 = Early successional
-unique(glbrc$Campaign)
+unique(glbrc$campaign)
 
 # make column indicating that this is 291: main MCSE table
-glbrc$Source <- "GLBRC (Table 269)"
+glbrc$source <- "GLBRC (Table 269)"
 
-glbrc$Date <- lubridate::mdy(glbrc$Date)
+glbrc$date <- lubridate::mdy(glbrc$date)
 
-glbrc$Nutrients_added <- "no_fertilizer"
+glbrc$nutrients_added <- "no_fertilizer"
 #this is a placeholder. check to make sure no fert. 
 glbrc <- glbrc %>% 
-  rename("Area_sampled" = "Area_sampled_m2")
+  rename("area_sampled" = "area_sampled_m2")
 
 # filter to only be peak biomass, and trts we want, and year
 # NOTE: Include native grassses ? 4 planted species. Did not here
 glbrc_grassland <- glbrc %>% 
-  filter( (Treatment == "G10" | # restored prairie
-             Treatment == "G9") & # Early successional 
-            Campaign == "peak biomass" &
-            Year <2018) # 2018 on is not sorted yet
-unique(glbrc_grassland$Treatment)
+  filter( (treatment == "G10" | # restored prairie
+             treatment == "G9") & # Early successional 
+            campaign == "peak biomass" &
+            year <2018) # 2018 on is not sorted yet
+unique(glbrc_grassland$treatment)
 
 glbrc_grassland$nitrogen_amount <- NA # are subplots included???
 glbrc_grassland$disturbance <- "undisturbed"
 glbrc_grassland$grazing <- "ungrazed"
 glbrc_grassland$fire_frequency <- NA
 glbrc_grassland$time_since_fire <- NA
+glbrc_grassland$experiment <- "glbrc"
 
-
-unique(glbrc_grassland$Species)
+unique(glbrc_grassland$species)
 # remove: "UnSorted",   ,"Unknown" ,  "Standing Dead",  "Surface Litter"   
 
 glbrc_grassland_nounknown <- glbrc_grassland %>% 
-  filter(Species != "UnSorted" & 
-           Species != "Unknown" & 
-           Species != "Standing Dead" & 
-           Species != "Surface Litter"  )
+  filter(species != "UnSorted" & 
+           species != "Unknown" & 
+           species != "Standing Dead" & 
+           species != "Surface Litter"  )
 # calculate total ANPP: sum up ANPP for ALL species
 anpp_rich_glbrc <- glbrc_grassland_nounknown %>% 
-  group_by(Year, Treatment, Site, Replicate, Station,Source, Nutrients_added,
+  group_by(year, treatment, site, replicate, station,experiment, nutrients_added,
            nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire) %>% 
-  summarise(plot_biomass = sum(Biomass_g_m2),
+  summarise(plot_biomass = sum(biomass_g_m2),
             plot_richness = n())
 
 anpp_rich_glbrc
@@ -289,53 +331,53 @@ anpp_rich_glbrc
 ############################
 
 names(glbrc_scaleup)
-unique(glbrc_scaleup$Treatment)
+unique(glbrc_scaleup$treatment)
 #https://lter.kbs.msu.edu/maps/images/glbrc_scaleup_sites_history_and_naming_conventions.pdf
 # M2 =  CRP-Prairie
 # L3 = AGR-Prairie
 
 
 # make column indicating what data table this is from KBS website
-glbrc_scaleup$Source <- "GLBRC Scale-Up (Table 180)"
+glbrc_scaleup$source <- "GLBRC Scale-Up (Table 180)"
 
-glbrc_scaleup$Date <- lubridate::mdy(glbrc_scaleup$Date)
+glbrc_scaleup$date <- lubridate::mdy(glbrc_scaleup$date)
 
-glbrc_scaleup$Nutrients_added <- "no_fertilizer"
+glbrc_scaleup$nutrients_added <- "no_fertilizer"
 #this is a placeholder. check to make sure no fert. 
 
 
 # filter to only be trts we caare about
 # ALSO REMOVE 2009, there are only 2 species (Bromus, )
 glbrc_scaleup_grassland <- glbrc_scaleup %>% 
-  filter( (Treatment == "M2" | # CRP --> Prairie 
-             Treatment == "L3" ) &  # AGR --> Prairie
-             Fraction == "whole" & # the first year they were separating grain, crops...
-           Year > 2009) # actually just remove that first year, looks like it was crops  
-unique(glbrc_scaleup_grassland$Treatment)
-unique(glbrc_scaleup_grassland$Year)
-unique(glbrc_scaleup_grassland$Fraction)
+  filter( (treatment == "M2" | # CRP --> Prairie 
+             treatment == "L3" ) &  # AGR --> Prairie
+             fraction == "whole" & # the first year they were separating grain, crops...
+           year > 2009) # actually just remove that first year, looks like it was crops  
+unique(glbrc_scaleup_grassland$treatment)
+unique(glbrc_scaleup_grassland$year)
+unique(glbrc_scaleup_grassland$fraction)
 
 glbrc_scaleup_grassland$nitrogen_amount <- NA # has been fertilized twice, include?
 glbrc_scaleup_grassland$disturbance <- "undisturbed"
 glbrc_scaleup_grassland$grazing <- "ungrazed"
 glbrc_scaleup_grassland$fire_frequency <- NA
 glbrc_scaleup_grassland$time_since_fire <- NA
+glbrc_scaleup_grassland$experiment <- "glbrc_scaleup"
 
 
-
-unique(glbrc_scaleup_grassland$Species)
+unique(glbrc_scaleup_grassland$species)
 # remove"UnSorted" ,    "Surface Litter",     "Standing Dead"
 
 glbrc_scaleup_grassland_nounknown <- glbrc_scaleup_grassland %>% 
-  filter(Species != "UnSorted" &
-           Species !=  "Surface Litter" &
-           Species != "Standing Dead" )
+  filter(species != "UnSorted" &
+           species !=  "Surface Litter" &
+           species != "Standing Dead" )
 
 # calculate total ANPP and rich: sum up ANPP for each plot, count rows
 anpp_rich_glbrc_scaleup <- glbrc_scaleup_grassland_nounknown %>% 
-  group_by(Year, Treatment,  Station,Source, Nutrients_added,
+  group_by(year, treatment,  station,experiment, nutrients_added,
            nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire) %>% 
-  summarise(plot_biomass = sum(Biomass_g_m2),
+  summarise(plot_biomass = sum(biomass_g_m2),
             plot_richness = n()) # SOMETHING GOING ON IN 2009!
 
 anpp_rich_glbrc_scaleup
@@ -358,7 +400,7 @@ names(anpp_rich_glbrc_scaleup)
 anpp_rich_glbrc_KBS <- rbind(anpp_rich_glbrc, anpp_rich_glbrc_scaleup)
 
 head(anpp_rich_glbrc_KBS )
-unique(anpp_rich_glbrc_KBS$Treatment) 
+unique(anpp_rich_glbrc_KBS$treatment) 
 
 hist(anpp_rich_KBS_T7$plot_biomass)
 hist(anpp_rich_glbrc_KBS$plot_biomass)
@@ -371,25 +413,25 @@ head(glbrc_scaleup_grassland_nounknown)
 
 
 # BCSE - merge main witih scaleup
-glbrc_BCSE_with_ANPP <- merge(glbrc_grassland_nounknown, anpp_rich_glbrc, by = c("Year", "Treatment", "Station", "Site",
-                                                                  "Replicate", "Source", "Nutrients_added",
+glbrc_BCSE_with_ANPP <- merge(glbrc_grassland_nounknown, anpp_rich_glbrc, by = c("year", "treatment", "station", "site",
+                                                                  "replicate", "experiment", "nutrients_added",
                                                                   "nitrogen_amount", "disturbance", "grazing",
                                                                   "fire_frequency", "time_since_fire"))
 head(glbrc_BCSE_with_ANPP)
 
 # get psesudo percent cover by dividing plant by total for ANPP...
-glbrc_BCSE_with_ANPP$Pseudo_PercCover <- glbrc_BCSE_with_ANPP$Biomass_g_m2 / glbrc_BCSE_with_ANPP$plot_biomass * 100
+glbrc_BCSE_with_ANPP$pseudo_perccover <- glbrc_BCSE_with_ANPP$biomass_g_m2 / glbrc_BCSE_with_ANPP$plot_biomass * 100
 head(glbrc_BCSE_with_ANPP)
 
 
 
 # Scaleup
-glbrc_scaleup_with_ANPP <- merge(glbrc_scaleup_grassland_nounknown, anpp_rich_glbrc_scaleup, by = c("Year", "Treatment", "Station" , 
-                                                                                     "Source", "Nutrients_added", "nitrogen_amount", "disturbance", "grazing",
+glbrc_scaleup_with_ANPP <- merge(glbrc_scaleup_grassland_nounknown, anpp_rich_glbrc_scaleup, by = c("year", "treatment", "station" , 
+                                                                                     "experiment", "nutrients_added", "nitrogen_amount", "disturbance", "grazing",
                                                                                      "fire_frequency", "time_since_fire"))
 head(glbrc_scaleup_with_ANPP)
 
-glbrc_scaleup_with_ANPP$Pseudo_PercCover <- glbrc_scaleup_with_ANPP$Biomass_g_m2 / glbrc_scaleup_with_ANPP$plot_biomass * 100
+glbrc_scaleup_with_ANPP$pseudo_PercCover <- glbrc_scaleup_with_ANPP$biomass_g_m2 / glbrc_scaleup_with_ANPP$plot_biomass * 100
 
 head(glbrc_scaleup_with_ANPP)
 
@@ -440,11 +482,11 @@ allkbsdata_anpp <- dplyr:: bind_rows (anpp_rich_KBS_T7, anpp_rich_glbrc_KBS)
 
 
 head(weatherdaily)
-weatherdaily$Date <- lubridate::mdy(weatherdaily$date)
+weatherdaily$date <- lubridate::mdy(weatherdaily$date)
 head(weatherdaily)
 
 weatheryear <- weatherdaily %>% 
-  group_by(Year) %>% 
+  group_by(year) %>% 
   summarise (meantemp =mean(air_temp_mean, na.rm = TRUE), # na.rm cuz missing obs for temp.
              annualprecip = sum(precipitation))
 
@@ -452,7 +494,7 @@ weatheryear
 
 
 # Merge weather with sp comp data for both MCSE and GLBRC
-allkbsdata_spcomp_tp <- merge (allkbsdata_spcomp, weatheryear, by = "Year")
+allkbsdata_spcomp_tp <- merge (allkbsdata_spcomp, weatheryear, by = "year")
 
 allkbsdata_spcomp_tp
 
@@ -462,7 +504,7 @@ allkbsdata_spcomp_tp
 # made this LTER_Site for now. because GLBRC hamde 
 allkbsdata_spcomp_tp$lter_site <- "KBS"
 
-names(allkbsdata_spcomp_tp) <- tolower(names(allkbsdata_spcomp_tp))
+
 
 # write a new .csv with the cleaned and merged data and upload to the shared google drive L1 folder
 
@@ -475,7 +517,7 @@ write.csv(allkbsdata_spcomp_tp, file.path(L1_dir, "./KBS_MCSE_GLBRC_SpComp.csv")
 
 
 
-allkbsdata_anpp_tp <- merge(allkbsdata_anpp , weatheryear , by = "Year")
+allkbsdata_anpp_tp <- merge(allkbsdata_anpp , weatheryear , by = "year")
 
 # add site column
 # made this LTER_Site for now. because GLBRC hamde 

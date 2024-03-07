@@ -268,7 +268,7 @@ t7_with_ANPP <- merge(t7_nounknown, anpp_rich_t7, by = c("year", "treatment", "s
 head(t7_with_ANPP)
 
 # get psesudo percent cover by dividing plant by total for ANPP...
-t7_with_ANPP$pseudo_PercCover <- t7_with_ANPP$biomass_g_m2 / t7_with_ANPP$plot_biomass * 100
+t7_with_ANPP$pseudo_perccover <- t7_with_ANPP$biomass_g_m2 / t7_with_ANPP$plot_biomass * 100
 head(t7_with_ANPP)
 
 # micro
@@ -278,7 +278,7 @@ micro_with_ANPP <- merge(micro_clean, anpp_rich_micro, by = c("year", "treatment
                                                    "fire_frequency", "time_since_fire"))
 head(micro_with_ANPP)
 
-micro_with_ANPP$Pseudo_PercCover <- micro_with_ANPP$biomass_g_m2 / micro_with_ANPP$plot_biomass * 100
+micro_with_ANPP$pseudo_perccover <- micro_with_ANPP$biomass_g_m2 / micro_with_ANPP$plot_biomass * 100
 
 head(micro_with_ANPP)
 
@@ -449,7 +449,7 @@ head(glbrc_BCSE_with_ANPP)
 # get psesudo percent cover by dividing plant by total for ANPP...
 glbrc_BCSE_with_ANPP$pseudo_perccover <- glbrc_BCSE_with_ANPP$biomass_g_m2 / glbrc_BCSE_with_ANPP$plot_biomass * 100
 head(glbrc_BCSE_with_ANPP)
-
+hist(glbrc_BCSE_with_ANPP$pseudo_perccover)
 
 
 # Scaleup
@@ -458,10 +458,10 @@ glbrc_scaleup_with_ANPP <- merge(glbrc_scaleup_grassland_nounknown, anpp_rich_gl
                                                                                      "fire_frequency", "time_since_fire"))
 head(glbrc_scaleup_with_ANPP)
 
-glbrc_scaleup_with_ANPP$pseudo_PercCover <- glbrc_scaleup_with_ANPP$biomass_g_m2 / glbrc_scaleup_with_ANPP$plot_biomass * 100
+glbrc_scaleup_with_ANPP$pseudo_perccover <- glbrc_scaleup_with_ANPP$biomass_g_m2 / glbrc_scaleup_with_ANPP$plot_biomass * 100
 
 head(glbrc_scaleup_with_ANPP)
-
+hist(glbrc_scaleup_with_ANPP$pseudo_perccover)
 
 # bind together the GLBRC datasets, they should include species percent cover
 head(glbrc_BCSE_with_ANPP)
@@ -525,19 +525,21 @@ allkbsdata_spcomp_tp <- merge (allkbsdata_spcomp, weatheryear, by = "year")
 
 allkbsdata_spcomp_tp
 
-idcols <- c("year", "treatment", "station", "replicate" ,"nutrients_added", "disturbance")
-plotid <- c( "treatment", "station", "replicate" ,"nutrients_added", "disturbance")
+
 
 # add site column
 # made this LTER_Site for now. because GLBRC hamde 
 allkbsdata_spcomp_tp$lter_site <- "KBS"
 
+idcols <- c("lter_site", "experiment","year", "treatment", "station", "replicate" ,"nutrients_added", "disturbance")
+plotid <- c("lter_site", "experiment", "treatment", "station", "replicate" ,"nutrients_added", "disturbance")
+
 
 
 allkbsdata_spcomp_tp$unique_id <- apply( allkbsdata_spcomp_tp[ , idcols ] , 1 , paste , collapse = "_" )
 allkbsdata_spcomp_tp$plot_id <- apply( allkbsdata_spcomp_tp[ , plotid ] , 1 , paste , collapse = "_" )
-
-
+allkbsdata_spcomp_tp$unique_id
+allkbsdata_spcomp_tp$plot_id
 # write a new .csv with the cleaned and merged data and upload to the shared google drive L1 folder
 
 write.csv(allkbsdata_spcomp_tp, file.path(L1_dir, "./KBS_MCSE_GLBRC_SpComp.csv"), row.names=F)
@@ -561,7 +563,7 @@ allkbsdata_anpp_tp$unique_id <- apply( allkbsdata_anpp_tp[ , idcols ] , 1 , past
 allkbsdata_anpp_tp$plot_id <- apply( allkbsdata_anpp_tp[ , plotid ] , 1 , paste , collapse = "_" )
 
 
-
+allkbsdata_anpp_tp$unique_id
 
 
 # write a new .csv with the cleaned and merged data and upload to the shared google drive L1 folder

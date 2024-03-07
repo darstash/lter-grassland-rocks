@@ -105,6 +105,18 @@ ggplot(kbsdata_anpp_div, aes(x = year, y = plot_richness)) +
 # top drought years seem like 1999, 2003, 2005, 2012, and 1996 (based on SPEI-12)
 # results below are all over the place
 
+# Calculate normal year (according to spei-12) (1 and -1 cutoffs)
+# 1989, 2009, 2013, 2015, 2018, 2020, and 2022 all wet
+# 1996, 1999, 2003, 2005, and 2012 all dry
+kbsdata_anpp_div_norm <- kbsdata_anpp_div %>%
+  filter(!(year %in% c(1989, 2009, 2013, 2015, 2018, 2020, 2022,
+                   1996, 1999, 2003, 2005, 2012)))
+table(kbsdata_anpp_div_norm$year)
+normal_biomass <- kbsdata_anpp_div_norm %>%
+  group_by(plot_id) %>%
+  summarize(norm_biomass = mean(plot_biomass))
+
+
 ################################
 # look at 2012 drought
 ################################
@@ -113,24 +125,28 @@ kbs_anpp_div_2012dr <- kbsdata_anpp_div %>%
 head(kbs_anpp_div_2012dr)
 table(kbs_anpp_div_2012dr$year)
 
+kbs_anpp_div_2012dr2 <- merge(kbs_anpp_div_2012dr, normal_biomass, by = "plot_id")
 
 
 # convert to wide format 
 kbs_anpp_div_2012dr_wide <- kbs_anpp_div_2012dr %>% 
   select (c (year, plot_id, plot_biomass)) %>%  # select columns I will use
-  pivot_wider(names_from= year, values_from = plot_biomass) %>%  # pivot wider so each year is own column
+  pivot_wider(names_from= year, values_from = plot_biomass) 
+
+kbs_anpp_div_2012dr_wide <- merge(kbs_anpp_div_2012dr_wide, normal_biomass, by = "plot_id")
+
+
+kbs_anpp_div_2012dr_wide <- kbs_anpp_div_2012dr_wide %>% 
   mutate (perc_change_dr = ((`2012`- `2011`) / `2011`) * 100) %>% # add column for perc change during drought
   mutate (perc_change_recov = ((`2013`- `2011`) / `2011`) * 100) %>% # add column for perc recovery back to 2011
-  mutate (resilience = ((`2012`- `2011`) / (`2013` - `2011`))) %>% # add column for resilience (as defined by Isbell 2015)
-  mutate (resistance = ((`2011`) / (`2012` - `2011`))) # add column for resilience (as defined by Isbell 2015)
-
+  mutate (resilience = abs((`2012`- `norm_biomass`) / (`2013` - `norm_biomass`))) %>% # add column for resilience (as defined by Isbell 2015)
+  mutate (resistance = ((`norm_biomass`) / abs(`2012` - `norm_biomass`))) # add column for resilience (as defined by Isbell 2015)
 
 kbs_rich_2011 <- kbs_anpp_div_2012dr %>% 
   filter(year == 2011) # just get richness for 2011
 
 # merger 2011 richness for each plot with the wide-format biomass data fror 
 kbs_anpp_div_2012dr_wide_wrich <- merge (kbs_anpp_div_2012dr_wide, kbs_rich_2011 , by = "plot_id")
- 
 
 # drought resistance
 ggplot(kbs_anpp_div_2012dr_wide_wrich, aes (x = plot_richness, y = perc_change_dr )) +  
@@ -173,16 +189,22 @@ kbs_anpp_div_1999dr <- kbsdata_anpp_div %>%
 head(kbs_anpp_div_1999dr)
 table(kbs_anpp_div_1999dr$year) # less for 1998?
 
+kbs_anpp_div_1999dr <- merge(kbs_anpp_div_1999dr, normal_biomass, by = "plot_id")
 
 
 # convert to wide format 
 kbs_anpp_div_1999dr_wide <- kbs_anpp_div_1999dr %>% 
   select (c (year, plot_id, plot_biomass)) %>%  # select columns I will use
-  pivot_wider(names_from= year, values_from = plot_biomass) %>%  # pivot wider so each year is own column
+  pivot_wider(names_from= year, values_from = plot_biomass) 
+
+kbs_anpp_div_1999dr_wide <- merge(kbs_anpp_div_1999dr_wide, normal_biomass, by = "plot_id")
+
+
+kbs_anpp_div_1999dr_wide <- kbs_anpp_div_1999dr_wide %>% 
   mutate (perc_change_dr = ((`1999`- `1998`) / `1998`) * 100) %>% # add column for perc change during drought
   mutate (perc_change_recov = ((`2000`- `1998`) / `1998`) * 100) %>% # add column for perc recovery back to 2011
-  mutate (resilience = ((`1999`- `1998`) / (`2000` - `1998`))) %>% # add column for resilience (as defined by Isbell 2015)
-  mutate (resistance = ((`1998`) / (`1999` - `1998`))) # add column for resilience (as defined by Isbell 2015)
+  mutate (resilience = abs((`1999`- `norm_biomass`) / (`2000` - `norm_biomass`))) %>% # add column for resilience (as defined by Isbell 2015)
+  mutate (resistance = ((`norm_biomass`) / abs(`1999` - `norm_biomass`))) # add column for resilience (as defined by Isbell 2015)
 
 
 kbs_rich_1998 <- kbs_anpp_div_1999dr %>% 
@@ -232,16 +254,22 @@ kbs_anpp_div_2003dr <- kbsdata_anpp_div %>%
 head(kbs_anpp_div_2003dr)
 table(kbs_anpp_div_2003dr$year) # all 54 plots
 
+kbs_anpp_div_2003dr <- merge(kbs_anpp_div_2003dr, normal_biomass, by = "plot_id")
 
 
 # convert to wide format 
 kbs_anpp_div_2003dr_wide <- kbs_anpp_div_2003dr %>% 
   select (c (year, plot_id, plot_biomass)) %>%  # select columns I will use
-  pivot_wider(names_from= year, values_from = plot_biomass) %>%  # pivot wider so each year is own column
+  pivot_wider(names_from= year, values_from = plot_biomass) 
+
+kbs_anpp_div_2003dr_wide <- merge(kbs_anpp_div_2003dr_wide, normal_biomass, by = "plot_id")
+
+
+kbs_anpp_div_2003dr_wide <- kbs_anpp_div_2003dr_wide %>% 
   mutate (perc_change_dr = ((`2003`- `2002`) / `2002`) * 100) %>% # add column for perc change during drought
   mutate (perc_change_recov = ((`2004`- `2002`) / `2002`) * 100) %>% # add column for perc recovery back to 2011
-  mutate (resilience = ((`2003`- `2002`) / (`2004` - `2002`))) %>% # add column for resilience (as defined by Isbell 2015)
-  mutate (resistance = ((`2002`) / (`2003` - `2002`))) # add column for resilience (as defined by Isbell 2015)
+  mutate (resilience = abs((`2003`- `norm_biomass`) / (`2004` - `norm_biomass`))) %>% # add column for resilience (as defined by Isbell 2015)
+  mutate (resistance = ((`norm_biomass`) / abs(`2003` - `norm_biomass`))) # add column for resilience (as defined by Isbell 2015)
 
 
 kbs_rich_2002 <- kbs_anpp_div_2003dr %>% 

@@ -233,6 +233,7 @@ met_month_aug <- met_month_aug %>%
   ))
 
 # SPEI-12 for August (harvest month)
+# pdf("spei12.pdf", width = 5, height = 5)
 ggplot(met_month_aug, aes (x = Year, y = spei_12)) +
   geom_hline(yintercept=1.5, color = "darkblue") + 
   geom_hline(yintercept=1, color = "blue") + 
@@ -245,7 +246,9 @@ ggplot(met_month_aug, aes (x = Year, y = spei_12)) +
   geom_point(size = 2.5, aes(color = drought_cat_12)) +
   scale_color_manual(values = c("severely_dry" = "red", "moderately_dry" = "orange", "slightly_dry" = "gold", "normal" = "black", "slightly_wet" = "lightblue", "moderately_wet" = "blue", "severely_wet" = "darkblue")) +
   theme_bw() +
-  theme(legend.position="none")
+  theme(legend.position="none") +
+  labs(y = "SPEI-12", title = "KBS SPEI")
+# dev.off()
 
 # SPEI-1 for August (harvest month)
 # I don't think SPEI-1 makes much sense. SPEI-3 seems like a minimum

@@ -13,11 +13,11 @@ library(ggpubr) #for quick visual stats on plots
 # super basic questions - 
 
 # across all expts and trts does diversity increase ANPP?
-ggplot(cdr_data, aes (x = richness, y = plot_biomass)) +  # richness
+ggplot(cdr_data, aes (x = richness, y = log(plot_biomass))) +  # richness
   geom_point() +
   geom_smooth(method="lm") + 
-  stat_cor() +
-  xlab("Richness") + ylab("Biomass (g/m2)") +
+  #stat_cor() +
+  labs(x="Species Richness", y="log Plant Biomass (g/m2)", title="Cedar Creek") +
   theme_classic () 
 
 ################################
@@ -186,9 +186,9 @@ ggplot(cdr_compare, aes (x = norm_richness, y = log(resistance) )) +
   geom_hline(yintercept=0, col = "red") + 
   geom_smooth(method = "lm") + 
   stat_cor() +
-  xlab("rich") + ylab("log scale resistance") + 
+  xlab("Plant Richness") + ylab("log Resistance") + 
   #scale_y_continuous(limits=c(0,6))
-  labs(title="2012 Drought with 'normal year' biomass metric")
+  labs(title="Cedar Creek 2012 Drought")
 
 # can add facet by treatment here! such as nutrients_added
 # does N addition change sensitivity to dr
@@ -200,5 +200,5 @@ ggplot(cdr_compare, aes (x = norm_richness, y = log(resilience))) +
   geom_hline(yintercept=0, col = "red") + 
   geom_smooth(method = "lm") + 
   stat_cor() +
-  xlab("rich") + ylab("log resilience") + 
-  labs(title="2012 Drought with 'normal year' biomass metric")
+  xlab("Plant Richness") + ylab("log Resilience") + 
+  labs(title="Cedar Creek 2012 Drought")

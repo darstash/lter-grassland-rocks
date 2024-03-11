@@ -918,4 +918,4 @@ cdr_data <- e001e002_metrics %>%
   rbind(e061_metrics) %>%
   rbind(e247_metrics)
 
-#so this has all the bareminimum variables - no metadata information - need to confirm and work on checking off all variables for each data set - then can consider making a master metadata df too????
+#so this has all the bare minimum variables - no metadata information - need to confirm and work on checking off all variables for each data set - then can consider making a master metadata df too????

@@ -167,18 +167,24 @@ ggplot(kbs_anpp_div_2012dr_wide_wrich, aes (x = plot_richness, y = perc_change_r
   xlab("rich") + ylab("perc recovery") 
 
 # Resistance
-ggplot(kbs_anpp_div_2012dr_wide_wrich, aes (x = plot_richness, y = resistance)) + 
+# pdf("resistance_2012.pdf", width = 5, height = 5)
+ggplot(kbs_anpp_div_2012dr_wide_wrich, aes (x = plot_richness, y = log(resistance))) + 
   geom_point()+
   geom_hline(yintercept=0, col = "red") + 
   geom_smooth(method = "lm") + 
-  xlab("rich") + ylab("resistance") 
+  xlab("Plant richness") + ylab("Log Resistance") +
+  labs(title = "KBS 2012 Drought")
+# dev.off()
 
 # Resilience
-ggplot(kbs_anpp_div_2012dr_wide_wrich, aes (x = plot_richness, y = resilience)) + 
+# pdf("resilience_2012.pdf", width = 5, height = 5)
+ggplot(kbs_anpp_div_2012dr_wide_wrich, aes (x = plot_richness, y = log(resilience))) + 
   geom_point()+
   geom_hline(yintercept=0, col = "red") + 
   geom_smooth(method = "lm") + 
-  xlab("rich") + ylab("resilience") 
+  xlab("Plant richness") + ylab("Log Resilience") +
+  labs(title = "KBS 2012 Drought")
+# dev.off()
 
 
 ################################
@@ -231,19 +237,19 @@ ggplot(kbs_anpp_div_1999dr_wide_wrich, aes (x = plot_richness, y = perc_change_r
   geom_smooth(method = "lm") + 
   xlab("rich") + ylab("perc recovery") 
 
-# Resistance
-ggplot(kbs_anpp_div_1999dr_wide_wrich, aes (x = plot_richness, y = resistance)) + 
+# Log Resistance
+ggplot(kbs_anpp_div_1999dr_wide_wrich, aes (x = plot_richness, y = log(resistance))) + 
   geom_point()+
   geom_hline(yintercept=0, col = "red") + 
   geom_smooth(method = "lm") + 
-  xlab("rich") + ylab("resistance") 
+  xlab("rich") + ylab("Log resistance") 
 
-# Resilience
-ggplot(kbs_anpp_div_1999dr_wide_wrich, aes (x = plot_richness, y = resilience)) + 
+# Log Resilience
+ggplot(kbs_anpp_div_1999dr_wide_wrich, aes (x = plot_richness, y = log(resilience))) + 
   geom_point()+
   geom_hline(yintercept=0, col = "red") + 
   geom_smooth(method = "lm") + 
-  xlab("rich") + ylab("resilience") 
+  xlab("rich") + ylab("Log resilience") 
 
 
 ################################
@@ -296,19 +302,19 @@ ggplot(kbs_anpp_div_2003dr_wide_wrich, aes (x = plot_richness, y = perc_change_r
   geom_smooth(method = "lm") + 
   xlab("rich") + ylab("perc recovery") 
 
-# Resistance # weird outlier
-ggplot(kbs_anpp_div_2003dr_wide_wrich, aes (x = plot_richness, y = resistance)) + 
+# Log Resistance # weird outlier
+ggplot(kbs_anpp_div_2003dr_wide_wrich, aes (x = plot_richness, y = log(resistance))) + 
   geom_point()+
   geom_hline(yintercept=0, col = "red") + 
   geom_smooth(method = "lm") + 
-  xlab("rich") + ylab("resistance") 
+  xlab("rich") + ylab("Log resistance") 
 
-# Resilience
-ggplot(kbs_anpp_div_2003dr_wide_wrich, aes (x = plot_richness, y = resilience)) + 
+# Log Resilience
+ggplot(kbs_anpp_div_2003dr_wide_wrich, aes (x = plot_richness, y = log(resilience))) + 
   geom_point()+
   geom_hline(yintercept=0, col = "red") + 
   geom_smooth(method = "lm") + 
-  xlab("rich") + ylab("resilience") 
+  xlab("rich") + ylab("Log resilience") 
 
 
 ################################

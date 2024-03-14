@@ -45,10 +45,10 @@ head(met)
 
 met_month <- met %>% 
   group_by(Year, month) %>% 
-  summarise(air_temp_min = mean(MinTemp.degF., na.rm = TRUE),  #AVERAGE of all the temp stuff?
-            air_temp_max = mean(MaxTemp.degF., na.rm = TRUE), #AVERAGE of all the temp stuff?
+  summarise(air_temp_min = mean(((MinTemp.degF.-32)/1.8), na.rm = TRUE),  #convert to C
+            air_temp_max = mean(((MaxTemp.degF.-32)/1.8), na.rm = TRUE), #Convert to C
             #air_temp_mean = mean(mean(MaxTemp.degF.,MinTemp.degF.), na.rm = TRUE), #AVERAGE of all the temp stuff?
-            precip_sum = sum(Precip.inches., na.rm = TRUE)) # but use the SUM of the months precip...
+            precip_sum = sum((Precip.inches.*25.4), na.rm = TRUE)) # convert to mm
 
 # calculate. PET
 # method 1: hargreaves
@@ -61,7 +61,6 @@ met_month$PET <- SPEI::hargreaves(Tmin= met_month$air_temp_min ,Tmax = met_month
 
 # calculate climatic water balance
 met_month$BAL <- met_month$precip_sum - met_month$PET
-met_month_gs$BAL <- met_month_gs$precip_sum - met_month_gs$PET
 # calculate SPEI by month. (SPEI-1) 
 spei <- spei(met_month$BAL, 1, na.rm = T)
 spei$fitted

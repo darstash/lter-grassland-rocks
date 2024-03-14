@@ -50,9 +50,9 @@ cdr_data_dr_wide <- merge(cdr_data_dr_wide, cdr_rich_2011 , by = "uniqueid", all
 ggplot(cdr_data_dr_wide, aes (x = richness, y = perc_change_dr)) +  
   geom_point()+
   #scale_color_manual(values = c("blue", "red","green")) + 
-  geom_hline(yintercept=0, col = "red") + 
+  #geom_hline(yintercept=0, col = "red") + 
   geom_smooth(method = "lm", se=FALSE) + 
-  stat_cor() +
+  #stat_cor() +
   xlab("rich") + ylab("perc change with drought")
 # can add facet by treatment here! such as nutrients_added
 # does N addition change sensitivity to dr
@@ -155,7 +155,7 @@ ggplot(cdr_data_dr_wide, aes (x = richness, y = log(resilience) )) +
 #try averaging normal years and comparing to climate events then compare results
 
 cdr_normal <- cdr_data %>%
-  filter(year != 2012 | year != 1988) %>%
+  filter(year %in% normal_years$Year) %>% #pull this from SPEI code for normal years
   group_by(uniqueid) %>%
   summarize(norm_biomass = mean(plot_biomass),
             norm_richness = mean(richness))
@@ -177,17 +177,18 @@ cdr_compare <- merge(cdr_compare, cdr_recovery, by="uniqueid", all=TRUE)
 
 cdr_compare <- cdr_compare %>%
   mutate (resistance = norm_biomass/abs(drought_biomass - norm_biomass)) %>% # resistance based on Isbell 2015
-  mutate (resilience = abs((drought_biomass - norm_biomass)/(recovery_biomass- norm_biomass)))
+  mutate (resilience = abs((drought_biomass - norm_biomass)/(recovery_biomass- norm_biomass))) %>%
+  mutate(logresistance = log(resistance))
 
 # drought resistance
-ggplot(cdr_compare, aes (x = norm_richness, y = log(resistance) )) +  
+ggplot(cdr_compare, aes (x = norm_richness, y = logresistance )) +  
   geom_point()+
   #scale_color_manual(values = c("blue", "red","green")) + 
-  geom_hline(yintercept=0, col = "red") + 
+  #geom_hline(yintercept=0, col = "red") + 
   geom_smooth(method = "lm") + 
-  stat_cor() +
+  #stat_cor() +
   xlab("Plant Richness") + ylab("log Resistance") + 
-  #scale_y_continuous(limits=c(0,6))
+  scale_y_continuous(limits=c(0,6)) +
   labs(title="Cedar Creek 2012 Drought")
 
 # can add facet by treatment here! such as nutrients_added
@@ -197,8 +198,8 @@ ggplot(cdr_compare, aes (x = norm_richness, y = log(resistance) )) +
 ggplot(cdr_compare, aes (x = norm_richness, y = log(resilience))) + 
   geom_point()+
   #scale_color_manual(values = c("blue", "red","green")) + 
-  geom_hline(yintercept=0, col = "red") + 
+  #geom_hline(yintercept=0, col = "red") + 
   geom_smooth(method = "lm") + 
-  stat_cor() +
+  #stat_cor() +
   xlab("Plant Richness") + ylab("log Resilience") + 
   labs(title="Cedar Creek 2012 Drought")

@@ -30,20 +30,41 @@ L0_dir <- Sys.getenv("L0DIR")
 L1_dir <- Sys.getenv("L1DIR")
 list.files(L0_dir)
 
-kbs <- read.csv(file.path(L0_dir, "KBS/KBS_SPEI_-85.250000_42.250000.csv"), stringsAsFactors = FALSE)
-knz <- read.csv(file.path(L0_dir, "KNZ/KNZ_SPEI_-96.750000_39.250000.csv"), stringsAsFactors = FALSE)
-cdr <- read.csv(file.path(L0_dir, "CDR/CDR_SPEI_-93.250000_45.250000.csv"), stringsAsFactors = FALSE)
+kbs <- read.csv(file.path(L0_dir, "KBS/-85.250000_42.250000.csv"), stringsAsFactors = FALSE)
+knz <- read.csv(file.path(L0_dir, "KNZ/-96.750000_39.250000.csv"), stringsAsFactors = FALSE)
+cdr <- read.csv(file.path(L0_dir, "CDR/-93.250000_45.250000.csv"), stringsAsFactors = FALSE)
 
+
+# separate columns
+# have to do it here! no maatter what I do, opening this in excel goofs it all up
+cdr <- cdr %>%  separate_wider_delim(dates.spei12, delim = ";", names = c("date", "spei12"))
+kbs <- kbs %>%  separate_wider_delim(dates.spei12, delim = ";", names = c("date", "spei12"))
+knz <- knz %>%  separate_wider_delim(dates.spei12, delim = ";", names = c("date", "spei12"))
 
 # lubridate the date columns
-kbs$dates <- lubridate::mdy(as.character(kbs$dates))
-knz$dates <- lubridate::mdy(as.character(knz$dates))
-cdr$dates <- lubridate::mdy(as.character(cdr$dates))
+kbs$date <- lubridate::ymd(as.character(kbs$date))
+knz$date <- lubridate::ymd(as.character(knz$date))
+cdr$date <- lubridate::ymd(as.character(cdr$date))
 
+
+kbs$spei12 <- as.numeric (as.character(kbs$spei12))
+knz$spei12 <- as.numeric (as.character(knz$spei12))
+cdr$spei12 <- as.numeric (as.character(cdr$spei12))
+
+
+# add year column for graphing purposes
+kbs$year <- year(kbs$date)
+knz$year <- year(knz$date)
+cdr$year <- year(cdr$date)
+
+max(kbs$year)
+max(knz$year)
+max(cdr$year)
 # isbell first filtered for peak biomass harvest at each site. 
-kbs.aug <- kbs %>% filter(month(dates) == 8 & !is.nan(spei12))
-knz.aug <- knz %>% filter(month(dates) == 8 & !is.nan(spei12))
-cdr.aug <- kbs %>% filter(month(dates) == 8 & !is.nan(spei12))
+  # also, only want 100 years? can add that later 
+kbs.aug <- kbs %>% filter(month(date) == 8 & !is.nan(spei12))
+knz.aug <- knz %>% filter(month(date) == 8 & !is.nan(spei12))
+cdr.aug <- kbs %>% filter(month(date) == 8 & !is.nan(spei12))
 
 
 # mean? just curious. should be about zero
@@ -93,33 +114,41 @@ cdr.aug <-cdr.aug   %>% mutate(spei_category = case_when(
   cdr.aug$spei12 > 1.3 ~ "Extreme wet"
 ))
 
-
-# add year column for graphing purposes
-kbs.aug$year <- year(kbs.aug$dates)
-knz.aug$year <- year(knz.aug$dates)
-cdr.aug$year <- year(cdr.aug$dates)
-
 # order factor
 
 kbs.aug$spei_category <- factor(kbs.aug$spei_category, levels = c("Extreme dry", "Moderate dry", "Normal", "Moderate wet", "Extreme wet"))
 knz.aug$spei_category <- factor(knz.aug$spei_category, levels = c("Extreme dry", "Moderate dry", "Normal", "Moderate wet", "Extreme wet"))
 cdr.aug$spei_category <- factor(cdr.aug$spei_category, levels = c("Extreme dry", "Moderate dry", "Normal", "Moderate wet", "Extreme wet"))
 
-ggplot(kbs.aug , aes (x = year, y = spei12)) +
+kbs_spei <- ggplot(kbs.aug , aes (x = year, y = spei12)) +
   geom_line(alpha = 0.5) + 
-  geom_point( aes(color = spei_category), size = 3) + theme_classic() +
+  geom_point( aes(color = spei_category), size = 1.25) + theme_bw() +
+  scale_x_continuous(breaks = seq(1900, 2025, by = 10)) +
+  annotate( "text", label = "KBS",
+    x = 1910, y = 2, size = 5, colour = "black") + 
   scale_color_manual(values = c("#F5191CFF", "#E78200FF", "#EAC728FF", "#81BB95FF", "#3B99B1FF"))
+kbs_spei
+ggsave("KBS_SPEI.png",plot =kbs_spei, dpi = 300, width =8, height = 4, units = "in")
 
 
-
-ggplot(knz.aug , aes (x = year, y = spei12)) +
+knz_spei <- ggplot(knz.aug , aes (x = year, y = spei12)) +
   geom_line(alpha = 0.5) + 
-  geom_point( aes(color = spei_category), size = 3) + theme_classic() +
+  geom_point( aes(color = spei_category), size = 1.25) + theme_bw() +
+  scale_x_continuous(breaks = seq(1900, 2025, by = 10)) +
+  annotate( "text", label = "KNZ",
+            x = 1910, y = 2, size = 5, colour = "black") + 
   scale_color_manual(values = c("#F5191CFF", "#E78200FF", "#EAC728FF", "#81BB95FF", "#3B99B1FF"))
+knz_spei
+ggsave("KNZ_SPEI.png",plot =knz_spei, dpi = 300, width =8, height = 4, units = "in")
 
 
-
-ggplot(cdr.aug , aes (x = year, y = spei12)) +
+cdr_spei <- ggplot(cdr.aug , aes (x = year, y = spei12)) +
   geom_line(alpha = 0.5) + 
-  geom_point( aes(color = spei_category), size = 3) + theme_classic() +
+  geom_point( aes(color = spei_category), size = 1.25) + theme_bw() +
+  scale_x_continuous(breaks = seq(1900, 2025, by = 10)) +
+  annotate( "text", label = "CDR",
+            x = 1910, y = 2, size = 5, colour = "black") + 
   scale_color_manual(values = c("#F5191CFF", "#E78200FF", "#EAC728FF", "#81BB95FF", "#3B99B1FF"))
+cdr_spei
+ggsave("CDR_SPEI.png",plot =cdr_spei, dpi = 300, width =8, height = 4, units = "in")
+

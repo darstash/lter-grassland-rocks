@@ -655,6 +655,12 @@ allkbsdata_spcomp_tp$unique_id
 allkbsdata_spcomp_tp$plot_id
 # write a new .csv with the cleaned and merged data and upload to the shared google drive L1 folder
 
+allkbsdata_spcomp_tp$unique_id <- str_remove_all(allkbsdata_spcomp_tp$unique_id, "_NA")
+allkbsdata_spcomp_tp$plot_id<- str_remove_all(allkbsdata_spcomp_tp$plot_id, "_NA")
+
+allkbsdata_spcomp_tp$unique_id
+allkbsdata_spcomp_tp$plot_id
+
 write.csv(allkbsdata_spcomp_tp, file.path(L1_dir, "./KBS_MCSE_GLBRC_NUTNET_SpComp.csv"), row.names=F)
 #Do not run: write.csv(allt7_SpComp_tp, "KBS_MCSE_T7_SpComp.csv")
 
@@ -671,16 +677,23 @@ allkbsdata_anpp_tp <- merge(allkbsdata_anpp , weatheryear , by = "year")
 allkbsdata_anpp_tp$lter_site <- "KBS"
 
 
-allkbsdata_anpp_tp$unique_id <- unite(allkbsdata_anpp_tp[ , idcols ], col = "unique_id", na.rm = TRUE, sep="_")
-allkbsdata_anpp_tp$plot_id <- unite(allkbsdata_anpp_tp[ , plotid ], col = "plot_id", na.rm = TRUE, sep="_")
+allkbsdata_anpp_tp$unique_id <- apply(allkbsdata_anpp_tp[ , idcols ], 1 , paste , collapse = "_" )
+allkbsdata_anpp_tp$plot_id <- apply(allkbsdata_anpp_tp[ , plotid ], 1 , paste , collapse = "_" )
 
 
 allkbsdata_anpp_tp$unique_id
 allkbsdata_anpp_tp$plot_id 
 
+
+allkbsdata_anpp_tp$unique_id <- str_remove_all(allkbsdata_anpp_tp$unique_id, "_NA")
+allkbsdata_anpp_tp$plot_id<- str_remove_all(allkbsdata_anpp_tp$plot_id, "_NA")
+
+allkbsdata_anpp_tp$unique_id
+allkbsdata_anpp_tp$plot_id
+
 # write a new .csv with the cleaned and merged data and upload to the shared google drive L1 folder
 
-write.csv(allkbsdata_anpp_tp, file.path(L1_dir, "./KBS_MCSE_GLBRC__NUTNET_ANPP_RICH.csv"), row.names=F)
+write.csv(allkbsdata_anpp_tp, file.path(L1_dir, "./KBS_MCSE_GLBRC_NUTNET_ANPP_RICH.csv"), row.names=F)
 #write.csv(allt7_ANPP_tp, "KBS_MCSE_T7_ANPP.csv")
 
 ggplot(allkbsdata_anpp_tp, aes (x = annualprecip, y = plot_biomass)) + 

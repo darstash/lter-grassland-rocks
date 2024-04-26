@@ -21,9 +21,9 @@ list.files(L1_dir)
 
 
 
-kbsdata <- read.csv(file.path(L1_dir, "KBS_MCSE_GLBRC_ANPP_RICH.csv"))
+kbsdata <- read.csv(file.path(L1_dir, "KBS_MCSE_GLBRC_NUTNET_ANPP_RICH.csv"))
 
-kbs_species <- read.csv(file.path(L1_dir, "KBS_MCSE_GLBRC_SpComp.csv"))
+kbs_species <- read.csv(file.path(L1_dir, "KBS_MCSE_GLBRC_NUTNET_SpComp.csv"))
 
 head(kbsdata)
 head(kbs_species)
@@ -34,7 +34,7 @@ table(kbs_species$species)
 # calculate shannon diversity   - based on ashleys code
 head(kbs_species)
 kbs_species <- kbs_species %>%
-  mutate(proportions = (pseudo_perccover/100)*(log(pseudo_perccover/100)))
+  mutate(proportions = (perccover/100)*(log(perccover/100)))
 kbs_species$proportions[is.na(kbs_species$proportions)] <- 0  # Fix Nas to zeros
 kbs_shannon <- kbs_species %>%
   group_by(year, treatment, station, replicate, disturbance, nutrients_added) %>%
@@ -51,21 +51,22 @@ kbsdata_anpp_div <- merge (kbsdata, kbs_shannon, by = c("year", "treatment", "st
 kbsdata_anpp_div$evenness <- kbsdata_anpp_div$shannon / log (kbsdata_anpp_div$plot_richness)
 
 
-
-idcols <- c("year", "treatment", "station", "replicate" ,"nutrients_added", "disturbance")
-plotid <- c( "treatment", "station", "replicate" ,"nutrients_added", "disturbance")
+#this is old, these should already have these
+#idcols <- c("year", "treatment", "station", "replicate" ,"nutrients_added", "disturbance")
+#plotid <- c( "treatment", "station", "replicate" ,"nutrients_added", "disturbance")
 # ID cols - plot ID sampled at particular time point (so basically row ID)
 # plot ID - same space sampled year after year
 
 
-kbsdata_anpp_div$unique_id <- apply( kbsdata_anpp_div[ , idcols ] , 1 , paste , collapse = "_" )
-kbsdata_anpp_div$plot_id <- apply( kbsdata_anpp_div[ , plotid ] , 1 , paste , collapse = "_" )
-kbsdata_anpp_div$unique_id
-kbsdata_anpp_div$plot_id
+#kbsdata_anpp_div$unique_id <- apply( kbsdata_anpp_div[ , idcols ] , 1 , paste , collapse = "_" )
+#kbsdata_anpp_div$plot_id <- apply( kbsdata_anpp_div[ , plotid ] , 1 , paste , collapse = "_" )
+#kbsdata_anpp_div$unique_id
+#kbsdata_anpp_div$plot_id
 
 # Calculate stability of each plot across ALL years
 stability <- kbsdata_anpp_div %>%
-  group_by(treatment, station, replicate, nutrients_added, disturbance) %>%
+  #group_by(treatment, station, replicate, nutrients_added, disturbance) %>%
+  group_by(plot_id) %>% 
   summarize(mean_anpp = mean(plot_biomass),
             sd_anpp = sd(plot_biomass),
             mean_richness = mean(plot_richness),
@@ -82,12 +83,25 @@ ggplot(kbsdata_anpp_div, aes (x = plot_richness, y = plot_biomass)) +  # richnes
   xlab("Richness") + ylab("Biomass (g/m2)") +
   theme_classic () 
 
+ggplot(kbsdata_anpp_div, aes (x = plot_richness, y = plot_biomass)) +  # richness
+  geom_point() +
+  geom_smooth() + 
+  xlab("Richness") + ylab("Biomass (g/m2)") +
+  theme_classic ()  +
+  facet_wrap(~experiment) # by experiment
+
 ggplot(kbsdata_anpp_div, aes (x = evenness, y = plot_biomass)) +  # evenness
   geom_point() +
   geom_smooth() + 
   xlab("Evenness") + ylab("Biomass (g/m2)") +
-  theme_classic () 
+  theme_classic ()  # this is a strange pattern....
 
+ggplot(kbsdata_anpp_div, aes (x = evenness, y = plot_biomass)) +  # evenness
+  geom_point() +
+  geom_smooth() + 
+  xlab("Evenness") + ylab("Biomass (g/m2)") +
+  theme_classic () +
+  facet_wrap(~experiment) # by experiment
 
 ggplot(kbsdata_anpp_div, aes (x = shannon, y = plot_biomass)) +  # div
   geom_point() +
@@ -95,11 +109,15 @@ ggplot(kbsdata_anpp_div, aes (x = shannon, y = plot_biomass)) +  # div
   xlab("Shannon") + ylab("Biomass (g/m2)") +
   theme_classic () 
 
-# richness over time per plot (richness generally increases initially, hasn't plateaued for newer plots)
-# problem for "normalizing" richness?
-ggplot(kbsdata_anpp_div, aes(x = year, y = plot_richness)) +
+ggplot(kbsdata_anpp_div, aes (x = shannon, y = plot_biomass)) +  # div
   geom_point() +
-  facet_wrap(~plot_id)
+  geom_smooth() + 
+  xlab("Shannon") + ylab("Biomass (g/m2)") +
+  theme_classic () +
+  facet_wrap(~experiment) # by experiment, note that nutnet is much more diverse for some reason?
+
+
+
 
 
 # top drought years seem like 1999, 2003, 2005, 2012, and 1996 (based on SPEI-12)

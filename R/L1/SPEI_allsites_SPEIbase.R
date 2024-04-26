@@ -64,7 +64,7 @@ max(cdr$year)
   # also, only want 100 years? can add that later 
 kbs.aug <- kbs %>% filter(month(date) == 8 & !is.nan(spei12))
 knz.aug <- knz %>% filter(month(date) == 8 & !is.nan(spei12))
-cdr.aug <- kbs %>% filter(month(date) == 8 & !is.nan(spei12))
+cdr.aug <- cdr %>% filter(month(date) == 8 & !is.nan(spei12))
 
 
 # mean? just curious. should be about zero
@@ -107,10 +107,10 @@ knz.aug <-knz.aug   %>% mutate(spei_category = case_when(
 
 # add column for classifying years based on quartiles !!!!!
 cdr.aug <-cdr.aug   %>% mutate(spei_category = case_when(
-  cdr.aug$spei12 < -1.4 ~ "Extreme dry", 
-  cdr.aug$spei12 >= -1.4 & cdr.aug$spei12 < -0.7 ~ "Moderate dry", 
-  cdr.aug$spei12 >= -0.7 & cdr.aug$spei12 <= 0.8 ~ "Normal", 
-  cdr.aug$spei12 > 0.8 & cdr.aug$spei12 <= 1.3 ~ "Moderate wet", 
+  cdr.aug$spei12 < -1.3 ~ "Extreme dry", 
+  cdr.aug$spei12 >= -1.3 & cdr.aug$spei12 < -0.8 ~ "Moderate dry", 
+  cdr.aug$spei12 >= -0.8 & cdr.aug$spei12 <= 0.7 ~ "Normal", 
+  cdr.aug$spei12 > 0.7 & cdr.aug$spei12 <= 1.3 ~ "Moderate wet", 
   cdr.aug$spei12 > 1.3 ~ "Extreme wet"
 ))
 

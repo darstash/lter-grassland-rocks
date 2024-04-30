@@ -652,3 +652,207 @@ for(i in 1:nrow(A1_A2_metadata)){
 
 
 ```
+
+# Cleaning data I1 & I2 (NutNet)- Maya
+```{r}
+
+#Reading in data
+df_I1_KNZ <- read.csv(file.path(L0_dir, "KNZ/I1_NUT011_Sppcomp.csv"), stringsAsFactors = FALSE)
+df_I2_KNZ <- read.csv(file.path(L0_dir, "KNZ/I2_NUT012_Biomass.csv"), stringsAsFactors = FALSE)
+
+
+##Initial checks
+
+#It does not include watershed info? The Konza website has a map indicating it is in 2C, but nothing is explicitly written in the metadata
+unique(sort(df_I1_KNZ$RecYear)) #Data missing for 2020
+unique(sort(df_I2_KNZ$RecYear)) #Data missing for 2013 and 2019
+
+unique(sort(df_I1_KNZ$Block))# Blocks 1-3
+#The biomass dataframe doesn't have blocks? I'll have to add them in 
+
+unique(sort(df_I1_KNZ$Plot)) # Plots 1-30
+unique(sort(df_I2_KNZ$Plot)) #Same plots 1-30
+
+unique(sort(df_I1_KNZ$Subplot)) #Starts with "A", then goes "A1" to "A4", then repeats for B, C, D. It looks like just the "A", "B", "C", and "D" without the numbers attached might be the pre-treatment year only (2007)
+unique(sort(df_I2_KNZ$Subplot)) #Has "1" and "2", then "A1" to "A4", then repeats for B, C, D. "1" and "2" are only for 2007, the pre-treatment year.
+
+##I TALKED TO KIM AND SHE SAID SUBPLOT DOESN'T REALLY MATTER... JUST SUMMARIZE BY PLOT
+
+#Might cut out the pre-treatment year (2007)? Unsure what we want to do... but since the plots are named differently too, it might just be easier.
+
+unique(sort(df_I1_KNZ$Taxa)) #Some misspelled species and different capitalizations... will merge with the spp_list dataset to standardize the names for when we combine with other datasets
+
+
+
+
+
+##Cleaning I1
+
+#Removing 2007 from dataset since it was a pre-treatment year and has different plot names
+#Also removing the one "litter" entry
+df_I1_KNZ.clean <- df_I1_KNZ %>% subset(RecYear != 2007) %>% subset(Taxa != "litter")
+
+
+#Redoing some of the sppcodes to match the Konza Spp list
+#Also, I am making all the unknowns the same sppcode because that is what I did for ConSME data.
+#Now I am second guessing what I am doing for the unknowns. Maybe they should be all be assigned their own spp code.
+for(i in 1:nrow(df_I1_KNZ.clean)){
+  # if(df_I1_KNZ.clean$Sppnum[i] == 946){df_I1_KNZ.clean$Sppnum[i] <- -999}
+  if(df_I1_KNZ.clean$Sppnum[i] == 795){df_I1_KNZ.clean$Sppnum[i] <- 246}
+  if(df_I1_KNZ.clean$Sppnum[i] == 726){df_I1_KNZ.clean$Sppnum[i] <- 246}
+  # if(df_I1_KNZ.clean$Sppnum[i] == 792){df_I1_KNZ.clean$Sppnum[i] <- -999}
+  # if(df_I1_KNZ.clean$Sppnum[i] == 708){df_I1_KNZ.clean$Sppnum[i] <- -999}
+  if(df_I1_KNZ.clean$Sppnum[i] == 951){df_I1_KNZ.clean$Sppnum[i] <- 518}
+  if(df_I1_KNZ.clean$Sppnum[i] == 746){df_I1_KNZ.clean$Sppnum[i] <- 289}
+}
+
+#Taking just the columns I want (for now) from the species list
+#This us the same as what I did for ConSME data, just copying here so they can be run independently of each other
+spplist_short <- spplist %>% 
+  unite(species, genus:species, sep = "_" ) %>%
+  mutate(Sppnum = code) %>%
+  dplyr::select(Sppnum, species) %>%
+  add_case(Sppnum =c(-999, 0), 
+           species = c("unknown","bare_ground"))
+
+#Joining with the shortened Konza species list
+df_I1_KNZ.clean <- left_join(df_I1_KNZ.clean, spplist_short, by = "Sppnum")
+
+
+
+#Renaming columns to match outline
+df_I1_KNZ.clean <- df_I1_KNZ.clean %>%
+  rename(rectype = RecType,
+         source = DataCode,
+         year = RecYear,
+         date = Date,
+         season = Season,
+         block = Block,
+         plot = Plot,
+         sppcode = Sppnum,
+         species = species,
+         abundance = Cover,
+         comments = Comments) %>%
+  group_by(rectype, source, year, date, block, plot, sppcode, species) %>% summarize(abundance = max(abundance)) %>% #taking the highest abundance per season, leaving out subplot
+  mutate(site = as.factor("KNZ"),
+         experiment  = "NUTNET") %>%
+  unite(higher_order_organization, 
+        experiment, site, sep = "_", remove = FALSE) %>% 
+  unite(uniqueid, higher_order_organization, block, plot, sep = "_", remove = FALSE) %>%
+  mutate(higher_order_organization = as.factor(higher_order_organization),
+         uniqueid = as.factor(uniqueid),
+         measurement_scale_cover = "1m2")
+
+
+## Calculating relative abundance
+df_I1_KNZ.clean <- df_I1_KNZ.clean %>%
+ group_by(year, plot, uniqueid)%>%
+  mutate(total_abundance = sum(abundance))%>%
+  group_by(year, plot, uniqueid, species)%>%
+  mutate(relative_abundance = (abundance/total_abundance) * 100)%>%
+  ungroup() 
+
+## Calculating richness and evenness
+I1_richness <- df_I1_KNZ.clean %>%
+  community_diversity(time.var = "year",
+                      abundance.var = "relative_abundance",
+                      replicate.var = "uniqueid", metric = "Shannon")
+
+I1_diversity <- df_I1_KNZ.clean %>% 
+  #calculates richness and evenness as Evar
+  community_structure(time.var = "year", 
+                      abundance.var = "relative_abundance",
+                      replicate.var = "uniqueid",
+                      metric = "SimpsonEvenness") %>%
+  left_join(I1_richness, by = c("year","uniqueid"))
+  
+#Creating a dataframe for all the distinct descriptive columns
+df_I1_KNZ.env <- df_I1_KNZ.clean %>% 
+    distinct(source, experiment, year, higher_order_organization, uniqueid, site, block, plot, measurement_scale_cover)
+
+#Joining the diversity dataframe to the distinct columns dataframe
+I1_diversity <- left_join(I1_diversity, df_I1_KNZ.env, by = c("year", "uniqueid"), keep = FALSE) %>%
+  mutate(plot = as.factor(plot))
+    
+
+
+### I2- NUTNET biomass
+
+#Creating a dataframe to add blocks to the biomass
+
+I2_blocks <- tibble(block = c(rep(1, 20), rep(2, 20), rep(3, 20)), Plot = c(rep(1:30, each = 2)))
+
+df_I2_KNZ.clean <- left_join(df_I2_KNZ, I2_blocks, by = c("Plot"))
+
+#Renaming variables so they match the sppcomp data (and so that they're all lowercase because I'm weird and I need things to match)
+df_I2_KNZ.clean <- df_I2_KNZ.clean %>%
+  subset(RecYear != 2007) %>% 
+  rename(source = DataCode,
+         rectype = RecType,
+         year = RecYear,
+         plot = Plot,
+         lvgrass = Lvgrass,
+         forb = Forbs,
+         woody = Woody,
+         pryrdead = Pryrdead,
+         total = Total,
+         comments = Comments
+         ) %>% 
+  group_by(source, rectype, year, block, plot) %>% summarize(lvgrass = mean(lvgrass), forb = mean(forb), woody = mean(woody), pryrdead = mean(pryrdead), total = mean(total)) %>%
+  mutate(site = "KNZ",
+         experiment  = "NUTNET") %>%
+  unite(higher_order_organization,
+        experiment, site, sep = "_", remove = FALSE) %>%
+  unite(uniqueid, higher_order_organization, block, plot, sep = "_", remove = FALSE) %>%
+  mutate(higher_order_organization = as.factor(higher_order_organization),
+         plot = as.factor(plot),
+         uniqueid = as.factor(uniqueid))
+
+# Putting I1_diversity and I2 together
+df_I1_I2_KNZ.clean <- left_join(df_I2_KNZ.clean, I1_diversity,
+                                by = c("site", "year", "uniqueid", "higher_order_organization", 
+                                       "plot", "block", "experiment", "source"), keep = FALSE) %>%
+  mutate( measurement_scale_biomass = "0.1m2")
+
+#After they wouldn't merge correctly, I noticed the plots:subplots are not the same for the diversity and biomass datasets...
+unique(sort(I1_diversity$uniqueid))
+unique(sort(df_I2_KNZ.clean$uniqueid))
+unique(sort(df_I1_KNZ.clean$uniqueid))
+
+#Treatment taken from Konza LTER website... it is a PDF, so I am just recreating the table I guess.
+#I am also combining the "subplot" and "spp comp plot" from that table so that it matches these dataframes
+KNZ_NUTNET_treatment <- tibble(block = c(rep(1, 10), rep(2, 10), rep(3, 10)),
+                    plot = 1:30,
+                    # subplot = c("A1", "B1", "D1", "D2", "C3", "B4", "C3", "B3", "C1", 
+                    #            "A4", "B1", "D2", "D4", "C1", "B3", "B2", "D4", "D1",
+                    #            "C2", "A4", "B4", "D1", "C4", "C1", "A2", "C1", "D2",
+                    #            "B4", "C3", "C2"),
+                    nutrients_added = c("NP", "NPK", "NPK", "none", "N", "PK", "P", "NK",
+                                        "K", "none", "none", "PK", "P", "N", "NPK", "NPK",
+                                        "K", "none", "NP", "NK", "none", "none", "P", "NK", 
+                                        "N", "PK", "K", "NP", "NPK", "NPK"),
+                    treatment = c("NP", "NPK", "NPK_fenced", "control", "N", "PK", "P", "NK",
+                                        "K", "fenced", "fenced", "PK", "P", "N", "NPK_fenced", "NPK",
+                                        "K", "control", "NP", "NK", "control", "fenced", "P", "NK", 
+                                        "N", "PK", "K", "NP", "NPK_fenced", "NPK"),
+                    exclosure = c("control", "control", "fenced", "control","control","control","control","control",
+                                  "control","fenced", "fenced", "control","control","control","fenced", "control",
+                                  "control","control","control","control","control","fenced", "control","control",
+                                  "control","control","control","control","fenced", "control")) %>%
+  mutate(site = "KNZ", 
+         experiment = "NUTNET",
+         plot = as.factor(plot),
+         nutrients_added = as.factor(nutrients_added),
+         treatment = as.factor(treatment),
+         exclosure = as.factor(exclosure)) %>%
+  unite(higher_order_organization,
+        experiment, site, sep = "_", remove = FALSE) %>%
+  unite(uniqueid, higher_order_organization, block, plot, sep = "_", remove = FALSE) 
+
+
+#Final dataset
+df_I1_I2_KNZ.clean <- left_join(df_I1_I2_KNZ.clean, KNZ_NUTNET_treatment,
+                                by = "uniqueid", keep = FALSE) 
+
+```
+

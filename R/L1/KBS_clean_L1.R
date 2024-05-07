@@ -183,7 +183,7 @@ unique(micro$species)
 # leaving in unknown grass/forb, only known to family/genus, etc.
 
 # add columns
-micro$nutrients_added <- with(micro, ifelse(fertilized_microplot == "fertilized", "N+", "no_fertilizer"))
+micro$nutrients_added <- with(micro, ifelse(fertilized_microplot == "fertilized", "N", "no_fertilizer"))
 micro$nitrogen_amount <- with(micro, ifelse(fertilized_microplot == "fertilized", 12.3, NA)) # g N m^-2 as granular ammonium nitrate 
 micro$disturbance <- with(micro, ifelse(disturbed_microplot == "disturbed", "disturbed", "undisturbed"))
 micro$grazing <- "ungrazed"
@@ -229,6 +229,7 @@ micro_clean %>%
 
 table( micro$year, micro$month)
 table( micro_clean$year, micro_clean$month)
+# un/disturbed plots often harvested in different months
 
 
 
@@ -506,8 +507,9 @@ nutnet_bio$source <- "NutNet (Not publicly available)" # make column indicating 
   unique(micro$fertilized_microplot)
 nutnet_bio$nutrients_added <-  dplyr::case_match(nutnet_bio$treatment, "Fence" ~"no_fertilizer", "Control"~"no_fertilizer" ,.default = nutnet_bio$treatment)
   unique(nutnet_bio$nutrients_added)
-nutnet_bio$nitrogen_amount <- with(nutnet_bio, ifelse(nutrients_added != "no_fertilizer", 10, NA)) # g N m^-2 as granular ammonium nitrate 
-  unique(nutnet_bio$nitrogen_amount) # note that this is per nutrient!!!!
+nutnet_bio$nitrogen_amount <- with(nutnet_bio, 
+                                   ifelse(nutrients_added == "NK" | nutrients_added == "N" | nutrients_added == "NP" | nutrients_added == "NPK" | nutrients_added == "NPK+Fence", 10, NA)) # g N m^-2 as granular ammonium nitrate 
+  unique(nutnet_bio$nitrogen_amount) # only amount nitrogen # should we add columns for other elements? (each is 10)
 #micro$disturbance <- with(micro, ifelse(disturbed_microplot == "disturbed", "disturbed", "undisturbed"))
 nutnet_bio$grazing <- "ungrazed"
 nutnet_bio$disturbance <- "NA" # CHECK THIS!!!! what to do with fence !!!!!
@@ -547,8 +549,9 @@ unique (nutnet_cover$treatment)
 unique(micro$fertilized_microplot)
 nutnet_cover$nutrients_added <-  dplyr::case_match(nutnet_cover$treatment, "Fence" ~"no_fertilizer", "Control"~"no_fertilizer" ,.default = nutnet_cover$treatment)
 unique(nutnet_cover$nutrients_added)
-nutnet_cover$nitrogen_amount <- with(nutnet_cover, ifelse(nutrients_added != "no_fertilizer", 10, NA)) # g N m^-2 as granular ammonium nitrate 
-unique(nutnet_cover$nitrogen_amount) # note that this is per nutrient!!!!
+nutnet_cover$nitrogen_amount <- with(nutnet_cover, 
+                                     ifelse(nutrients_added == "NK" | nutrients_added == "N" | nutrients_added == "NP" | nutrients_added == "NPK" | nutrients_added == "NPK+Fence", 10, NA)) # g N m^-2 as granular ammonium nitrate 
+unique(nutnet_cover$nitrogen_amount) # only amount nitrogen # should we add columns for other elements? (each is 10)
 #micro$disturbance <- with(micro, ifelse(disturbed_microplot == "disturbed", "disturbed", "undisturbed"))
 nutnet_cover$grazing <- "ungrazed"
 nutnet_cover$disturbance <- "NA" # CHECK THIS!!!! what to do with fence !!!!!

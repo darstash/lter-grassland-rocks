@@ -951,7 +951,7 @@ cdr_sp_data <- e001e002_anpp %>%
           select(year,         site,         plot,         higher_order_organization,
                  uniqueid,     species,      abundance,    relative_abundance,
                  original_measurement_unit)) %>%
-  rbind(e245_anpp %>%
+  rbind(e245_anpp %>% ungroup() %>%
           select(year,         site,         plot,         higher_order_organization,
                  uniqueid,     species,      abundance,    relative_abundance,
                  original_measurement_unit)) %>%

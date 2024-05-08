@@ -610,7 +610,8 @@ e054_anpp <- e054_anpp %>%
 e054_anpp <- e054_anpp %>%
   mutate(grazing = "ungrazed",
          fire_frequency = case_when(Burnt_started2007 == "Unburned" ~ 0,
-                                    Burnt_started2007 == "Burned" ~ 5,))
+                                    Burnt_started2007 == "Burned" ~ 5,),
+         fire_frequency = ifelse(Year < 2007, 0, fire_frequency))
 
 
 
@@ -632,11 +633,13 @@ e054_metadata <- e054_anpp %>%
          diversity_manipulated = "naturally_assembled",
          treatment = "control",
          treatment_comment = "fields differ in time since abandonment and after 2007 in burn/no burn treatment, but we entered all plots as control, since there is no real control vs. treatment contrast.",
-         source = "https://doi.org/10.6073/pasta/02d38edbe0860ef0a0555ff3e495ca1a"
+         source = "https://doi.org/10.6073/pasta/02d38edbe0860ef0a0555ff3e495ca1a",
+         time_since_fire = NA,
          ) %>%
   select(site, year, plot, higher_order_organization, uniqueid, 
          temperature, precipitation, treatment, disturbance,
-         nutrients_added, nitrogen_amount, grazing, fire_frequency, source, treatment_comment, diversity_manipulated)
+         nutrients_added, nitrogen_amount, grazing, fire_frequency, time_since_fire,
+         source, treatment_comment, diversity_manipulated)
 
 #e054 still needs to time since fire and other variables that the master datasheet will have
 
@@ -869,6 +872,7 @@ e247_metadata <- e247_cover %>%
          diversity_manipulated = "naturally_assembled",
          measurement_scale_biomass = "0.2m^2",
          measurement_scale_cover = "1m^2",
+         source = "https://doi.org/10.6073/pasta/303607d5f92929a4b20ba127c47d21f0",
          treatment_comment = NA) # %>%
 
 #adding climate information
@@ -881,7 +885,7 @@ e247_metadata <- e247_metadata %>%
   select(year, site, source, higher_order_organization, uniqueid, plot, treatment,
          nitrogen_amount, nutrients_added, disturbance, grazing, fire_frequency,
          time_since_fire, diversity_manipulated, temperature, precipitation, measurement_scale_biomass, measurement_scale_cover,
-         treatment_comment)
+         source, treatment_comment)
 
 
 e247_cover <- e247_cover %>%

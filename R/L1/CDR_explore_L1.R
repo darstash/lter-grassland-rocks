@@ -144,6 +144,7 @@ library(janitor)
 
 # Set working directory 
 L0_dir <- Sys.getenv("L0DIR")
+L1_dir <- Sys.getenv("L1DIR")
 list.files(L0_dir)
 
 # Load data ####
@@ -744,7 +745,8 @@ e245_metadata <- e245_anpp %>%
     disturbance = "undisturbed",
     grazing = ifelse(treatment_comment %in% "Fenced", "ungrazed", "grazed"),
     fire_frequency = 1/3,
-    diversity_manipulated = "naturally_assembled" 
+    diversity_manipulated = "naturally_assembled",
+    source = "https://doi.org/10.6073/pasta/303607d5f92929a4b20ba127c47d21f0 (Accessed 2024-05-08"
   ) %>%
   merge(., 
         df %>% select(Year, time_since_fire), 
@@ -845,7 +847,7 @@ e247_cover <- e247_cover %>%
          # species = ifelse(species %in% "Symphyotrichum boreale",           "", species),
          # species = ifelse(species %in% "Toxicodendron radicans",           "", species),
          # species = ifelse(species %in% "Tragopogon dubius",                "", species),
-         original_measurement_unit = "%") %>%
+         original_measurement_unit = "%cover") %>%
   group_by(year, plot, uniqueid) %>%
   mutate(relative_abundance        = abundance/sum(abundance ))
 
@@ -902,23 +904,29 @@ e054_metrics <- e054_anpp %>%
 e245_metrics <- e245_anpp %>%
   group_by(year, site, higher_order_organization, plot,  uniqueid, original_measurement_unit) %>%
   summarize(plot_biomass = sum(abundance),
-            richness = n())
+            richness = n()) %>%
+  mutate(measurement_scale_biomass = "0.2m^2",
+         measurement_scale_cover = NA)
 
 e061_metrics <- e061_anpp %>%
   group_by(year, site, higher_order_organization, plot,  uniqueid, original_measurement_unit) %>%
   summarize(plot_biomass = sum(abundance),
-            richness = n())
+            richness = n()) %>%
+  mutate(measurement_scale_biomass = "0.3m^2",
+         measurement_scale_cover = NA)
 
 #for e247 need to calculate richness from cover data and biomass from anpp data then merge dataframes
 e247_anpp <- e247_anpp %>%
   group_by(year, block, plot) %>%
   summarize(plot_biomass = sum(Aboveground.biomass)) %>%
   ungroup() %>%
-  select(year, plot, plot_biomass)
+  select(year, plot, plot_biomass) %>%
+  mutate(measurement_scale_biomass = "0.2m^2")
 
 e247_richness <- e247_cover %>%
   group_by(year, site, plot, higher_order_organization, uniqueid, original_measurement_unit) %>%
-  summarize(richness = n())
+  summarize(richness = n()) %>%
+  mutate(measurement_scale_cover = "1m^2")
 
 e247_metrics <- merge(e247_richness, e247_anpp, by=c("year", "plot"))
 
@@ -931,3 +939,64 @@ cdr_data <- e001e002_metrics %>%
   rbind(e247_metrics)
 
 #so this has all the bare minimum variables - no metadata information - need to confirm and work on checking off all variables for each data set - then can consider making a master metadata df too????
+cdr_sp_data <- e001e002_anpp %>%
+  select(year,         site,         plot,         higher_order_organization,
+         uniqueid,     species,      abundance,    relative_abundance,
+         original_measurement_unit) %>%
+  rbind(e054_anpp %>%
+          select(year,         site,         plot,         higher_order_organization,
+                 uniqueid,     species,      abundance,    relative_abundance,
+                 original_measurement_unit)) %>%
+  rbind(e061_anpp %>%
+          select(year,         site,         plot,         higher_order_organization,
+                 uniqueid,     species,      abundance,    relative_abundance,
+                 original_measurement_unit)) %>%
+  rbind(e245_anpp %>%
+          select(year,         site,         plot,         higher_order_organization,
+                 uniqueid,     species,      abundance,    relative_abundance,
+                 original_measurement_unit)) %>%
+  rbind(e247_cover %>%
+          select(year,         site,         plot,         higher_order_organization,
+                 uniqueid,     species,      abundance,    relative_abundance,
+                 original_measurement_unit))
+
+#Combine CDR specieslevel abundance (biomass based/cover based in case of nutnet)
+
+
+#Combine CDR metadata
+cdr_metadata <- e001e002_metadata %>%
+  select(year,            site,            plot,          higher_order_organization,
+         uniqueid,        temperature,     precipitation, treatment,
+         nutrients_added, nitrogen_amount, disturbance,   grazing,
+         fire_frequency,  time_since_fire, source,        treatment_comment,
+         diversity_manipulated) %>%
+  rbind(e054_metadata %>%
+          select(year,            site,            plot,          higher_order_organization,
+                 uniqueid,        temperature,     precipitation, treatment,
+                 nutrients_added, nitrogen_amount, disturbance,   grazing,
+                 fire_frequency,  time_since_fire, source,        treatment_comment,
+                 diversity_manipulated)) %>%
+  rbind(e061_metadata %>%
+          select(year,            site,            plot,          higher_order_organization,
+                 uniqueid,        temperature,     precipitation, treatment,
+                 nutrients_added, nitrogen_amount, disturbance,   grazing,
+                 fire_frequency,  time_since_fire, source,        treatment_comment,
+                 diversity_manipulated))%>%
+  rbind(e245_metadata %>%
+          select(year,            site,            plot,          higher_order_organization,
+                 uniqueid,        temperature,     precipitation, treatment,
+                 nutrients_added, nitrogen_amount, disturbance,   grazing,
+                 fire_frequency,  time_since_fire, source,        treatment_comment,
+                 diversity_manipulated))%>%
+  rbind(e247_metadata %>%
+          select(year,            site,            plot,          higher_order_organization,
+                 uniqueid,        temperature,     precipitation, treatment,
+                 nutrients_added, nitrogen_amount, disturbance,   grazing,
+                 fire_frequency,  time_since_fire, source,        treatment_comment,
+                 diversity_manipulated))
+
+
+#SAVE####
+write.csv(cdr_data,     paste(L1_dir, "CDR_plotlevel_metrics.csv", sep = "/"))
+write.csv(cdr_sp_data,  paste(L1_dir, "CDR_specieslevel_abundance.csv", sep = "/"))
+write.csv(cdr_metadata, paste(L1_dir, "CDR_metadata.csv", sep = "/"))

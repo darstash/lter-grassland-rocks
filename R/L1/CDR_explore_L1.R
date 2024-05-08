@@ -820,6 +820,7 @@ e061_anpp <- e061_anpp %>%
 
 
 ## e247 ####
+## e247 ####
 e247_cover <- e247_cover %>%
   mutate(site = "CDR",
          #plot = paste("e247_block_", block, "plot_", plot, sep = ""),
@@ -853,19 +854,22 @@ e247_cover <- e247_cover %>%
   mutate(relative_abundance        = abundance/sum(abundance ))
 
 e247_metadata <- e247_cover %>%
-  select(year, plot, uniqueid, trt, Exclose, nitrogen_amount) %>%
+  select(year, site, plot, higher_order_organization, uniqueid, trt, Exclose, nitrogen_amount) %>%
   unique() %>%
-  mutate(treatment = ifelse(trt %in% "Control", "control", "treatment"),
+  mutate(source = "e247",
+         treatment = ifelse(trt %in% "Control", "control", "treatment"),
          nutrients_added = trt,
          nutrients_added = gsub(nutrients_added, pattern = "+Fence",  replacement = ""),
          nutrients_added = gsub(nutrients_added, pattern = "Fence",   replacement = "no_fertlizier"),
          nutrients_added = gsub(nutrients_added, pattern = "Control", replacement = "no_fertilizer"),
          disturbance = "undisturbed",
          grazing = ifelse(trt %in% c("NPK+Fence", "Fence"), "ungrazed", "grazed"),
-         # fire_frequency = NA,
-         # time_since_fire = NA,
+         fire_frequency = NA,
+         time_since_fire = NA,
+         diversity_manipulated = "naturally_assembled",
          measurement_scale_biomass = "0.2m^2",
-         measurement_scale_cover = "1m^2") # %>%
+         measurement_scale_cover = "1m^2",
+         treatment_comment = NA) # %>%
 
 #adding climate information
 e247_metadata <- climate %>%
@@ -873,12 +877,12 @@ e247_metadata <- climate %>%
   select(year, temperature, precipitation) %>%
   inner_join(e247_metadata, ., by="year", multiple="all")
 
-# merge(.,
-#       meteodata)
-# select(year, site, plot, higher_order_organization, temperature, 
-#        precipitation, treatment, nutrients_added, 
-#        nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire,
-#        treatment_comment, diversity_manipulated)
+e247_metadata <- e247_metadata %>%
+  select(year, site, source, higher_order_organization, uniqueid, plot, treatment,
+         nitrogen_amount, nutrients_added, disturbance, grazing, fire_frequency,
+         time_since_fire, diversity_manipulated, temperature, precipitation, measurement_scale_biomass, measurement_scale_cover,
+         treatment_comment)
+
 
 e247_cover <- e247_cover %>%
   select(year, site, plot, higher_order_organization, uniqueid, species, abundance, relative_abundance, original_measurement_unit)

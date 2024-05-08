@@ -154,7 +154,8 @@ burns <- read.csv(paste(L0_dir, "CDR/CCESR_Burn_record_by_Burn_Unit_and_Year.csv
 
 climate <- read.csv(paste(L0_dir, "CDR/e080_Daily climate summary.csv", sep="/"))
 
-e001e002_anpp <- read.csv(paste(L0_dir, "CDR/E001 E002 Aboveground Biomass for ML through 2022.csv", sep = "/"))
+e001e002_anpp <- read.csv(paste(L0_dir, "CDR/E001 E002 Aboveground Biomass for ML through 2022.csv", sep = "/")) %>%
+  mutate(Field = ifelse(Field %in% "a", "A", Field))
 
 #e001_anpp <-
 #  read.table(paste(L0_dir, "CDR/e001_Plant_aboveground_biomass_data.txt", sep = "/"), 
@@ -939,6 +940,8 @@ cdr_data <- e001e002_metrics %>%
   rbind(e247_metrics)
 
 #so this has all the bare minimum variables - no metadata information - need to confirm and work on checking off all variables for each data set - then can consider making a master metadata df too????
+
+#Combine CDR specieslevel datasets ######
 cdr_sp_data <- e001e002_anpp %>%
   select(year,         site,         plot,         higher_order_organization,
          uniqueid,     species,      abundance,    relative_abundance,
@@ -963,7 +966,7 @@ cdr_sp_data <- e001e002_anpp %>%
 #Combine CDR specieslevel abundance (biomass based/cover based in case of nutnet)
 
 
-#Combine CDR metadata
+#Combine CDR metadata #####
 cdr_metadata <- e001e002_metadata %>%
   select(year,            site,            plot,          higher_order_organization,
          uniqueid,        temperature,     precipitation, treatment,

@@ -779,16 +779,12 @@ e061_anpp  <- e061_anpp %>%
 # create metadata  
 
 # notes for metadata: 
-# fert_trt I: control, G: fertilized with 26g/m2 ammonium nitrate. ammonium 
-# nitrate contains 34% or 34.5% of N. ~ 8.9 gN/m2. I still need to find out if
-# this was added consecutively or just in the year 1990 when it is in the data.
 # e061 is located in field B in the same macroplots than e004 and e060. Field B
 # was fenced until 2004. So there is no grazing. The  burn information data 
 # set has a column names "Part of field B(e004?)". This field was last burned in
 # 1995. So it can be classified as fire frequency of zero (data used here starts 
 # 1996). Time since fire is therefore year-1995
 
-# TO DO: INCORPORATE NUTRIENT TREATMENT (WAIT FOR DANS EMAIL ANSWER)
 
 e061_metadata  <- e061_anpp %>%
   ungroup() %>%
@@ -796,25 +792,23 @@ e061_metadata  <- e061_anpp %>%
   unique() %>%
   mutate(treatment_comment = ifelse(treatment %in% "BEX", "birds excluded", "control"),
          treatment = ifelse(treatment %in% "BEX", "treatment", "control"),
-         # nutrients_added = NA,
-         # nitrogen_amount = NA,
+         nutrients_added = "no_fertilizer",
+         nitrogen_amount = 0,
          disturbance = "undisturbed",
          grazing = "ungrazed",
          diversity_manipulated = "naturally_assembled",
          fire_frequency = 0,
-         time_since_fire = year-1995) # %>%
+         time_since_fire = year-1995,
+         source = "e061") # %>%
 
 #adding climate information
 e061_metadata <- climate %>%
   mutate(year = Year) %>%
   select(year, temperature, precipitation) %>%
   inner_join(e061_metadata, ., by="year", multiple="all")
-# merge(.,
-#       meteodata)
-# select(year, site, plot, higher_order_organization, temperature, 
-#        precipitation, treatment, nutrients_added, 
-#        nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire,
-#        treatment_comment, diversity_manipulated)
+
+e061_metadata <- e061_metadata %>%
+  select(-fert_trt)
 
 
 e061_anpp <- e061_anpp %>%
@@ -822,7 +816,6 @@ e061_anpp <- e061_anpp %>%
   select(year, site, plot, higher_order_organization,uniqueid, species, abundance, relative_abundance, original_measurement_unit)
 
 
-## e247 ####
 ## e247 ####
 e247_cover <- e247_cover %>%
   mutate(site = "CDR",

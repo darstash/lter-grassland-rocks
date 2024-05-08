@@ -895,12 +895,16 @@ e247_cover <- e247_cover %>%
 e001e002_metrics <- e001e002_anpp %>%
   group_by(year, site, higher_order_organization, plot,  uniqueid, original_measurement_unit) %>%
   summarize(plot_biomass = sum(abundance),
-            richness = n())
+            richness = n()) %>%
+  mutate(measurement_scale_biomass = "0.3m^2",
+         measurement_scale_cover = NA)
 
 e054_metrics <- e054_anpp %>%
   group_by(year, site, higher_order_organization, plot,  uniqueid, original_measurement_unit) %>%
   summarize(plot_biomass = sum(abundance),
-            richness = n())
+            richness = n()) %>%
+  mutate(measurement_scale_biomass = "0.3m^2",
+         measurement_scale_cover = NA)
 
 e245_metrics <- e245_anpp %>%
   group_by(year, site, higher_order_organization, plot,  uniqueid, original_measurement_unit) %>%
@@ -925,7 +929,7 @@ e247_richness <- e247_cover %>%
 
 e247_metrics <- merge(e247_richness, e247_anpp, by=c("year", "plot"))
 
-#Combine CDR datasets####
+#Combine CDR plotlevel  datasets####
 
 cdr_data <- e001e002_metrics %>%
   rbind(e054_metrics) %>%

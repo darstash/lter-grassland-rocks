@@ -556,10 +556,13 @@ e001e002_metadata <- e001e002_anpp %>%
         by.y = "Year",
         all.x = TRUE) %>%
   clean_names(.) %>%
-  mutate(diversity_manipulated = "naturally_assembled") %>%
-  select(site, year, plot, uniqueid, higher_order_organization, temperature, precipitation, 
+  mutate(diversity_manipulated = "naturally_assembled",
+         treatment = ifelse(n_trt %in% 1, "control", "treatment"),
+         source = "https://doi.org/10.6073/pasta/2eba7aac6b347d27a92208e03fd3f8ea; https://doi.org/10.6073/pasta/66724d71711b80d520fa33a690f962b2",
+         treatment_comment = "") %>%
+  select(site, year, plot, uniqueid, higher_order_organization, temperature, precipitation, treatment,
          nutrients_added, nitrogen_amount, grazing, fire_frequency, time_since_fire,
-         disturbance, diversity_manipulated)
+         disturbance, source, treatment_comment, diversity_manipulated)
 
 #e001 still needs to add temp, precip, and other variables that the master datasheet will have
 
@@ -626,10 +629,14 @@ e054_anpp = e054_anpp %>%
 e054_metadata <- e054_anpp %>%
   clean_names(.) %>%
   mutate(disturbance = "undisturbed",
-         diversity_manipulated = "naturally_assembled") %>%
+         diversity_manipulated = "naturally_assembled",
+         treatment = "control",
+         treatment_comment = "fields differ in time since abandonment and after 2007 in burn/no burn treatment, but we entered all plots as control, since there is no real control vs. treatment contrast.",
+         source = "https://doi.org/10.6073/pasta/02d38edbe0860ef0a0555ff3e495ca1a"
+         ) %>%
   select(site, year, plot, higher_order_organization, uniqueid, 
-         temperature, precipitation, disturbance,
-         nutrients_added, nitrogen_amount, grazing, fire_frequency, diversity_manipulated)
+         temperature, precipitation, treatment, disturbance,
+         nutrients_added, nitrogen_amount, grazing, fire_frequency, source, treatment_comment, diversity_manipulated)
 
 #e054 still needs to time since fire and other variables that the master datasheet will have
 

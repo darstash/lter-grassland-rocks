@@ -110,7 +110,7 @@ unique(df_E1_KNZ$PlotID)#48 plots
 unique(df_E2_KNZ$PlotID)#48 plots
 
 #clean and wrangle sp comp data
-df_E1_KNZ_clean<-df_E1_KNZ%>%
+df_E1_KNZ_clean_sppcomp<-df_E1_KNZ%>%
   rename(year=RecYear)%>%
   unite(species_name,Genus,Species, sep = "_")%>%
 #unique(df_E1_KNZ_clean$species_name)#no obvious duplicate 
@@ -119,23 +119,33 @@ df_E1_KNZ_clean<-df_E1_KNZ%>%
   group_by(year, PlotID, Treatment, species_name)%>%
   mutate(relative_abundance=(Abundance/total_abundance)*100)%>%
   ungroup()%>%
+  rename(abundance=Abundance,
+         plot=PlotID,species=species_name)%>%
+  mutate(original_measurement_unit="%cover",
+         site="KNZ",
+         higher_order_organization=paste(site,"PPLOT","2C",sep="_"),
+         uniqueid=paste(higher_order_organization,plot,sep="_"))%>%
   #create unique identifier for codyn package for community metric
-  unite(plot, PlotID, Treatment, sep="_")
-  #ready for richness/diversity calculation with codyn package
+  mutate(PlotID=paste(plot,Treatment, sep="_"))#ready for richness/diversity calculation with codyn package
+
+#ready to join with other Konza species comp data
+df_E1_KNZ_species_level<-df_E1_KNZ_clean_sppcomp%>%
+  mutate(relative_abundance=relative_abundance/100)
+  
 
 #calculate diversity/richness/evenness
-
-E1_richness<-df_E1_KNZ_clean%>%
+#I used Evar for evenness because it is independent of species richness
+E1_richness<-df_E1_KNZ_clean_sppcomp%>%
   community_diversity(time.var="year",abundance.var="relative_abundance",
-                      replicate.var="plot",metric = "Shannon")
-E1_diversity<-df_E1_KNZ_clean%>%
+                      replicate.var="PlotID",metric = "Shannon")
+E1_diversity<-df_E1_KNZ_clean_sppcomp%>%
   #calculates richness and evenness as Evar
   community_structure(time.var="year",abundance.var="relative_abundance",
-                      replicate.var="plot")%>%
-  left_join(E1_richness, by=c("year","plot"))%>%
-  separate_wider_delim(plot,"_", names=c("PlotID","Treatment"))
+                      replicate.var="PlotID")%>%
+  left_join(E1_richness, by=c("year","PlotID"))%>%
+  separate_wider_delim(PlotID,"_", names=c("plot","Treatment"))
 #convert to integer to allow joining with biomass data
-E1_diversity$PlotID=as.integer(E1_diversity$PlotID)
+E1_diversity$plot=as.integer(E1_diversity$plot)
 
 #clean and wrangle complementary biomass data and join with spcomp data
 
@@ -143,14 +153,40 @@ E1_diversity$PlotID=as.integer(E1_diversity$PlotID)
 treatment_key=tibble(Treatment=levels(factor(df_E2_KNZ$Treatment)),                        treatment_key=c("control","N0P2.5","N0P5","N0P10",
                                     "N10P0","N10P2.5","N10P5","N10P10"))
 
-#clean biomass data and join with spcomp data
-df_E1_E2_KNZ_clean<-df_E2_KNZ%>%
-  rename(year=RecYear, plot_biomass=ANPP)%>%
-  mutate(site="KNZ", fire_frequency=2, grazing="ungrazed", 
-         watershed="2c")%>%
-  left_join(E1_diversity, by=c("year","Treatment", "PlotID"))%>%
-  left_join(treatment_key, by="Treatment")
-#ready to merge with other data set
+#clean biomass data and join with richness data
+df_E1_E2_KNZ_clean_plot_metrics<-df_E2_KNZ%>%
+  rename(year=RecYear, plot_biomass=ANPP,plot=PlotID)%>%
+  mutate(site="KNZ")%>%
+  left_join(E1_diversity, by=c("year","Treatment", "plot"))%>%
+  left_join(treatment_key, by="Treatment")%>%
+  rename(treatment=treatment_key, evenness=Evar)%>%
+  mutate(site="KNZ",
+         higher_order_organization=paste(site,"PPLOT","2C",sep="_"),
+         uniqueid=paste(higher_order_organization,plot,sep="_"),
+         measurement_scale_biomass=0.1,
+         measurement_scale_cover=1)
+#ready to merge with other plot metric data set
+
+#create metadata 
+#create metadata keys
+treatment_key_metadata=tibble(treatment=levels(factor(df_E1_E2_KNZ_clean_plot_metrics$treatment)),               nutrient_added=c("no_fertilizer","P","P","P","N","NP","NP","NP"),
+                              nitrogen_amount=c(0,0,0,0,10,10,10,10),
+                              phosphorus_amount=c(0,10,2.5,5,0,10,2.5,5),
+                              disturbance="undisturbed",
+                              grazing="ungrazed",
+                              fire_frequency=2,
+                              diversity_manipulated="naturally_assembled",)
+#key for time since fire
+time_since_fire_key=tibble(year=levels(factor(df_E1_E2_KNZ_clean_plot_metrics$year)),                        time_since_fire=c(1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0)                                     )
+#convert year to integer
+time_since_fire_key$year=as.integer(time_since_fire_key$year)
+df_E1_E2_metadata<-df_E1_E2_KNZ_clean_plot_metrics%>%
+  select(1:5,7,11:13)%>%
+  left_join(treatment_key_metadata, by="treatment")%>%
+  rename(source=DataCode)%>%
+  left_join(time_since_fire_key, by="year")
+#ready to merge with other Konza metadata
+
 
 ```
 

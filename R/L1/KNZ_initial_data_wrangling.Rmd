@@ -892,3 +892,151 @@ df_I1_I2_KNZ.clean <- left_join(df_I1_I2_KNZ.clean, KNZ_NUTNET_treatment,
 
 ```
 
+
+```
+#Mary's Code!!! for ChANGE K1_NGE01
+# >:)
+
+####Process and clean K1_NGE01_Sppcomp
+#read in data, filter for correct years
+K1_spp<-read.csv("K1_NGE01_Sppcomp_RAW_no deluge plots_all years_20240515.csv")%>%
+  filter(year!=2013)%>% #subset all the pre-treatment 2013 year to avoid confusion
+  select(-X,-nitrogen,-treatment,-experiment) #drop unneeded columns
+
+#relative_abundance: calculate so all sum to 1
+  #aggregate rows to sum cover across plot and get a "total cover" metric
+totalcover_only<-aggregate(K1_spp$abundance,
+                           by=list(higher_order_organization=K1_spp$higher_order_organization,
+                                   plot=K1_spp$plot,
+                                   site=K1_spp$site,
+                                   year=K1_spp$year), FUN=sum)
+names(totalcover_only)[names(totalcover_only)=="x"] <- "totalcover"
+
+  #add totalcover value to main dataset
+K1_spp<-merge(totalcover_only,K1_spp, by=c("site","plot","year","higher_order_organization"))
+
+  #calculate relative abundance in new col then remove the "totalcover" col
+K1_spp$relative_abundance <- (K1_spp$abundance/K1_spp$totalcover)
+K1_spp <- K1_spp %>% select(-totalcover)
+
+#combine block and plot for the uniqueid col
+K1_spp$uniqueid<-paste(K1_spp$year,K1_spp$higher_order_organization,K1_spp$plot)
+
+#site: update name to fit convention
+K1_spp$site[K1_spp$site == 'knz']<-'KNZ'
+
+#original_measurement_unit:
+K1_spp$original_measurement_unit<-"%cover"
+
+#write cleaned document
+write.csv(K1_spp, "K1_NGE01_Sppcomp.csv")
+
+
+####Process and clean K2_NGE01_Biomass
+#read in data, filter for correct years
+K1_mass<-read.csv("K2_NGE01_Biomass_RAW_no deluge plots_all years_20240515.csv")%>%
+  filter(year!=2013)%>%
+  rename(plot_biomass=anpp)%>%#subset all the pre-treatment 2013 year to avoid confusion
+  select(-X,-nitrogen,-treatment) #drop unneeded columns
+
+#combine block and plot for the uniqueid col
+K1_mass$uniqueid<-paste(K1_mass$year,K1_mass$higher_order_organization,K1_mass$plot)
+
+#calculate richness and diversity (as evenness) then merge with the main biomass dataset
+K1_diversity <- community_structure(K1_spp, time.var = "year", abundance.var = "relative_abundance",
+                                  replicate.var = "uniqueid", metric = c("Evar"))
+
+K1_mass<-merge(K1_mass,K1_diversity, by=c("year","uniqueid"))
+
+#add measurement_scale columns
+K1_mass$measurement_scale_biomass<-0.1
+K1_mass$measurement_scale_cover<-1
+
+#write cleaned document
+write.csv(K1_mass, "K2_NGE01_Biomass.csv")
+
+
+####Create K1_NGE01 metadata file
+#Read in biomass dataset and remove unneeded columns
+K1_meta<-read.csv("K2_NGE01_Biomass.csv")%>%
+  select(-X,-measurement_scale_biomass,-measurement_scale_cover,-plot_biomass,-richness,-Evar) #drop unneeded columns
+
+#Load in temperature data, calculate MAT, merge with main dataset
+df_temp <- read.csv("Temperature_1982_2023.csv")%>%
+  filter(TAVE!=".")%>%
+  rename(year=RECYEAR)
+
+df_temp_ave_year <- df_temp %>% 
+  group_by(year) %>%
+  summarize(temperature=mean(as.numeric(TAVE)))
+
+K1_meta<-merge(K1_meta,df_temp_ave_year, by=c("year"))
+
+#precipitation: load data, calculate annual precip, merge with main dataset
+df_ppt <- read.csv("Precipitation_1982_2023.csv")%>%
+  filter(ppt!=".")
+#df_ppt[is.na(df_ppt)] <- 0
+
+  #Convert the date column to Date type, then extract year and day of year
+df_ppt$RecDate<- as.Date(df_ppt$RecDate, format = "%m/%d/%Y")
+df_ppt$year <- year(df_ppt$RecDate)
+
+  #average across year
+df_ppt_ave_year <- df_ppt %>% 
+  group_by(year) %>%
+  summarize(precipitation=sum(as.numeric(ppt)))
+
+  #merge with main dataset
+K1_meta<-merge(K1_meta,df_ppt_ave_year, by=c("year"))
+
+#growing_precipitation: calculate growing season precip, merge with main dataset
+df_ppt$doy <- strftime(df_ppt$RecDate, format = "%j")
+df_ppt$doy<-as.numeric(df_ppt$doy)
+
+  #filter dataset based on growing season defined for KNZ as 85-278 in Robinson etal 2012 
+df_ppt_gs<-filter(df_ppt,doy>=85&doy<=278)
+
+#average across year
+df_ppt_ave_year_gs <- df_ppt_gs %>% 
+  group_by(year) %>%
+  summarize(growing_precipitation=sum(as.numeric(ppt)))
+
+#merge with main dataset
+K1_meta<-merge(K1_meta,df_ppt_ave_year_gs, by=c("year"))
+
+#load in nitrogen treatment info then merge datasets
+K1_N<-read.csv("dropbox_plotlist_trts_copy.csv")%>%
+  rename(higher_order_organization=block, nitrogen_amount=nitrogen) #drop unneeded columns
+
+K1_meta<-merge(K1_meta,K1_N, by=c("plot","higher_order_organization"))
+
+#treatment:
+K1_meta$treatment<-ifelse(K1_meta$nitrogen_amount=="0","control","treatment")
+
+#nutrients_added:
+K1_meta$nutrients_added<-ifelse(K1_meta$nitrogen_amount=="0","no_fertilizer","N")
+
+#disturbance:
+K1_meta$disturbance<-"undisturbed"
+
+#grazing:
+K1_meta$grazing<-"ungrazed"
+
+#fire_frequency:
+K1_meta$fire_frequency<-1
+
+#time_since_fire: 
+K1_meta$time_since_fire<-0
+
+#Source:
+K1_meta$source<-"personal_most_recent_version_only_portion_on_Konza_site"
+
+#treatment_comment:
+K1_meta$treatment_comment<-"does_not_apply"
+
+#diversity_manipulated
+K1_meta$diversity_manipulated<-"naturally_assembled"
+
+#write cleaned document
+write.csv(K1_meta, "K3_NGE01_Metadata.csv")
+```

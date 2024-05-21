@@ -1065,7 +1065,7 @@ write.csv(K1_meta, "K3_NGE01_Metadata.csv")
 KNZ_specieslevel_abundance<-df_E1_KNZ_clean_sppcomp%>%
   select(-1:-2,-5:-6,-9,-15)%>%
   left_join(K1_spp, by=c("year","abundance","site","plot","higher_order_organization",
-                         "uniqueid","species","relative_abundance","original_measurement_unit"))
-write.csv(KNZ_specieslevel_abundance,"/L1_dir/KNZ/KNZ_specieslevel_abundance.csv")
-L1_
+                         "uniqueid","species","relative_abundance","original_measurement_unit"))%>%
+  merge(df_I1_I2_KNZ.clean, by="year")
+write.csv(KNZ_specieslevel_abundance,file.path(L1_dir,"/KNZ_specieslevel_abundance.csv"))
 ```

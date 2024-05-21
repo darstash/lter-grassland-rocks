@@ -933,33 +933,33 @@ e247_metrics <- merge(e247_richness, e247_anpp, by=c("year", "plot"))
 
 #Combine CDR plotlevel  datasets####
 
-cdr_data <- e001e002_metrics %>%
-  rbind(e054_metrics) %>%
-  rbind(e245_metrics) %>%
-  rbind(e061_metrics) %>%
-  rbind(e247_metrics)
+cdr_data <- e001e002_metrics %>% mutate(dataset = "e001_e002") %>%
+  rbind(e054_metrics %>% mutate(dataset = "e054")) %>%
+  rbind(e245_metrics %>% mutate(dataset = "e245")) %>%
+  rbind(e061_metrics %>% mutate(dataset = "e061")) %>%
+  rbind(e247_metrics %>% mutate(dataset = "e247"))
 
 #so this has all the bare minimum variables - no metadata information - need to confirm and work on checking off all variables for each data set - then can consider making a master metadata df too????
 
 #Combine CDR specieslevel datasets ######
-cdr_sp_data <- e001e002_anpp %>%
-  select(year,         site,         plot,         higher_order_organization,
+cdr_sp_data <- e001e002_anpp %>% mutate(dataset = "e001_e002") %>%
+  select(year,         site,         dataset,      plot,         higher_order_organization,
          uniqueid,     species,      abundance,    relative_abundance,
          original_measurement_unit) %>%
-  rbind(e054_anpp %>%
-          select(year,         site,         plot,         higher_order_organization,
+  rbind(e054_anpp %>% mutate(dataset = "e054") %>%
+          select(year,         site,         dataset,      plot,         higher_order_organization,
                  uniqueid,     species,      abundance,    relative_abundance,
                  original_measurement_unit)) %>%
-  rbind(e061_anpp %>%
-          select(year,         site,         plot,         higher_order_organization,
+  rbind(e061_anpp %>% mutate(dataset = "e061") %>%
+          select(year,         site,         dataset,      plot,         higher_order_organization,
                  uniqueid,     species,      abundance,    relative_abundance,
                  original_measurement_unit)) %>%
-  rbind(e245_anpp %>% ungroup() %>%
-          select(year,         site,         plot,         higher_order_organization,
+  rbind(e245_anpp %>% ungroup() %>% mutate(dataset = "e245") %>%
+          select(year,         site,         dataset,      plot,         higher_order_organization,
                  uniqueid,     species,      abundance,    relative_abundance,
                  original_measurement_unit)) %>%
-  rbind(e247_cover %>%
-          select(year,         site,         plot,         higher_order_organization,
+  rbind(e247_cover %>% mutate(dataset = "e247") %>%
+          select(year,         site,         dataset,      plot,         higher_order_organization,
                  uniqueid,     species,      abundance,    relative_abundance,
                  original_measurement_unit))
 
@@ -967,32 +967,32 @@ cdr_sp_data <- e001e002_anpp %>%
 
 
 #Combine CDR metadata #####
-cdr_metadata <- e001e002_metadata %>%
-  select(year,            site,            plot,          higher_order_organization,
+cdr_metadata <- e001e002_metadata %>% mutate(dataset = "e001_e002") %>%
+  select(year,            site,            dataset,       plot,          higher_order_organization,
          uniqueid,        temperature,     precipitation, treatment,
          nutrients_added, nitrogen_amount, disturbance,   grazing,
          fire_frequency,  time_since_fire, source,        treatment_comment,
          diversity_manipulated) %>%
-  rbind(e054_metadata %>%
-          select(year,            site,            plot,          higher_order_organization,
+  rbind(e054_metadata %>% mutate(dataset = "e054") %>%
+          select(year,            site,            dataset,       plot,          higher_order_organization,
                  uniqueid,        temperature,     precipitation, treatment,
                  nutrients_added, nitrogen_amount, disturbance,   grazing,
                  fire_frequency,  time_since_fire, source,        treatment_comment,
                  diversity_manipulated)) %>%
-  rbind(e061_metadata %>%
-          select(year,            site,            plot,          higher_order_organization,
+  rbind(e061_metadata %>% mutate(dataset = "e061") %>%
+          select(year,            site,            dataset,       plot,          higher_order_organization,
                  uniqueid,        temperature,     precipitation, treatment,
                  nutrients_added, nitrogen_amount, disturbance,   grazing,
                  fire_frequency,  time_since_fire, source,        treatment_comment,
                  diversity_manipulated))%>%
-  rbind(e245_metadata %>%
-          select(year,            site,            plot,          higher_order_organization,
+  rbind(e245_metadata %>% mutate(dataset = "e245") %>%
+          select(year,            site,            dataset,       plot,          higher_order_organization,
                  uniqueid,        temperature,     precipitation, treatment,
                  nutrients_added, nitrogen_amount, disturbance,   grazing,
                  fire_frequency,  time_since_fire, source,        treatment_comment,
                  diversity_manipulated))%>%
-  rbind(e247_metadata %>%
-          select(year,            site,            plot,          higher_order_organization,
+  rbind(e247_metadata %>% mutate(dataset = "e247") %>%
+          select(year,            site,            dataset,       plot,          higher_order_organization,
                  uniqueid,        temperature,     precipitation, treatment,
                  nutrients_added, nitrogen_amount, disturbance,   grazing,
                  fire_frequency,  time_since_fire, source,        treatment_comment,

@@ -2,7 +2,7 @@
 title: "KNZ_L0_data_wrangling"
 authors: Smriti Pehim Limbu, Joshua Ajowele
 Collaborators: Grassland Rocks working group
-date: "2023-12-11"
+date: "2023-12-11" Modified: "May 21, 2024"
 output: html_document
 ---
 
@@ -35,8 +35,9 @@ df_A2_KNZ <- read.csv(file.path(L0_dir, "KNZ/A2_CME012_Biomass.csv"), stringsAsF
 #Joshua's directory
 df_E1_KNZ<-read.csv("C:/Users/JAAJOWELE/Downloads/E1_PPL011_Sppcomp.csv")
 df_E2_KNZ<-read.csv("C:/Users/JAAJOWELE/Downloads/E2_PPL012_Biomass.csv")
-
-
+#loading from google drive-Joshua
+df_E1_KNZ<-read.csv(file.path(L0_dir, "KNZ/E1_PPL011_Sppcomp.csv"))
+df_E2_KNZ<-read.csv(file.path(L0_dir, "KNZ/E2_PPL012_Biomass.csv"))
 df_J1_KNZ <- read.csv(file.path(L0_dir, "KNZ/J1_CEE012_Sppcomp.csv"), stringsAsFactors = FALSE)
 df_J2_KNZ <- read.csv(file.path(L0_dir, "KNZ/J2_CEE014_Biomass.csv"), stringsAsFactors = FALSE)
 
@@ -44,6 +45,11 @@ df_J2_KNZ <- read.csv(file.path(L0_dir, "KNZ/J2_CEE014_Biomass.csv"), stringsAsF
 df_C1_KNZ <- read.csv("C:\\Users\\jasig\\Downloads\\C1_WAT012_Sppcomp.csv")
 df_C2_KNZ <- read.csv("C:\\Users\\jasig\\Downloads\\C2_WAT013_Biomass.csv")
 df_ppt <- read.csv("C:\\Users\\jasig\\Downloads\\Precipitation_1982_2023.csv")
+
+#loading directly via google drive
+df_C1_KNZ<-read.csv(file.path(L0_dir, "KNZ/C1_WAT012_Sppcomp.csv"))
+df_C2_KNZ<-read.csv(file.path(L0_dir, "KNZ/C2_WAT013_Biomass.csv"))
+
 #(Alex is dumb & is taking this approach) Convert the date column to Date type 
 df_ppt$RecDate<- as.Date(df_ppt$RecDate, format = "%m/%d/%Y")
 #Extract the year from the date
@@ -173,6 +179,8 @@ treatment_key_metadata=tibble(treatment=levels(factor(df_E1_E2_KNZ_clean_plot_me
                               nitrogen_amount=c(0,0,0,0,10,10,10,10),
                               phosphorus_amount=c(0,10,2.5,5,0,10,2.5,5),
                               disturbance="undisturbed",
+                              watershed="2C",
+                              treatment_comment="NA",
                               grazing="ungrazed",
                               fire_frequency=2,
                               diversity_manipulated="naturally_assembled",)
@@ -252,7 +260,7 @@ right_join(df_ppt, by=c("year")) %>%
          disturbance = "undisturbed",
          grazing = "ungrazed",
          fire_frequency = 1,
-         time_since_fire = NA,
+         time_since_fire = 0,
          diversity_manipulated = "naturally_assembled",
          measurement_scale_biomass = NA,
          richness = NA,
@@ -306,7 +314,7 @@ right_join(df_ppt, by=c("year")) %>%
          disturbance = "undisturbed",
          grazing = "ungrazed",
          fire_frequency = 1,
-         time_since_fire = NA,
+         time_since_fire = 0,
          diversity_manipulated = "naturally_assembled",
          measurement_scale_biomass = NA,
          richness = NA,
@@ -461,7 +469,8 @@ RaMPs_PlantCommunityComposition <- ramps %>%
   mutate(treatment_comment = case_when(treatment == "altered" & as.numeric(year) <= 2001 ~ "Could be reduced quantity, altered pattern, or both",
                                        treatment == "altered" & as.numeric(year) == 2001 ~ "Reduced quantity ended",
                                        treatment == "altered" & as.numeric(year) >= 2003 ~ "Heat lamps added to two random subplots",
-                                       treatment == "control" ~ "Unsheltered controls to account for effects from shelter infrastructure"))
+                                       treatment == "control" ~ "Unsheltered controls to account for effects from shelter infrastructure"))%>%
+  rename(species=Species)
 
 ```
 
@@ -893,13 +902,18 @@ df_I1_I2_KNZ.clean <- left_join(df_I1_I2_KNZ.clean, KNZ_NUTNET_treatment,
 ```
 
 
-```
+#Mary's code
+```{r}
 #Mary's Code!!! for ChANGE K1_NGE01
 # >:)
 
 ####Process and clean K1_NGE01_Sppcomp
 #read in data, filter for correct years
 K1_spp<-read.csv("K1_NGE01_Sppcomp_RAW_no deluge plots_all years_20240515.csv")%>%
+  filter(year!=2013)%>% #subset all the pre-treatment 2013 year to avoid confusion
+  select(-X,-nitrogen,-treatment,-experiment) #drop unneeded columns
+#loading from google drive
+K1_spp<-read.csv(file.path(L0_dir, "KNZ/K1_NGE01_Sppcomp_RAW_no deluge plots_all years_20240515.csv"))%>%
   filter(year!=2013)%>% #subset all the pre-treatment 2013 year to avoid confusion
   select(-X,-nitrogen,-treatment,-experiment) #drop unneeded columns
 
@@ -935,6 +949,11 @@ write.csv(K1_spp, "K1_NGE01_Sppcomp.csv")
 ####Process and clean K2_NGE01_Biomass
 #read in data, filter for correct years
 K1_mass<-read.csv("K2_NGE01_Biomass_RAW_no deluge plots_all years_20240515.csv")%>%
+  filter(year!=2013)%>%
+  rename(plot_biomass=anpp)%>%#subset all the pre-treatment 2013 year to avoid confusion
+  select(-X,-nitrogen,-treatment) #drop unneeded columns
+#loading from google drive
+K1_mass<-read.csv(file.path(L0_dir, "K2_NGE01_Biomass_RAW_no deluge plots_all years_20240515.csv"))%>%
   filter(year!=2013)%>%
   rename(plot_biomass=anpp)%>%#subset all the pre-treatment 2013 year to avoid confusion
   select(-X,-nitrogen,-treatment) #drop unneeded columns
@@ -1039,4 +1058,13 @@ K1_meta$diversity_manipulated<-"naturally_assembled"
 
 #write cleaned document
 write.csv(K1_meta, "K3_NGE01_Metadata.csv")
+```
+```{r}
+#combining all data set
+
+KNZ_specieslevel_abundance<-df_E1_KNZ_clean_sppcomp%>%
+  select(-1:-2,-5:-6,-9,-15)%>%
+  left_join(K1_spp, by=c("year","abundance","site","plot","higher_order_organization",
+                         "uniqueid","species","relative_abundance","original_measurement_unit"))
+write.csv(L1_dir,"KNZ/KNZ_specieslevel_abundance.csv")
 ```

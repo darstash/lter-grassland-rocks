@@ -100,7 +100,10 @@ df_J1_richness_evenness <- community_structure(df_J1_KNZ.clean, time.var = "year
 
 #add richness and evenness to the biomass data
 
-df_J2_KNZ.clean.richness.evenness <- left_join (df_J2_KNZ.clean, df_J1_richness_evenness, by = c("year", "Plot"))
+df_J2_KNZ.clean.richness.evenness <- left_join (df_J2_KNZ.clean, df_J1_richness_evenness, by = c("year", "Plot"))%>%
+  rename(plot_biomass=Total)%>%
+  rename(plot=Plot)%>%
+  rename(evenness=SimpsonEvenness)
 
 
 ```
@@ -400,7 +403,7 @@ RaMPs_ANPP <- RaMPs_ANPP_working %>%
          disturbance = "undisturbed",
          grazing = "ungrazed",
          fire_frequency = 1,
-         time_since_fire = NA,
+         time_since_fire = 0,
          diversity_manipulated = "naturally_assembled",
          measurement_scale_biomass = NA,
          richness = NA,
@@ -460,7 +463,7 @@ RaMPs_PlantCommunityComposition <- ramps %>%
          disturbance = "undisturbed",
          grazing = "ungrazed",
          fire_frequency = 1,
-         time_since_fire = NA,
+         time_since_fire = 0,
          diversity_manipulated = "naturally_assembled",
          measurement_scale_biomass = NA,
          richness = NA,
@@ -549,7 +552,7 @@ df_A1_KNZ.clean <- df_A1_KNZ.clean %>%
   unite(uniqueid, higher_order_organization, plot, sep = "_", remove = FALSE) %>%
   mutate(higher_order_organization = as.factor(higher_order_organization),
          uniqueid = as.factor(uniqueid),
-         measurement_scale_cover = "1m2")
+         measurement_scale_cover = 1)
 
 #Keeping the highest plot/species cover per season by summarizing data by the max abundance for every variable but season... there is probably a better way to do this lol.
 df_A1_KNZ.clean <- df_A1_KNZ.clean %>% group_by(datacode, experiment, year, 
@@ -645,8 +648,8 @@ df_A2_KNZ.clean <- df_A2_KNZ.clean %>% group_by(datacode, year, higher_order_org
 df_A1_A2_KNZ.clean <- left_join(A1_diversity, df_A2_KNZ.clean,
                                 by = c("year", "higher_order_organization", "uniqueid", 
                                        "watershed", "block", "plot"), keep = FALSE) %>%
-  mutate(measurement_scale_cover = "1m2",
-         measurement_scale_biomass = "0.1m2") %>%
+  mutate(measurement_scale_cover = 1,
+         measurement_scale_biomass = 0.1) %>%
   rename(source = datacode.x)
 
 #END RESULTs: 
@@ -786,7 +789,7 @@ df_I1_KNZ.clean <- df_I1_KNZ.clean %>%
   unite(uniqueid, higher_order_organization, block, plot, sep = "_", remove = FALSE) %>%
   mutate(higher_order_organization = as.factor(higher_order_organization),
          uniqueid = as.factor(uniqueid),
-         measurement_scale_cover = "1m2")
+         measurement_scale_cover = "1")
 
 
 ## Calculating relative abundance
@@ -857,7 +860,7 @@ df_I2_KNZ.clean <- df_I2_KNZ.clean %>%
 df_I1_I2_KNZ.clean <- left_join(df_I2_KNZ.clean, I1_diversity,
                                 by = c("site", "year", "uniqueid", "higher_order_organization", 
                                        "plot", "block", "experiment", "source"), keep = FALSE) %>%
-  mutate( measurement_scale_biomass = "0.1m2")
+  mutate( measurement_scale_biomass = "0.1")
 
 #After they wouldn't merge correctly, I noticed the plots:subplots are not the same for the diversity and biomass datasets...
 unique(sort(I1_diversity$uniqueid))
@@ -897,7 +900,7 @@ KNZ_NUTNET_treatment <- tibble(block = c(rep(1, 10), rep(2, 10), rep(3, 10)),
 
 #Final dataset
 df_I1_I2_KNZ.clean <- left_join(df_I1_I2_KNZ.clean, KNZ_NUTNET_treatment,
-                                by = "uniqueid", keep = FALSE) 
+                                by =c("uniqueid","plot","experiment","block","higher_order_organization","site"), keep = FALSE) 
 
 ```
 
@@ -953,7 +956,7 @@ K1_mass<-read.csv("K2_NGE01_Biomass_RAW_no deluge plots_all years_20240515.csv")
   rename(plot_biomass=anpp)%>%#subset all the pre-treatment 2013 year to avoid confusion
   select(-X,-nitrogen,-treatment) #drop unneeded columns
 #loading from google drive
-K1_mass<-read.csv(file.path(L0_dir, "K2_NGE01_Biomass_RAW_no deluge plots_all years_20240515.csv"))%>%
+K1_mass<-read.csv(file.path(L0_dir, "KNZ/K2_NGE01_Biomass_RAW_no deluge plots_all years_20240515.csv"))%>%
   filter(year!=2013)%>%
   rename(plot_biomass=anpp)%>%#subset all the pre-treatment 2013 year to avoid confusion
   select(-X,-nitrogen,-treatment) #drop unneeded columns
@@ -972,13 +975,13 @@ K1_mass$measurement_scale_biomass<-0.1
 K1_mass$measurement_scale_cover<-1
 
 #write cleaned document
-write.csv(K1_mass, "K2_NGE01_Biomass.csv")
+write.csv(, "K2_NGE01_Biomass.csv")
 
 
-####Create K1_NGE01 metadata file
+####Create K1_NGE01K1_mass metadata file
 #Read in biomass dataset and remove unneeded columns
-K1_meta<-read.csv("K2_NGE01_Biomass.csv")%>%
-  select(-X,-measurement_scale_biomass,-measurement_scale_cover,-plot_biomass,-richness,-Evar) #drop unneeded columns
+K1_meta<-K1_mass%>%
+  select(-measurement_scale_biomass,-measurement_scale_cover,-plot_biomass,-richness,-Evar) #drop unneeded columns
 
 #Load in temperature data, calculate MAT, merge with main dataset
 df_temp <- read.csv("Temperature_1982_2023.csv")%>%
@@ -1026,6 +1029,10 @@ K1_meta<-merge(K1_meta,df_ppt_ave_year_gs, by=c("year"))
 #load in nitrogen treatment info then merge datasets
 K1_N<-read.csv("dropbox_plotlist_trts_copy.csv")%>%
   rename(higher_order_organization=block, nitrogen_amount=nitrogen) #drop unneeded columns
+#loading directly from google drive
+K1_N<-read.csv(file.path(L0_dir,"KNZ/dropbox_plotlist_trts_copy.csv"))%>%
+  rename(higher_order_organization=block, nitrogen_amount=nitrogen) #drop unneeded columns
+
 
 K1_meta<-merge(K1_meta,K1_N, by=c("plot","higher_order_organization"))
 
@@ -1059,13 +1066,74 @@ K1_meta$diversity_manipulated<-"naturally_assembled"
 #write cleaned document
 write.csv(K1_meta, "K3_NGE01_Metadata.csv")
 ```
-```{r}
-#combining all data set
 
-KNZ_specieslevel_abundance<-df_E1_KNZ_clean_sppcomp%>%
-  select(-1:-2,-5:-6,-9,-15)%>%
-  left_join(K1_spp, by=c("year","abundance","site","plot","higher_order_organization",
-                         "uniqueid","species","relative_abundance","original_measurement_unit"))%>%
-  merge(df_I1_I2_KNZ.clean, by="year")
+
+#combining all Konza data
+```{r}
+#some extra mop up for species level data
+df_I1_KNZ.clean<-df_I1_KNZ.clean%>%
+  mutate(relative_abundance=relative_abundance/100)
+df_C1_KNZ.cleanest<-df_C1_KNZ.cleanest%>%
+  mutate(relative_abundance=relative_abundance/100)
+RaMPs_PlantCommunityComposition<-RaMPs_PlantCommunityComposition%>%
+  mutate(uniqueid=uniqueID,abundance=Pseudo_PercCover)
+df_A1_KNZ.clean<-df_A1_KNZ.clean%>%
+  mutate(relative_abundance=relative_abundance/100)
+RaMPs_PlantCommunityComposition$year=as.integer(RaMPs_PlantCommunityComposition$year)
+df_E1_KNZ_species_level$plot<-as.factor(df_E1_KNZ_species_level$plot)
+K1_spp$plot<-as.factor(K1_spp$plot)
+df_C1_KNZ.cleanest$plot<-as.factor(df_C1_KNZ.cleanest$plot)
+df_I1_KNZ.clean$plot<-as.factor(df_I1_KNZ.clean$plot)
+df_J2_KNZ.clean.richness.evenness$plot<-as.factor(df_J2_KNZ.clean.richness.evenness$plot)
+df_A1_KNZ.clean$plot=as.factor(df_A1_KNZ.clean$plot)
+
+#combining species level data set
+KNZ_specieslevel_abundance<-df_E1_KNZ_species_level%>%
+  select(-1:-2,-5,-6,-9,-15)%>%
+  bind_rows(K1_spp,df_C1_KNZ.cleanest,df_I1_KNZ.clean,df_J2_KNZ.clean.richness.evenness,RaMPs_PlantCommunityComposition)%>%
+  select(1:9)%>%
+  bind_rows(df_A1_KNZ.clean)%>%
+  select(1:9)
+  
+#upload to google drive
 write.csv(KNZ_specieslevel_abundance,file.path(L1_dir,"/KNZ_specieslevel_abundance.csv"))
+
+#data mop up for plot biomass
+df_E1_E2_KNZ_clean_plot_metrics$plot<-as.factor(df_E1_E2_KNZ_clean_plot_metrics$plot)
+K1_mass$plot<-as.factor(K1_mass$plot)
+df_C2_KNZ.cleanest$plot<-as.factor(df_C2_KNZ.cleanest$plot)
+df_I1_I2_KNZ.clean$measurement_scale_biomass=as.integer(df_I1_I2_KNZ.clean$measurement_scale_biomass)
+df_I1_I2_KNZ.clean$measurement_scale_cover=as.integer(df_I1_I2_KNZ.clean$measurement_scale_cover)
+df_I1_I2_KNZ.clean<-df_I1_I2_KNZ.clean%>%
+  mutate(plot_biomass=total)
+df_I1_I2_KNZ.clean$block=as.factor(df_I1_I2_KNZ.clean$block)
+RaMPs_ANPP<-RaMPs_ANPP%>%
+  mutate(uniqueid=uniqueID)
+RaMPs_ANPP$year<-as.integer(RaMPs_ANPP$year)
+#combining konza plot biomass data
+KNZ_plotlevel_metrics<-df_E1_E2_KNZ_clean_plot_metrics%>%
+  select(-1,-2,-5)%>%
+  bind_rows(K1_mass,df_C2_KNZ.cleanest,df_A1_A2_KNZ.clean,df_J2_KNZ.clean.richness.evenness,df_I1_I2_KNZ.clean,RaMPs_ANPP)%>%
+  select(1:12)
+
+#upload to google drive
+write.csv(KNZ_plotlevel_metrics,file.path(L1_dir,"/KNZ_plotlevel_metrics.csv"))
+
+#mop up of metadata
+df_E1_E2_metadata$plot=as.factor(df_E1_E2_metadata$plot)
+K1_meta$plot=as.factor(K1_meta$plot)
+A1_A2_metadata$plot<-as.factor(A1_A2_metadata$plot)
+#combine Konza metadata
+
+
+KNZ_metadata<-df_E1_E2_metadata%>%
+  select(-2,-5)%>%
+  bind_rows(K1_meta,df_J2_KNZ.clean.richness.evenness,df_C1_KNZ.cleanest,A1_A2_metadata,df_I1_I2_KNZ.clean,RaMPs_PlantCommunityComposition)%>%
+  select(1:18)%>%
+  distinct()
+
+#upload to google drive
+write.csv(KNZ_metadata,file.path(L1_dir,"/KNZ_metadata.csv"))
+
+
 ```

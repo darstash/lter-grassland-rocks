@@ -635,6 +635,16 @@ weatheryear <- weatherdaily %>%
 
 weatheryear
 
+# calculate growing season precip (85-248)
+# need to add this in
+weathergrow <- weatherdaily
+weathergrow$yday <- yday(weathergrow$date)
+weathergrowyear <- weathergrow %>% 
+  group_by(year) %>% 
+  filter(yday %in% (85:248)) %>%
+  summarise (growtemp =mean(air_temp_mean, na.rm = TRUE), # na.rm cuz missing obs for temp.
+             growprecip = sum(precipitation))
+
 
 # Merge weather with sp comp data for both MCSE and GLBRC
 allkbsdata_spcomp_tp <- merge (allkbsdata_spcomp, weatheryear, by = "year")

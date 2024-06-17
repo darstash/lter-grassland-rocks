@@ -17,6 +17,7 @@ rm(list=ls())
 # Load packages
 library(tidyverse)
 library(gtools)
+library(lubridate)
 
 # Set working directory 
 L0_dir <- Sys.getenv("L0DIR")
@@ -88,13 +89,16 @@ names(weatherdaily) <- tolower(names(weatherdaily))
 ###### mcse 
 ############################
 ############################
-
+names(mcse)
 unique(mcse$treatment)
 unique(mcse$campaign)
 
 # make column indicating that this is 291: main MCSE table
 mcse$source <- "MCSE (Table 291)"
-
+#mcse$measurement_scale_biomass <- 1
+#mcse$measurement_scale_cover <- 1
+mcse$area_sampled_bio <- 1
+mcse$area_sampled_cover <- 1
 mcse$date <- lubridate::mdy(mcse$date)
 
 
@@ -143,7 +147,7 @@ t7_nounknown %>%
 # calculate total ANPP and richness: sum up ANPP for each plot, count rows for each plot
 anpp_rich_t7 <- t7_nounknown %>% 
   group_by(year, treatment, replicate, station, experiment, nutrients_added, nitrogen_amount,
-           disturbance, grazing, fire_frequency, time_since_fire) %>% 
+           disturbance, grazing, fire_frequency, time_since_fire, area_sampled_bio, area_sampled_cover) %>% 
   summarise(plot_biomass = sum(biomass_g_m2), # add up biomass
             plot_richness = n()) # count number of rows for richness
 
@@ -160,6 +164,11 @@ anpp_rich_t7 <- t7_nounknown %>%
 micro$date <- lubridate::mdy(micro$date)
 
 micro$year <- lubridate::year(micro$date)
+
+micro <- micro %>% 
+  rename("area_sampled_bio" = "area_sampled")
+micro$area_sampled_cover <- micro$area_sampled_bio
+
 
 # this one will have month to filter by !!!!
 micro$month <- lubridate::month(micro$date)
@@ -235,7 +244,7 @@ table( micro_clean$year, micro_clean$month)
 
 anpp_rich_micro <-  micro_clean %>% 
   group_by(year, treatment, replicate, experiment, nutrients_added,
-           nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire) %>% 
+           nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire, area_sampled_bio, area_sampled_cover) %>% 
   summarise (plot_biomass = sum (biomass_g_m2), # get plot biomass
              plot_richness = n()) # get plot richness
 
@@ -276,7 +285,7 @@ head(micro)
 t7_with_ANPP <- merge(t7_nounknown, anpp_rich_t7, by = c("year", "treatment", "station",
                                           "replicate", "experiment", "nutrients_added",
                                           "nitrogen_amount", "disturbance", "grazing",
-                                          "fire_frequency", "time_since_fire"))
+                                          "fire_frequency", "time_since_fire", "area_sampled_bio", "area_sampled_cover"))
 head(t7_with_ANPP)
 
 # get psesudo percent cover by dividing plant by total for ANPP...
@@ -287,7 +296,7 @@ head(t7_with_ANPP)
 micro_with_ANPP <- merge(micro_clean, anpp_rich_micro, by = c("year", "treatment",
                                                    "replicate", "experiment", "nutrients_added",
                                                    "nitrogen_amount", "disturbance", "grazing",
-                                                   "fire_frequency", "time_since_fire"))
+                                                   "fire_frequency", "time_since_fire", "area_sampled_bio", "area_sampled_cover"))
 head(micro_with_ANPP)
 
 micro_with_ANPP$perccover <- micro_with_ANPP$biomass_g_m2 / micro_with_ANPP$plot_biomass * 100
@@ -320,15 +329,26 @@ unique(glbrc$treatment)
 # G9 = Early successional
 unique(glbrc$campaign)
 
+table(glbrc$area_sampled_m2)
+
+
+
+
 # make column indicating that this is 291: main MCSE table
 glbrc$source <- "GLBRC (Table 269)"
 
 glbrc$date <- lubridate::mdy(glbrc$date)
 
 glbrc$nutrients_added <- "no_fertilizer"
+
 #this is a placeholder. check to make sure no fert. 
 glbrc <- glbrc %>% 
-  rename("area_sampled" = "area_sampled_m2")
+  rename("area_sampled_bio" = "area_sampled_m2")
+glbrc$area_sampled_cover <- glbrc$area_sampled_bio
+
+glbrc <- glbrc %>%  # rename "site" column, need to use that for later.
+  rename(  "glbrc_site" ="site")
+names(glbrc)
 
 # filter to only be peak biomass, and trts we want, and year
 # NOTE: Include native grassses ? 4 planted species. Did not here
@@ -357,7 +377,7 @@ glbrc_grassland_nounknown <- glbrc_grassland %>%
            species != "Surface Litter"  )
 # calculate total ANPP: sum up ANPP for ALL species
 anpp_rich_glbrc <- glbrc_grassland_nounknown %>% 
-  group_by(year, treatment, site, replicate, station,experiment, nutrients_added,
+  group_by(year, treatment, glbrc_site, replicate, station,experiment, nutrients_added, area_sampled_bio,area_sampled_cover,
            nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire) %>% 
   summarise(plot_biomass = sum(biomass_g_m2),
             plot_richness = n())
@@ -384,6 +404,10 @@ glbrc_scaleup$date <- lubridate::mdy(glbrc_scaleup$date)
 
 glbrc_scaleup$nutrients_added <- "no_fertilizer"
 #this is a placeholder. check to make sure no fert. 
+
+glbrc_scaleup <- glbrc_scaleup %>%  # rename "site" column, need to use that for later.
+  rename(  "glbrc_site" ="site")
+
 
 
 # filter to only be trts we caare about
@@ -414,8 +438,9 @@ glbrc_scaleup_grassland_nounknown <- glbrc_scaleup_grassland %>%
            species != "Standing Dead" )
 
 # calculate total ANPP and rich: sum up ANPP for each plot, count rows
+names(glbrc_scaleup_grassland_nounknown)
 anpp_rich_glbrc_scaleup <- glbrc_scaleup_grassland_nounknown %>% 
-  group_by(year, treatment,  station,experiment, nutrients_added,
+  group_by(year, treatment,  station,glbrc_site, experiment, nutrients_added,
            nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire) %>% 
   summarise(plot_biomass = sum(biomass_g_m2),
             plot_richness = n()) # SOMETHING GOING ON IN 2009!
@@ -437,8 +462,7 @@ names(anpp_rich_glbrc_scaleup)
 
 
 # merge main BCSE with scale up (ANPP)
-anpp_rich_glbrc_KBS <- rbind(anpp_rich_glbrc, anpp_rich_glbrc_scaleup)
-
+anpp_rich_glbrc_KBS <- bind_rows(anpp_rich_glbrc, anpp_rich_glbrc_scaleup)
 head(anpp_rich_glbrc_KBS )
 unique(anpp_rich_glbrc_KBS$treatment) 
 
@@ -453,7 +477,7 @@ head(glbrc_scaleup_grassland_nounknown)
 
 
 # BCSE - merge main witih scaleup
-glbrc_BCSE_with_ANPP <- merge(glbrc_grassland_nounknown, anpp_rich_glbrc, by = c("year", "treatment", "station", "site",
+glbrc_BCSE_with_ANPP <- merge(glbrc_grassland_nounknown, anpp_rich_glbrc, by = c("year", "treatment", "station", "glbrc_site", "area_sampled_bio", "area_sampled_cover",
                                                                   "replicate", "experiment", "nutrients_added",
                                                                   "nitrogen_amount", "disturbance", "grazing",
                                                                   "fire_frequency", "time_since_fire"))
@@ -466,9 +490,10 @@ hist(glbrc_BCSE_with_ANPP$perccover)
 
 
 # Scaleup
-glbrc_scaleup_with_ANPP <- merge(glbrc_scaleup_grassland_nounknown, anpp_rich_glbrc_scaleup, by = c("year", "treatment", "station" , 
+glbrc_scaleup_with_ANPP <- merge(glbrc_scaleup_grassland_nounknown, anpp_rich_glbrc_scaleup, by = c("year", "treatment", "station" , "glbrc_site", 
                                                                                      "experiment", "nutrients_added", "nitrogen_amount", "disturbance", "grazing",
                                                                                      "fire_frequency", "time_since_fire"))
+names(glbrc_scaleup_with_ANPP)
 head(glbrc_scaleup_with_ANPP)
 
 glbrc_scaleup_with_ANPP$perccover <- glbrc_scaleup_with_ANPP$biomass_g_m2 / glbrc_scaleup_with_ANPP$plot_biomass * 100
@@ -482,7 +507,7 @@ head(glbrc_scaleup_with_ANPP)
 allGLBRC_SpComp <- dplyr:: bind_rows (glbrc_BCSE_with_ANPP, glbrc_scaleup_with_ANPP)
 
 allGLBRC_SpComp
-
+names(allGLBRC_SpComp)
 
 
 
@@ -499,7 +524,7 @@ allGLBRC_SpComp
 names(nutnet_bio)
 unique (nutnet_bio$year_trt) # how many years has the trt been applied
 unique (nutnet_bio$trt) # rename this to treatment
-
+nutnet_bio$area_sampled_bio <- 0.2
 # column management 
 nutnet_bio <- nutnet_bio %>% rename (treatment = trt) # rename to match other datasets
 nutnet_bio$source <- "NutNet (Not publicly available)" # make column indicating where this came from
@@ -510,13 +535,15 @@ nutnet_bio$nutrients_added <-  dplyr::case_match(nutnet_bio$treatment, "Fence" ~
 nutnet_bio$nitrogen_amount <- with(nutnet_bio, 
                                    ifelse(nutrients_added == "NK" | nutrients_added == "N" | nutrients_added == "NP" | nutrients_added == "NPK" | nutrients_added == "NPK+Fence", 10, NA)) # g N m^-2 as granular ammonium nitrate 
   unique(nutnet_bio$nitrogen_amount) # only amount nitrogen # should we add columns for other elements? (each is 10)
+nutnet_bio$area_sampled_bio
+  
 #micro$disturbance <- with(micro, ifelse(disturbed_microplot == "disturbed", "disturbed", "undisturbed"))
 nutnet_bio$grazing <- "ungrazed"
 nutnet_bio$disturbance <- "NA" # CHECK THIS!!!! what to do with fence !!!!!
 nutnet_bio$fire_frequency <- NA
 nutnet_bio$time_since_fire <- NA
 nutnet_bio$experiment <- "nutnet"
-nutnet_bio$site <- "KBS"
+
 
 # remove dead litter
 unique(nutnet_bio$category)
@@ -524,7 +551,7 @@ nutnet_bio_nolitter <- nutnet_bio %>%
   filter(category != "LITTER"  )
 # calculate total ANPP: sum up ANPP for vasc an non vasc plants
 anpp_nutnet <- nutnet_bio_nolitter %>% 
-  group_by(year, treatment, site,  block, plot, subplot,experiment, nutrients_added,
+  group_by(year, treatment,   block, plot, subplot,experiment, nutrients_added, area_sampled_bio,
            nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire) %>% 
   summarise(plot_biomass = sum(mass))
 
@@ -539,7 +566,7 @@ names(nutnet_cover)
 unique (nutnet_cover$year_trt) # how many years has the trt been applied
 unique (nutnet_cover$trt) # rename this to treatment
 
-
+nutnet_cover$area_sampled_cover <- 1
 # column management 
 nutnet_cover <- nutnet_cover %>% rename (treatment = trt) # rename to match other datasets
 nutnet_cover <- nutnet_cover %>% rename (species = taxon)
@@ -558,7 +585,7 @@ nutnet_cover$disturbance <- "NA" # CHECK THIS!!!! what to do with fence !!!!!
 nutnet_cover$fire_frequency <- NA
 nutnet_cover$time_since_fire <- NA
 nutnet_cover$experiment <- "nutnet"
-nutnet_cover$site <- "KBS"
+
 nutnet_cover$cover_method <- "percent cover to nearest 1 percent"
 
 # remove dead litter and unknown
@@ -570,9 +597,10 @@ nutnet_cover_nounknown <- nutnet_cover %>%
            species != "OTHER ANIMAL DIGGING" & 
            species != "UNKNOWN"  )
 
+names(nutnet_cover_nounknown )
 # calculate richness
 rich_nutnet <- nutnet_cover_nounknown %>% 
-  group_by(year, treatment, site,  block, plot, subplot,experiment, nutrients_added,
+  group_by(year, treatment,   block, plot, subplot,experiment, nutrients_added, area_sampled_cover,
            nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire) %>% 
   summarise(plot_richness = n())
 
@@ -580,13 +608,13 @@ names(rich_nutnet)
 names(anpp_nutnet)
 
 anpp_rich_nutnet <- merge (rich_nutnet, anpp_nutnet, 
-                           by = c("year", "treatment","site"  , "block"  , "plot"  ,         
+                           by = c("year", "treatment",  "block"  , "plot"  ,         
                             "subplot"  , "experiment" ,  "nutrients_added", "nitrogen_amount", "disturbance" ,   
                              "grazing",  "fire_frequency"  ,"time_since_fire"))
 
 # make a species cover file that includes plot biomass, rich, anpp....
 nutnet_cover_with_ANPP <- merge(nutnet_cover_nounknown, anpp_rich_nutnet,
-                                by = c("year", "treatment","site"  , "block"  , "plot"  ,         
+                                by = c("year", "treatment", "block"  , "plot"  ,         
                                       "subplot"  , "experiment" ,  "nutrients_added", "nitrogen_amount", "disturbance" ,   
                                       "grazing",  "fire_frequency"  ,"time_since_fire"))
 
@@ -637,6 +665,7 @@ weatheryear
 
 # calculate growing season precip (85-248)
 # need to add this in
+
 weathergrow <- weatherdaily
 weathergrow$yday <- yday(weathergrow$date)
 weathergrowyear <- weathergrow %>% 
@@ -645,36 +674,42 @@ weathergrowyear <- weathergrow %>%
   summarise (growtemp =mean(air_temp_mean, na.rm = TRUE), # na.rm cuz missing obs for temp.
              growprecip = sum(precipitation))
 
+allweather_year <- merge (weatheryear, weathergrowyear, by = "year")
+
 
 # Merge weather with sp comp data for both MCSE and GLBRC
-allkbsdata_spcomp_tp <- merge (allkbsdata_spcomp, weatheryear, by = "year")
+allkbsdata_spcomp_tp <- merge (allkbsdata_spcomp, allweather_year, by = "year")
 
 allkbsdata_spcomp_tp
 
-unique(anpp_rich_nutnet$site)
+names(allkbsdata_spcomp_tp)
 
 # add site column
 # made this LTER_Site for now. because GLBRC hamde 
-allkbsdata_spcomp_tp$lter_site <- "KBS"
+allkbsdata_spcomp_tp$site <- "KBS"
 
-idcols <- c("lter_site", "experiment","year", "treatment", "station", "replicate" ,"block", "plot", "subplot", "nutrients_added", "disturbance")
-plotid <- c("lter_site", "experiment", "treatment", "station", "replicate" ,"block", "plot", "subplot","nutrients_added", "disturbance")
-
+idcols <- c("site", "experiment","year", "treatment", "station", "replicate" ,"block", "plot", "subplot", "nutrients_added", "disturbance")
+plotid <- c("site", "experiment", "treatment", "station", "replicate" ,"block", "plot", "subplot","nutrients_added", "disturbance")
+higher_level_organization <-  c("site", "experiment", "treatment", "station", "replicate" ,"block")
 
 
 allkbsdata_spcomp_tp$unique_id <- apply( allkbsdata_spcomp_tp[ , idcols ] , 1 , paste , collapse = "_" )
 allkbsdata_spcomp_tp$plot_id <- apply( allkbsdata_spcomp_tp[ , plotid ] , 1 , paste , collapse = "_" )
+allkbsdata_spcomp_tp$higher_level_organization <- apply( allkbsdata_spcomp_tp[ , higher_level_organization ] , 1 , paste , collapse = "_" )
 allkbsdata_spcomp_tp$unique_id
 allkbsdata_spcomp_tp$plot_id
+allkbsdata_spcomp_tp$higher_level_organization
 # write a new .csv with the cleaned and merged data and upload to the shared google drive L1 folder
 
 allkbsdata_spcomp_tp$unique_id <- str_remove_all(allkbsdata_spcomp_tp$unique_id, "_NA")
 allkbsdata_spcomp_tp$plot_id<- str_remove_all(allkbsdata_spcomp_tp$plot_id, "_NA")
+allkbsdata_spcomp_tp$higher_level_organization<- str_remove_all(allkbsdata_spcomp_tp$higher_level_organization, "_NA")
 
 allkbsdata_spcomp_tp$unique_id
 allkbsdata_spcomp_tp$plot_id
+allkbsdata_spcomp_tp$higher_level_organization
 
-write.csv(allkbsdata_spcomp_tp, file.path(L1_dir, "./KBS_MCSE_GLBRC_NUTNET_SpComp.csv"), row.names=F)
+#write.csv(allkbsdata_spcomp_tp, file.path(L1_dir, "./KBS_MCSE_GLBRC_NUTNET_SpComp.csv"), row.names=F)
 #Do not run: write.csv(allt7_SpComp_tp, "KBS_MCSE_T7_SpComp.csv")
 
 
@@ -683,30 +718,33 @@ write.csv(allkbsdata_spcomp_tp, file.path(L1_dir, "./KBS_MCSE_GLBRC_NUTNET_SpCom
 
 
 
-allkbsdata_anpp_tp <- merge(allkbsdata_anpp , weatheryear , by = "year")
+allkbsdata_anpp_tp <- merge(allkbsdata_anpp , allweather_year , by = "year")
 
 # add site column
 # made this LTER_Site for now. because GLBRC hamde 
-allkbsdata_anpp_tp$lter_site <- "KBS"
+allkbsdata_anpp_tp$site <- "KBS"
 
 
 allkbsdata_anpp_tp$unique_id <- apply(allkbsdata_anpp_tp[ , idcols ], 1 , paste , collapse = "_" )
 allkbsdata_anpp_tp$plot_id <- apply(allkbsdata_anpp_tp[ , plotid ], 1 , paste , collapse = "_" )
+allkbsdata_anpp_tp$higher_level_organization <- apply(allkbsdata_anpp_tp[ , higher_level_organization ], 1 , paste , collapse = "_" )
 
 
 allkbsdata_anpp_tp$unique_id
 allkbsdata_anpp_tp$plot_id 
-
+allkbsdata_anpp_tp$higher_level_organization 
 
 allkbsdata_anpp_tp$unique_id <- str_remove_all(allkbsdata_anpp_tp$unique_id, "_NA")
 allkbsdata_anpp_tp$plot_id<- str_remove_all(allkbsdata_anpp_tp$plot_id, "_NA")
+allkbsdata_anpp_tp$higher_level_organization <- str_remove_all(allkbsdata_anpp_tp$higher_level_organization , "_NA")
 
 allkbsdata_anpp_tp$unique_id
 allkbsdata_anpp_tp$plot_id
+allkbsdata_anpp_tp$higher_level_organization 
 
 # write a new .csv with the cleaned and merged data and upload to the shared google drive L1 folder
 
-write.csv(allkbsdata_anpp_tp, file.path(L1_dir, "./KBS_MCSE_GLBRC_NUTNET_ANPP_RICH.csv"), row.names=F)
+#write.csv(allkbsdata_anpp_tp, file.path(L1_dir, "./KBS_MCSE_GLBRC_NUTNET_ANPP_RICH.csv"), row.names=F)
 #write.csv(allt7_ANPP_tp, "KBS_MCSE_T7_ANPP.csv")
 
 ggplot(allkbsdata_anpp_tp, aes (x = annualprecip, y = plot_biomass)) + 
@@ -717,9 +755,69 @@ ggplot(allkbsdata_anpp_tp, aes (x = annualprecip, y = plot_richness)) +
   geom_point()
 
 
+ggplot(allkbsdata_anpp_tp, aes (x = growprecip, y = plot_richness)) + 
+  geom_point()
 
 
 
 
+# 6-17-2024:
 
 
+
+# first i guess we calculate diversity. 
+
+# calculate shannon diversity   - based on ashleys code
+head(allkbsdata_spcomp_tp)
+kbs_species <- allkbsdata_spcomp_tp %>%
+  mutate(proportions = (perccover/100)*(log(perccover/100)))
+kbs_species$proportions[is.na(kbs_species$proportions)] <- 0  # Fix Nas to zeros
+kbs_shannon <- kbs_species %>%
+  #group_by(year, treatment, station, replicate, disturbance, nutrients_added) %>%
+  group_by(unique_id) %>% 
+  summarise(shannon = -1*sum(proportions)) # single value for each plot
+kbs_shannon
+
+names(kbs_shannon)
+
+#calculate evenness
+
+
+kbs_plot_level_metrics <- merge ( allkbsdata_anpp_tp, kbs_shannon, by = "unique_id")
+kbs_plot_level_metrics$plot_evenness <- kbs_plot_level_metrics$shannon / log (kbs_plot_level_metrics$plot_richness)
+
+names(kbs_plot_level_metrics)
+
+
+# here, we are doing two things:
+  # (1) remove microplots - inconsistent sampling
+  # (2) breaking up into main data and metadata
+# for each of two datasets:
+  # allkbsdata_spcomp_tp
+  # allkbsdata_anpp_tp
+
+
+# make new cols 
+
+# subset cols for c
+
+
+
+cols_plot_level_metrics <- c("year", "site","higher_level_organization" , "plot_id","unique_id", "plot_biomass", "plot_richness", "plot_evenness", "area_sampled_bio" , "area_sampled_cover")
+
+
+
+kbs_plot_level_metrics_sel <- kbs_plot_level_metrics %>% select(all_of (cols_plot_level_metrics ))
+
+head(kbs_plot_level_metrics_sel)
+
+write.csv(kbs_plot_level_metrics_sel, file.path(L1_dir, "./KBS_plot_level_metrics.csv"), row.names=F)
+
+
+cols_metadata <- c("year", "site", "experiment", "plot_id", "higher_level_organization" , "unique_id", 
+                             "meantemp", "annualprecip", "growtemp", "growprecip", "treatment", "nutrients_added", 
+                             "nitrogen_amount", "disturbance", "grazing", "fire_frequency")
+
+
+kbs_meta <- kbs_plot_level_metrics %>% select(all_of (cols_metadata ))
+write.csv(kbs_meta, file.path(L1_dir, "./KBS_metadata.csv"), row.names=F)

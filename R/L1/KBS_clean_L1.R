@@ -821,3 +821,14 @@ cols_metadata <- c("year", "site", "experiment", "plot_id", "higher_level_organi
 
 kbs_meta <- kbs_plot_level_metrics %>% select(all_of (cols_metadata ))
 write.csv(kbs_meta, file.path(L1_dir, "./KBS_metadata.csv"), row.names=F)
+
+
+names(allkbsdata_spcomp_tp)
+
+cols_species_level_abundance <- c("year", "site","higher_level_organization" , "plot_id","unique_id", "species" , "perccover" , "cover_method", "area_sampled_bio" , "area_sampled_cover")
+kbs_species_level_abundance <- allkbsdata_spcomp_tp %>% select(all_of (cols_species_level_abundance ))
+
+kbs_species_level_abundance
+names(kbs_species_level_abundance)
+head(kbs_species_level_abundance)
+write.csv(kbs_species_level_abundance, file.path(L1_dir, "./KBS_species_level_abundance.csv"), row.names=F)

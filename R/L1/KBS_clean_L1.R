@@ -820,6 +820,11 @@ cols_metadata <- c("year", "site", "experiment", "plot_id", "higher_level_organi
 
 
 kbs_meta <- kbs_plot_level_metrics %>% select(all_of (cols_metadata ))
+# match columns names with CDR and KNZ
+kbs_meta <- rename(kbs_meta, plot = plot_id)
+kbs_meta <- rename(kbs_meta, higher_order_organization = higher_level_organization)
+kbs_meta <- rename(kbs_meta, uniqueid = unique_id)
+
 write.csv(kbs_meta, file.path(L1_dir, "./KBS_metadata.csv"), row.names=F)
 
 

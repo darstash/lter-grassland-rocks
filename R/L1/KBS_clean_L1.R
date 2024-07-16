@@ -803,7 +803,7 @@ names(kbs_plot_level_metrics)
 
 
 
-cols_plot_level_metrics <- c("year", "site","higher_level_organization" , "plot_id","unique_id", "plot_biomass", "plot_richness", "plot_evenness", "area_sampled_bio" , "area_sampled_cover")
+cols_plot_level_metrics <- c("year", "site","higher_level_organization" , "plot_id","unique_id", "plot_biomass", "plot_richness", "plot_evenness", "area_sampled_bio" , "area_sampled_cover", "shannon")
 
 
 
@@ -811,12 +811,22 @@ kbs_plot_level_metrics_sel <- kbs_plot_level_metrics %>% select(all_of (cols_plo
 
 head(kbs_plot_level_metrics_sel)
 
+# match columns names with CDR and KNZ
+kbs_plot_level_metrics_sel <- rename(kbs_plot_level_metrics_sel, plot = plot_id)
+kbs_plot_level_metrics_sel <- rename(kbs_plot_level_metrics_sel, higher_order_organization = higher_level_organization)
+kbs_plot_level_metrics_sel <- rename(kbs_plot_level_metrics_sel, uniqueid = unique_id)
+kbs_plot_level_metrics_sel <- rename(kbs_plot_level_metrics_sel, richness = plot_richness)
+kbs_plot_level_metrics_sel <- rename(kbs_plot_level_metrics_sel, evenness = plot_evenness)
+kbs_plot_level_metrics_sel <- rename(kbs_plot_level_metrics_sel, measurment_scale_biomass = area_sampled_bio)
+kbs_plot_level_metrics_sel <- rename(kbs_plot_level_metrics_sel, measurment_scale_cover = area_sampled_cover)
+
+
 write.csv(kbs_plot_level_metrics_sel, file.path(L1_dir, "./KBS_plot_level_metrics.csv"), row.names=F)
 
 
 cols_metadata <- c("year", "site", "experiment", "plot_id", "higher_level_organization" , "unique_id", 
                              "meantemp", "annualprecip", "growtemp", "growprecip", "treatment", "nutrients_added", 
-                             "nitrogen_amount", "disturbance", "grazing", "fire_frequency")
+                             "nitrogen_amount", "disturbance", "grazing", "fire_frequency", "time_since_fire")
 
 
 kbs_meta <- kbs_plot_level_metrics %>% select(all_of (cols_metadata ))
@@ -836,4 +846,9 @@ kbs_species_level_abundance <- allkbsdata_spcomp_tp %>% select(all_of (cols_spec
 kbs_species_level_abundance
 names(kbs_species_level_abundance)
 head(kbs_species_level_abundance)
+# match columns names with CDR and KNZ
+kbs_species_level_abundance <- rename(kbs_species_level_abundance, plot = plot_id)
+kbs_species_level_abundance <- rename(kbs_species_level_abundance, higher_order_organization = higher_level_organization)
+kbs_species_level_abundance <- rename(kbs_species_level_abundance, uniqueid = unique_id)
+
 write.csv(kbs_species_level_abundance, file.path(L1_dir, "./KBS_species_level_abundance.csv"), row.names=F)

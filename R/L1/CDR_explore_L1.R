@@ -277,6 +277,21 @@ e247_cover <- read.delim(paste(L0_dir, "CDR/e247_Plant_Species_Composition_perce
 
 # Clean data ####
 #climate data to be included in metadata for all datasets
+climate_growingseason <- climate %>%
+  separate(Date, into=c("Month", "Day", "Year"), remove = F) %>%
+  mutate(Date = as.POSIXct(Date, format = "%m/%d/%Y"),
+         Day = yday(Date)) %>% 
+  filter(Day > 114.5 & Day < 228.5) %>%
+  group_by(Year) %>%
+  mutate(AvgTemp.defF. = (MaxTemp.degF.+MinTemp.degF.)/2) %>% #average the daily max and min to a single daily avg value
+  summarize(growtemp = mean(AvgTemp.defF.),
+            growprecip = sum(Precip.inches.)) %>%
+  mutate(growtemp = (growtemp-32) * (5/9), #convert temp to celcius and precipitation to mm
+         growprecip = growprecip * 25.4,
+         Year = as.numeric(Year)) %>%
+  select(Year, growtemp, growprecip)
+
+
 climate <- climate %>%
   separate(Date, into=c("Month", "Day", "Year")) %>%
   group_by(Year) %>%
@@ -286,7 +301,8 @@ climate <- climate %>%
   mutate(temperature = (temperature-32) * (5/9), #convert temp to celcius and precipitation to mm
          precipitation = precipitation * 25.4,
          Year = as.numeric(Year)) %>%
-  select(Year, temperature, precipitation)
+  select(Year, temperature, precipitation) %>%
+  merge(., climate_growingseason, by = "Year")
 
 #note that 1962 is clearly an error but we don't use that year of data anyway in our datasets right???
 #now can add temp (mean temp for a given year) and precip (total precip) to metadata by merging based on years
@@ -562,7 +578,7 @@ e001e002_metadata <- e001e002_anpp %>%
          treatment = ifelse(n_trt %in% 1, "control", "treatment"),
          source = "https://doi.org/10.6073/pasta/2eba7aac6b347d27a92208e03fd3f8ea; https://doi.org/10.6073/pasta/66724d71711b80d520fa33a690f962b2",
          treatment_comment = "") %>%
-  select(site, year, plot, uniqueid, higher_order_organization, temperature, precipitation, treatment,
+  select(site, year, plot, uniqueid, higher_order_organization, temperature, precipitation, treatment, growtemp, growprecip,
          nutrients_added, nitrogen_amount, grazing, fire_frequency, time_since_fire,
          disturbance, source, treatment_comment, diversity_manipulated)
 
@@ -639,7 +655,7 @@ e054_metadata <- e054_anpp %>%
          time_since_fire = NA,
          ) %>%
   select(site, year, plot, higher_order_organization, uniqueid, 
-         temperature, precipitation, treatment, disturbance,
+         temperature, precipitation, growtemp, growprecip, treatment, disturbance,
          nutrients_added, nitrogen_amount, grazing, fire_frequency, time_since_fire,
          source, treatment_comment, diversity_manipulated)
 
@@ -697,7 +713,7 @@ e245_anpp <- e245_anpp %>%
 #adding climate information
 e245_anpp <- climate %>%
   mutate(year = Year) %>%
-  select(year, temperature, precipitation) %>%
+  select(year, temperature, precipitation, growtemp, growprecip) %>%
   inner_join(e245_anpp, ., by="year", multiple="all")
 
 e245_anpp <- e245_anpp %>%
@@ -736,7 +752,7 @@ for (i in 2:nrow(df)) {
 
 
 e245_metadata <- e245_anpp %>%
-  select(year, site, plot, higher_order_organization, uniqueid, temperature, precipitation, treatment) %>%
+  select(year, site, plot, higher_order_organization, uniqueid, temperature, precipitation, growtemp, growprecip, treatment) %>%
   rename(treatment_comment = treatment) %>%
   unique() %>%
   mutate(
@@ -807,7 +823,7 @@ e061_metadata  <- e061_anpp %>%
 #adding climate information
 e061_metadata <- climate %>%
   mutate(year = Year) %>%
-  select(year, temperature, precipitation) %>%
+  select(year, temperature, precipitation, growtemp, growprecip) %>%
   inner_join(e061_metadata, ., by="year", multiple="all")
 
 e061_metadata <- e061_metadata %>%
@@ -874,13 +890,13 @@ e247_metadata <- e247_cover %>%
 #adding climate information
 e247_metadata <- climate %>%
   mutate(year = Year) %>%
-  select(year, temperature, precipitation) %>%
+  select(year, temperature, precipitation, growtemp, growprecip) %>%
   inner_join(e247_metadata, ., by="year", multiple="all")
 
 e247_metadata <- e247_metadata %>%
   select(year, site, source, higher_order_organization, uniqueid, plot, treatment,
          nitrogen_amount, nutrients_added, disturbance, grazing, fire_frequency,
-         time_since_fire, diversity_manipulated, temperature, precipitation, measurement_scale_biomass, measurement_scale_cover,
+         time_since_fire, diversity_manipulated, temperature, precipitation, growtemp, growprecip, measurement_scale_biomass, measurement_scale_cover,
          source, treatment_comment)
 
 
@@ -969,31 +985,31 @@ cdr_sp_data <- e001e002_anpp %>% mutate(dataset = "e001_e002") %>%
 #Combine CDR metadata #####
 cdr_metadata <- e001e002_metadata %>% mutate(dataset = "e001_e002") %>%
   select(year,            site,            dataset,       plot,          higher_order_organization,
-         uniqueid,        temperature,     precipitation, treatment,
+         uniqueid,        temperature,     precipitation, growtemp, growprecip, treatment,
          nutrients_added, nitrogen_amount, disturbance,   grazing,
          fire_frequency,  time_since_fire, source,        treatment_comment,
          diversity_manipulated) %>%
   rbind(e054_metadata %>% mutate(dataset = "e054") %>%
           select(year,            site,            dataset,       plot,          higher_order_organization,
-                 uniqueid,        temperature,     precipitation, treatment,
+                 uniqueid,        temperature,     precipitation, growtemp, growprecip, treatment,
                  nutrients_added, nitrogen_amount, disturbance,   grazing,
                  fire_frequency,  time_since_fire, source,        treatment_comment,
                  diversity_manipulated)) %>%
   rbind(e061_metadata %>% mutate(dataset = "e061") %>%
           select(year,            site,            dataset,       plot,          higher_order_organization,
-                 uniqueid,        temperature,     precipitation, treatment,
+                 uniqueid,        temperature,     precipitation, growtemp, growprecip, treatment,
                  nutrients_added, nitrogen_amount, disturbance,   grazing,
                  fire_frequency,  time_since_fire, source,        treatment_comment,
                  diversity_manipulated))%>%
   rbind(e245_metadata %>% mutate(dataset = "e245") %>%
           select(year,            site,            dataset,       plot,          higher_order_organization,
-                 uniqueid,        temperature,     precipitation, treatment,
+                 uniqueid,        temperature,     precipitation, growtemp, growprecip, treatment,
                  nutrients_added, nitrogen_amount, disturbance,   grazing,
                  fire_frequency,  time_since_fire, source,        treatment_comment,
                  diversity_manipulated))%>%
   rbind(e247_metadata %>% mutate(dataset = "e247") %>%
           select(year,            site,            dataset,       plot,          higher_order_organization,
-                 uniqueid,        temperature,     precipitation, treatment,
+                 uniqueid,        temperature,     precipitation, treatment, growtemp, growprecip,
                  nutrients_added, nitrogen_amount, disturbance,   grazing,
                  fire_frequency,  time_since_fire, source,        treatment_comment,
                  diversity_manipulated))

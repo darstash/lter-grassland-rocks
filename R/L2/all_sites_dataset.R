@@ -38,4 +38,16 @@ KNZ_species_abundance <- read.csv(file.path(L1_dir, "KNZ_specieslevel_abundance.
 KNZ_plot_metrics <- read.csv(file.path(L1_dir, "KNZ_plotlevel_metrics.csv"))
 
 # Merge datasets ----
+# Plot metrics
+KBS_plot_metrics$measurement_scale_biomass <- as.character(KBS_plot_metrics$measurement_scale_biomass)
+KBS_plot_metrics$measurement_scale_cover <- as.character(KBS_plot_metrics$measurement_scale_cover)
+CDR_plot_metrics$plot <- as.character(CDR_plot_metrics$plot)
+KNZ_plot_metrics$plot <- as.character(KNZ_plot_metrics$plot)
+KNZ_plot_metrics$measurement_scale_biomass <- as.character(KNZ_plot_metrics$measurement_scale_biomass)
+KNZ_plot_metrics$measurement_scale_cover <- as.character(KNZ_plot_metrics$measurement_scale_cover)
+KNZ_plot_metrics <- rename(KNZ_plot_metrics, shannon = Shannon)
+
+
+plot_metrics <- full_join(CDR_plot_metrics, KBS_plot_metrics)
+plot_metrics <- full_join(plot_metrics, KNZ_plot_metrics)
 

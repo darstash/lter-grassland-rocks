@@ -817,8 +817,8 @@ kbs_plot_level_metrics_sel <- rename(kbs_plot_level_metrics_sel, higher_order_or
 kbs_plot_level_metrics_sel <- rename(kbs_plot_level_metrics_sel, uniqueid = unique_id)
 kbs_plot_level_metrics_sel <- rename(kbs_plot_level_metrics_sel, richness = plot_richness)
 kbs_plot_level_metrics_sel <- rename(kbs_plot_level_metrics_sel, evenness = plot_evenness)
-kbs_plot_level_metrics_sel <- rename(kbs_plot_level_metrics_sel, measurment_scale_biomass = area_sampled_bio)
-kbs_plot_level_metrics_sel <- rename(kbs_plot_level_metrics_sel, measurment_scale_cover = area_sampled_cover)
+kbs_plot_level_metrics_sel <- rename(kbs_plot_level_metrics_sel, measurement_scale_biomass = area_sampled_bio)
+kbs_plot_level_metrics_sel <- rename(kbs_plot_level_metrics_sel, measurement_scale_cover = area_sampled_cover)
 
 
 write.csv(kbs_plot_level_metrics_sel, file.path(L1_dir, "./KBS_plot_level_metrics.csv"), row.names=F)

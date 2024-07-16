@@ -147,7 +147,7 @@ t7_nounknown %>%
 # calculate total ANPP and richness: sum up ANPP for each plot, count rows for each plot
 anpp_rich_t7 <- t7_nounknown %>% 
   group_by(year, treatment, replicate, station, experiment, nutrients_added, nitrogen_amount,
-           disturbance, grazing, fire_frequency, time_since_fire, area_sampled_bio, area_sampled_cover) %>% 
+           disturbance, grazing, fire_frequency, time_since_fire, area_sampled_bio, area_sampled_cover, source) %>% 
   summarise(plot_biomass = sum(biomass_g_m2), # add up biomass
             plot_richness = n()) # count number of rows for richness
 
@@ -244,7 +244,7 @@ table( micro_clean$year, micro_clean$month)
 
 anpp_rich_micro <-  micro_clean %>% 
   group_by(year, treatment, replicate, experiment, nutrients_added,
-           nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire, area_sampled_bio, area_sampled_cover) %>% 
+           nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire, area_sampled_bio, area_sampled_cover, source) %>% 
   summarise (plot_biomass = sum (biomass_g_m2), # get plot biomass
              plot_richness = n()) # get plot richness
 
@@ -285,21 +285,21 @@ head(micro)
 t7_with_ANPP <- merge(t7_nounknown, anpp_rich_t7, by = c("year", "treatment", "station",
                                           "replicate", "experiment", "nutrients_added",
                                           "nitrogen_amount", "disturbance", "grazing",
-                                          "fire_frequency", "time_since_fire", "area_sampled_bio", "area_sampled_cover"))
+                                          "fire_frequency", "time_since_fire", "area_sampled_bio", "area_sampled_cover", "source"))
 head(t7_with_ANPP)
 
 # get psesudo percent cover by dividing plant by total for ANPP...
-t7_with_ANPP$perccover <- t7_with_ANPP$biomass_g_m2 / t7_with_ANPP$plot_biomass * 100
+t7_with_ANPP$relative_abundance <- t7_with_ANPP$biomass_g_m2 / t7_with_ANPP$plot_biomass
 head(t7_with_ANPP)
 
 # micro
 micro_with_ANPP <- merge(micro_clean, anpp_rich_micro, by = c("year", "treatment",
                                                    "replicate", "experiment", "nutrients_added",
                                                    "nitrogen_amount", "disturbance", "grazing",
-                                                   "fire_frequency", "time_since_fire", "area_sampled_bio", "area_sampled_cover"))
+                                                   "fire_frequency", "time_since_fire", "area_sampled_bio", "area_sampled_cover", "source"))
 head(micro_with_ANPP)
 
-micro_with_ANPP$perccover <- micro_with_ANPP$biomass_g_m2 / micro_with_ANPP$plot_biomass * 100
+micro_with_ANPP$relative_abundance <- micro_with_ANPP$biomass_g_m2 / micro_with_ANPP$plot_biomass
 
 head(micro_with_ANPP)
 
@@ -378,7 +378,7 @@ glbrc_grassland_nounknown <- glbrc_grassland %>%
 # calculate total ANPP: sum up ANPP for ALL species
 anpp_rich_glbrc <- glbrc_grassland_nounknown %>% 
   group_by(year, treatment, glbrc_site, replicate, station,experiment, nutrients_added, area_sampled_bio,area_sampled_cover,
-           nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire) %>% 
+           nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire, source) %>% 
   summarise(plot_biomass = sum(biomass_g_m2),
             plot_richness = n())
 
@@ -441,7 +441,7 @@ glbrc_scaleup_grassland_nounknown <- glbrc_scaleup_grassland %>%
 names(glbrc_scaleup_grassland_nounknown)
 anpp_rich_glbrc_scaleup <- glbrc_scaleup_grassland_nounknown %>% 
   group_by(year, treatment,  station,glbrc_site, experiment, nutrients_added,
-           nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire) %>% 
+           nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire, source) %>% 
   summarise(plot_biomass = sum(biomass_g_m2),
             plot_richness = n()) # SOMETHING GOING ON IN 2009!
 
@@ -480,26 +480,26 @@ head(glbrc_scaleup_grassland_nounknown)
 glbrc_BCSE_with_ANPP <- merge(glbrc_grassland_nounknown, anpp_rich_glbrc, by = c("year", "treatment", "station", "glbrc_site", "area_sampled_bio", "area_sampled_cover",
                                                                   "replicate", "experiment", "nutrients_added",
                                                                   "nitrogen_amount", "disturbance", "grazing",
-                                                                  "fire_frequency", "time_since_fire"))
+                                                                  "fire_frequency", "time_since_fire", "source"))
 head(glbrc_BCSE_with_ANPP)
 
 # get psesudo percent cover by dividing plant by total for ANPP...
-glbrc_BCSE_with_ANPP$perccover <- glbrc_BCSE_with_ANPP$biomass_g_m2 / glbrc_BCSE_with_ANPP$plot_biomass * 100
+glbrc_BCSE_with_ANPP$relative_abundance <- glbrc_BCSE_with_ANPP$biomass_g_m2 / glbrc_BCSE_with_ANPP$plot_biomass
 head(glbrc_BCSE_with_ANPP)
-hist(glbrc_BCSE_with_ANPP$perccover)
+hist(glbrc_BCSE_with_ANPP$relative_abundance)
 
 
 # Scaleup
 glbrc_scaleup_with_ANPP <- merge(glbrc_scaleup_grassland_nounknown, anpp_rich_glbrc_scaleup, by = c("year", "treatment", "station" , "glbrc_site", 
                                                                                      "experiment", "nutrients_added", "nitrogen_amount", "disturbance", "grazing",
-                                                                                     "fire_frequency", "time_since_fire"))
+                                                                                     "fire_frequency", "time_since_fire", "source"))
 names(glbrc_scaleup_with_ANPP)
 head(glbrc_scaleup_with_ANPP)
 
-glbrc_scaleup_with_ANPP$perccover <- glbrc_scaleup_with_ANPP$biomass_g_m2 / glbrc_scaleup_with_ANPP$plot_biomass * 100
+glbrc_scaleup_with_ANPP$relative_abundance <- glbrc_scaleup_with_ANPP$biomass_g_m2 / glbrc_scaleup_with_ANPP$plot_biomass
 
 head(glbrc_scaleup_with_ANPP)
-hist(glbrc_scaleup_with_ANPP$perccover)
+hist(glbrc_scaleup_with_ANPP$relative_abundance)
 
 # bind together the GLBRC datasets, they should include species percent cover
 head(glbrc_BCSE_with_ANPP)
@@ -552,7 +552,7 @@ nutnet_bio_nolitter <- nutnet_bio %>%
 # calculate total ANPP: sum up ANPP for vasc an non vasc plants
 anpp_nutnet <- nutnet_bio_nolitter %>% 
   group_by(year, treatment,   block, plot, subplot,experiment, nutrients_added, area_sampled_bio,
-           nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire) %>% 
+           nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire, source) %>% 
   summarise(plot_biomass = sum(mass))
 
 anpp_nutnet
@@ -570,7 +570,7 @@ nutnet_cover$area_sampled_cover <- 1
 # column management 
 nutnet_cover <- nutnet_cover %>% rename (treatment = trt) # rename to match other datasets
 nutnet_cover <- nutnet_cover %>% rename (species = taxon)
-nutnet_cover <- nutnet_cover %>% rename (perccover = max_cover)
+nutnet_cover <- nutnet_cover %>% rename (relative_abundance = max_cover)
 nutnet_cover$source <- "NutNet (Not publicly available)" # make column indicating where this came from
 unique (nutnet_cover$treatment)
 unique(micro$fertilized_microplot)
@@ -601,7 +601,7 @@ names(nutnet_cover_nounknown )
 # calculate richness
 rich_nutnet <- nutnet_cover_nounknown %>% 
   group_by(year, treatment,   block, plot, subplot,experiment, nutrients_added, area_sampled_cover,
-           nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire) %>% 
+           nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire, source) %>% 
   summarise(plot_richness = n())
 
 names(rich_nutnet)
@@ -610,13 +610,13 @@ names(anpp_nutnet)
 anpp_rich_nutnet <- merge (rich_nutnet, anpp_nutnet, 
                            by = c("year", "treatment",  "block"  , "plot"  ,         
                             "subplot"  , "experiment" ,  "nutrients_added", "nitrogen_amount", "disturbance" ,   
-                             "grazing",  "fire_frequency"  ,"time_since_fire"))
+                             "grazing",  "fire_frequency"  ,"time_since_fire", "source"))
 
 # make a species cover file that includes plot biomass, rich, anpp....
 nutnet_cover_with_ANPP <- merge(nutnet_cover_nounknown, anpp_rich_nutnet,
                                 by = c("year", "treatment", "block"  , "plot"  ,         
                                       "subplot"  , "experiment" ,  "nutrients_added", "nitrogen_amount", "disturbance" ,   
-                                      "grazing",  "fire_frequency"  ,"time_since_fire"))
+                                      "grazing",  "fire_frequency"  ,"time_since_fire", "source"))
 
 
 
@@ -770,7 +770,7 @@ ggplot(allkbsdata_anpp_tp, aes (x = growprecip, y = plot_richness)) +
 # calculate shannon diversity   - based on ashleys code
 head(allkbsdata_spcomp_tp)
 kbs_species <- allkbsdata_spcomp_tp %>%
-  mutate(proportions = (perccover/100)*(log(perccover/100)))
+  mutate(proportions = (relative_abundance/100)*(log(relative_abundance/100)))
 kbs_species$proportions[is.na(kbs_species$proportions)] <- 0  # Fix Nas to zeros
 kbs_shannon <- kbs_species %>%
   #group_by(year, treatment, station, replicate, disturbance, nutrients_added) %>%
@@ -803,7 +803,7 @@ names(kbs_plot_level_metrics)
 
 
 
-cols_plot_level_metrics <- c("year", "site","higher_level_organization" , "plot_id","unique_id", "plot_biomass", "plot_richness", "plot_evenness", "area_sampled_bio" , "area_sampled_cover", "shannon")
+cols_plot_level_metrics <- c("year", "site","higher_level_organization" , "plot_id","unique_id", "plot_biomass", "plot_richness", "plot_evenness", "area_sampled_bio" , "area_sampled_cover", "shannon", "source")
 
 
 
@@ -826,7 +826,7 @@ write.csv(kbs_plot_level_metrics_sel, file.path(L1_dir, "./KBS_plot_level_metric
 
 cols_metadata <- c("year", "site", "experiment", "plot_id", "higher_level_organization" , "unique_id", 
                              "meantemp", "annualprecip", "growtemp", "growprecip", "treatment", "nutrients_added", 
-                             "nitrogen_amount", "disturbance", "grazing", "fire_frequency", "time_since_fire")
+                             "nitrogen_amount", "disturbance", "grazing", "fire_frequency", "time_since_fire", "source")
 
 
 kbs_meta <- kbs_plot_level_metrics %>% select(all_of (cols_metadata ))
@@ -840,7 +840,7 @@ write.csv(kbs_meta, file.path(L1_dir, "./KBS_metadata.csv"), row.names=F)
 
 names(allkbsdata_spcomp_tp)
 
-cols_species_level_abundance <- c("year", "site","higher_level_organization" , "plot_id","unique_id", "species" , "perccover" , "cover_method", "area_sampled_bio" , "area_sampled_cover")
+cols_species_level_abundance <- c("year", "site","higher_level_organization" , "plot_id","unique_id", "species" , "relative_abundance" , "cover_method", "area_sampled_bio" , "area_sampled_cover", "biomass_g_m2")
 kbs_species_level_abundance <- allkbsdata_spcomp_tp %>% select(all_of (cols_species_level_abundance ))
 
 kbs_species_level_abundance
@@ -850,5 +850,8 @@ head(kbs_species_level_abundance)
 kbs_species_level_abundance <- rename(kbs_species_level_abundance, plot = plot_id)
 kbs_species_level_abundance <- rename(kbs_species_level_abundance, higher_order_organization = higher_level_organization)
 kbs_species_level_abundance <- rename(kbs_species_level_abundance, uniqueid = unique_id)
+kbs_species_level_abundance <- rename(kbs_species_level_abundance, abundance = biomass_g_m2)
+kbs_species_level_abundance$original_measurement_unit <- "g_m2"
+
 
 write.csv(kbs_species_level_abundance, file.path(L1_dir, "./KBS_species_level_abundance.csv"), row.names=F)

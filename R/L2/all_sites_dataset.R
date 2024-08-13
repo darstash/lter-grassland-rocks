@@ -39,15 +39,34 @@ KNZ_plot_metrics <- read.csv(file.path(L1_dir, "KNZ_plotlevel_metrics.csv"))
 
 # Merge datasets ----
 # Plot metrics
-KBS_plot_metrics$measurement_scale_biomass <- as.character(KBS_plot_metrics$measurement_scale_biomass)
-KBS_plot_metrics$measurement_scale_cover <- as.character(KBS_plot_metrics$measurement_scale_cover)
+
+# Make plot metric datasets compatible for merge
+CDR_plot_metrics$measurement_scale_biomass <- gsub("\\m.*", "", CDR_plot_metrics$measurement_scale_biomass)
+CDR_plot_metrics$measurement_scale_biomass <- as.double(CDR_plot_metrics$measurement_scale_biomass)
+CDR_plot_metrics$measurement_scale_cover <- gsub("\\m.*", "", CDR_plot_metrics$measurement_scale_cover)
+CDR_plot_metrics$measurement_scale_cover <- as.double(CDR_plot_metrics$measurement_scale_cover)
+KNZ_plot_metrics <- rename(KNZ_plot_metrics, shannon = Shannon)
 CDR_plot_metrics$plot <- as.character(CDR_plot_metrics$plot)
 KNZ_plot_metrics$plot <- as.character(KNZ_plot_metrics$plot)
-KNZ_plot_metrics$measurement_scale_biomass <- as.character(KNZ_plot_metrics$measurement_scale_biomass)
-KNZ_plot_metrics$measurement_scale_cover <- as.character(KNZ_plot_metrics$measurement_scale_cover)
-KNZ_plot_metrics <- rename(KNZ_plot_metrics, shannon = Shannon)
-
 
 plot_metrics <- full_join(CDR_plot_metrics, KBS_plot_metrics)
 plot_metrics <- full_join(plot_metrics, KNZ_plot_metrics)
+
+# Metadata
+
+# Make metadata datasets compatible for merge
+CDR_metadata$plot <- as.character(CDR_metadata$plot)
+KNZ_metadata$plot <- as.character(KNZ_metadata$plot)
+
+metadata <- full_join(CDR_metadata, KBS_metadata)
+metadata <- full_join(metadata, KNZ_metadata) # Two different nutrient added columns for KNZ (what is happening?)
+
+# Species abundance
+
+# Make species abundance datasets compatible for merge
+CDR_species_abundance$plot <- as.character(CDR_species_abundance$plot)
+KNZ_species_abundance$plot <- as.character(KNZ_species_abundance$plot)
+
+species_abundance <- full_join(CDR_species_abundance, KBS_species_abundance)
+species_abundance <- full_join(species_abundance, KNZ_species_abundance)
 

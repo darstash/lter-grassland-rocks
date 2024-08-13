@@ -19,6 +19,7 @@ library(lubridate)
 # Set working directory 
 L0_dir <- Sys.getenv("L0DIR")
 L1_dir <- Sys.getenv("L1DIR")
+L2_dir <- Sys.getenv("L2DIR")
 list.files(L1_dir)
 
 # Read in CSV files ----
@@ -52,6 +53,8 @@ KNZ_plot_metrics$plot <- as.character(KNZ_plot_metrics$plot)
 plot_metrics <- full_join(CDR_plot_metrics, KBS_plot_metrics)
 plot_metrics <- full_join(plot_metrics, KNZ_plot_metrics)
 
+# write.csv(plot_metrics, file.path(L2_dir, "./plot_metrics.csv"), row.names=F)
+
 # Metadata
 
 # Make metadata datasets compatible for merge
@@ -61,6 +64,8 @@ KNZ_metadata$plot <- as.character(KNZ_metadata$plot)
 metadata <- full_join(CDR_metadata, KBS_metadata)
 metadata <- full_join(metadata, KNZ_metadata) # Two different nutrient added columns for KNZ (what is happening?)
 
+# write.csv(metadata, file.path(L2_dir, "./metadata.csv"), row.names=F)
+
 # Species abundance
 
 # Make species abundance datasets compatible for merge
@@ -69,4 +74,6 @@ KNZ_species_abundance$plot <- as.character(KNZ_species_abundance$plot)
 
 species_abundance <- full_join(CDR_species_abundance, KBS_species_abundance)
 species_abundance <- full_join(species_abundance, KNZ_species_abundance)
+
+# write.csv(species_abundance, file.path(L2_dir, "./species_abundance.csv"), row.names=F)
 

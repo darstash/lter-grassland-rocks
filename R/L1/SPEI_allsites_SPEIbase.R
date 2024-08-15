@@ -86,6 +86,7 @@ quantile(cdr.aug$spei12, c(0.1, 0.25, 0.75, 0.9))
 
 
 # add column for classifying years based on quartiles !!!!!
+
 kbs.aug <-kbs.aug   %>% mutate(spei_category = case_when(
   kbs.aug$spei12 < -1.4 ~ "Extreme dry", 
   kbs.aug$spei12 >= -1.4 & kbs.aug$spei12 < -0.7 ~ "Moderate dry", 
@@ -152,3 +153,23 @@ cdr_spei <- ggplot(cdr.aug , aes (x = year, y = spei12)) +
 cdr_spei
 ggsave("CDR_SPEI.png",plot =cdr_spei, dpi = 300, width =8, height = 4, units = "in")
 
+
+
+
+#combine all sites
+
+cdr.aug$site = "CDR"
+kbs.aug$site = "KBS"
+knz.aug$site = "KNZ"
+
+allsite.aug <- rbind (cdr.aug, kbs.aug, knz.aug)
+head(allsite.aug)
+allsite.aug
+
+allsite.aug <- allsite.aug %>% select (-date) # remove date column, do not think we need it. just will join based on year and site.
+
+head(allsite.aug )
+
+
+
+write.csv(allsite.aug, file.path(L1_dir, "./SPEI_12_allsites.csv"), row.names=F)

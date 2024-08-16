@@ -1,6 +1,6 @@
 # lter-grassland-rocks
 
-# Table of Contents
+## Table of Contents
 - Introduction
 - Workflow
 - Location of data
@@ -11,24 +11,24 @@
 - Contributors
 - Contact Information
 
-# Introduction
+## Introduction
 This repository contains R scripts that organize, clean, analyze, and plot data from a synthesis working group between three LTER sites: CDR/KBS/KNZ.
 
-# Workflow
+## Workflow
 
-# Location of data
+## Location of data
 
-# Spatiotemporal extent and resolution
+## Spatiotemporal extent and resolution
 
-# Usage
+## Usage
 
-# Scripts
+## Scripts
 
-# Contributers
+## Contributers
 
 Joshua Ajowele, Rachael Brenneman, Caitlin Broderick, Seraina Cappelli, Ashley Darst, Mary Linabury, Matthew Nieland, Maya Parker-Smith, Smriti Pehim Limbu, Alex Siggers, Rose Terry, Moriah Young, Max Zaret
 
-# Contact Information
+## Contact Information
 For inquiries related to the data and scripts, please contact Ashley Darst: @darstash@msu.edu
 
-# Funding
+## Funding

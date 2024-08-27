@@ -2,7 +2,7 @@
 title: "KNZ_L0_data_wrangling"
 authors: Smriti Pehim Limbu, Joshua Ajowele
 Collaborators: Grassland Rocks working group
-date: "2023-12-11" Modified: "May 21, 2024"
+date: "2023-12-11" Last Modified: "August 26, 2024"
 output: html_document
 ---
 
@@ -33,8 +33,8 @@ df_A1_KNZ <- read.csv(file.path(L0_dir, "KNZ/A1_CME011_Sppcomp.csv"), stringsAsF
 df_A2_KNZ <- read.csv(file.path(L0_dir, "KNZ/A2_CME012_Biomass.csv"), stringsAsFactors = FALSE)
 
 #Joshua's directory
-df_E1_KNZ<-read.csv("C:/Users/JAAJOWELE/Downloads/E1_PPL011_Sppcomp.csv")
-df_E2_KNZ<-read.csv("C:/Users/JAAJOWELE/Downloads/E2_PPL012_Biomass.csv")
+#df_E1_KNZ<-read.csv("C:/Users/JAAJOWELE/Downloads/E1_PPL011_Sppcomp.csv")
+#df_E2_KNZ<-read.csv("C:/Users/JAAJOWELE/Downloads/E2_PPL012_Biomass.csv")
 #loading from google drive-Joshua
 df_E1_KNZ<-read.csv(file.path(L0_dir, "KNZ/E1_PPL011_Sppcomp.csv"))
 df_E2_KNZ<-read.csv(file.path(L0_dir, "KNZ/E2_PPL012_Biomass.csv"))
@@ -1066,9 +1066,180 @@ K1_meta$diversity_manipulated<-"naturally_assembled"
 #write cleaned document
 write.csv(K1_meta, "K3_NGE01_Metadata.csv")
 ```
+#Rachael's code for VI data-edited and uploaded by Joshua
+```{r}
+# watershed, experiment, block, plot
+
+VI_11 <- read.csv("VIR011_raw.csv", stringsAsFactors = F)
+VI_12 <- read.csv("VIR012.csv", stringsAsFactors = F)
+VI_2023 <- read.csv("VI_2023_scomp_clean.csv", stringsAsFactors = F)
+Precipitation <- read.csv("Precipitation_1982_2023.csv", stringsAsFactors = F)
+Temp <- read.csv("Temperature_1982_2023.csv", stringsAsFactors = F)
+
+#loading data from gogle drive
+VI_11<-read.csv(file.path(L0_dir, "KNZ/B1_VIR011_Sppcomp.csv"), stringsAsFactors = F)
+VI_12<-read.csv(file.path(L0_dir, "KNZ/B2_VIR012_Biomass.csv"), stringsAsFactors = F)
+
+#cleaning biomass data
+VI_biomass <- VI_12 %>% 
+  mutate(plot_id = paste(Block, Plot, SubPlot, sep = "_")) %>% 
+  select(-Pryrdead) %>% 
+  group_by(RecYear, Lvgrass, Forbs, Woody, plot_id) %>% 
+  mutate(plot_biomass = Lvgrass + Forbs + Woody) %>% 
+  ungroup() %>% 
+  select(-Datacode, -Rectype, -Lvgrass, -Forbs, -Woody, -Comments) %>% 
+  rename(year = RecYear) %>% 
+  mutate(site = "KNZ") %>% #adding site
+  mutate(watershed = "2c") %>% 
+  mutate(experiment = "VI") %>% 
+  mutate(higher_order_organization = paste(watershed, experiment, Block, Plot, SubPlot, sep = "_"))
+  
+VI_tidy <- VI_11 %>% 
+  mutate(RecSeason = ifelse(RecSeason %in% "fall", "Fall", RecSeason)) %>% 
+  mutate(RecSeason = ifelse(RecSeason %in% "spring", "Spring", RecSeason)) %>% 
+  mutate(species = paste(Ab_genus, AB_species, sep = "_")) %>% 
+  mutate(plot_id = paste(Block, Plot, Subplot, sep = "_"))
+
+VI_tidy$species = toupper(VI_tidy$species) #names not entered consistently
+
+#treatment key
+trt_key_VI <- data.frame(Plot=levels(factor(VI_tidy$Plot)),trt_combo=
+                           c("NCI","NCI","CCC","NCC", "CCI", "NCC", "CCC", "CCI", 
+                             "CCI", "NCI", "NCC", "NCI", "CCC", "CCI", "NCC", "CCC",
+                             "NCI", "CCI", "CCC", "NCI", "CCC", "CCI", "NCC", "NCC")) %>% 
+  mutate(Plot = as.integer(Plot))
+
+VI_tidier <- VI_tidy %>% #second round - cleaning up entry errors and unneeded data
+  mutate(RecSeason = ifelse(RecSeason %in% "fall", "Fall", RecSeason)) %>% 
+  mutate(RecSeason = ifelse(RecSeason %in% "spring", "Spring", RecSeason)) %>% 
+  mutate(species = paste(Ab_genus, AB_species, sep = "_")) %>% 
+  left_join(trt_key_VI, by = "Plot")%>%
+  filter(!species == "NA_NA") %>% 
+  filter(!species == "BARE_GROUND") %>% 
+  filter(!species == "LITTER_") %>% 
+  filter(!species == "DUNG_") %>% 
+  mutate(species = ifelse(species %in% "DICHANTHELIUM_OLIGOSANTHES", "DICANTHELIUM_OLIGOSANTHES", species)) %>%
+  mutate(species = ifelse(species %in% "SCHIZACHYRIUM_SCOPARIUS", "SCHIZACHYRIUM_SCOPARIUM", species)) %>%
+  mutate(species = ifelse(species %in% "CYPERUS_SPP.", "CYPERUS_SPP", species)) %>% 
+  mutate(site = "KNZ") %>% #adding site name
+  rename(year = RecYear) %>% 
+  rename(abundance = Cover) %>% 
+  select(-Comments, - SpeCode, -Ab_genus, -AB_species)
+
+as.integer(VI_tidier$year)
+
+VI_rel_abundance <- VI_tidier %>% 
+  group_by(site, year, plot_id, species) %>% 
+  summarize(ab_max = max(abundance)) %>% 
+  mutate(relative_abundance = ab_max / sum(ab_max) * 100) %>% 
+  ungroup()
+  
+commMetrics <- community_structure(VI_rel_abundance, abundance.var='relative_abundance', replicate.var='plot_id', time.var = 'year') %>% 
+  rename(plot = "plot_id")
+commMetrics2 <- community_structure(VI_rel_abundance, abundance.var='relative_abundance', replicate.var='plot_id', time.var = 'year') %>% 
+  rename(plot = "plot_id")
+
+commMetricsBio <- commMetrics2 
+
+####final Species comp datasheet####
+spp_comp <- VI_rel_abundance %>% 
+  rename(plot = plot_id) %>% #block, plot, subplot
+  mutate(watershed = "2c") %>% #adding watershed
+  mutate(higher_order_organization = paste(site, "VI", watershed, sep = "_")) %>% #site, experiment, watershed
+  mutate(uniqueid = paste(higher_order_organization, plot, sep = "_")) %>% 
+  rename(abundance = ab_max) %>% 
+  mutate(original_measurement_unit = "%cover") %>%
+  mutate(relative_abundance = relative_abundance/100) %>% #dividing by 100
+  select(year, site, plot, higher_order_organization, uniqueid, species, abundance, relative_abundance, original_measurement_unit) #ordering columns
+
+burn_y <- c(2009, 2011, 2013, 2015, 2017, 2021) #adding in burn years
+
+trt_key_VI <- data.frame(Plot=levels(factor(VI_tidy$Plot)),trt_combo=
+                           c("NCI","NCI","CCC","NCC", "CCI", "NCC", "CCC", "CCI", 
+                             "CCI", "NCI", "NCC", "NCI", "CCC", "CCI", "NCC", "CCC",
+                             "NCI", "CCI", "CCC", "NCI", "CCC", "CCI", "NCC", "NCC")) %>% 
+  mutate(Plot = as.factor(Plot)) #plot and treatment key
+nutrient_key <- data.frame(Plot=levels(factor(VI_tidy$Plot)), nutrients=
+                           c("NPK+","NPK+","no_fertilizer","NPK+", "no_fertilizer", "NPK+", "no_fertilizer", "no_fertilizer", "no_fertilizer", "NPK+", "NPK+", "NPK+", "no_fertilizer", "no_fertilizer", "NPK+", "no_fertilizer","NPK+", "no_fertilizer", "no_fertilizer", "NPK+", "no_fertilizer", "no_fertilizer", "NPK+", "NPK+")) %>% 
+  mutate(Plot = as.factor(Plot)) #plot and treatment key
+
+keys_together <- nutrient_key %>% 
+  left_join(trt_key_VI, by = "Plot")
+
+#Hey Rachael, not sure what is going on here! I will just comment them out
+#data <- data %>%
+ # mutate(middle_number = str_extract(code, "(?<=\\_)[0-9]+(?=\\_)"))
+
+biomass <- VI_12 %>% 
+  # mutate(plot = paste(Block, Plot, SubPlot, sep = "_")) %>% 
+  select(-Comments, -Pryrdead) %>% 
+  mutate(plot_biomass = (Lvgrass + Forbs + Woody)) %>% 
+  rename(year = RecYear) %>% 
+  # select(year, plot, Plot, plot_biomass) %>% 
+  group_by(year, Block, Plot) %>% 
+  summarize(total_biomass = sum(plot_biomass)) %>% 
+  rename(block = Block) %>% 
+  rename(plot = Plot) %>% 
+  ungroup()
+  # separate(biomass, into = c("Block", "Plot", "Subplot"), sep = "_")
+
+  # mutate(block_subplot = str_extract(biomass, "^[^_]+_[^_]+")) #separating block and subplot
+
+sppBio <- spp_comp %>%
+  separate(plot, into = c("block", "plot", "subplot"), sep = "_") %>% 
+  mutate(block = as.integer(block), plot = as.integer(plot)) %>% 
+  left_join(biomass, by = c("year", "block", "plot")) %>% 
+  rename(plot_biomass = total_biomass) %>% 
+  mutate(plot = paste(block, plot, subplot, sep = "_"))
+
+richBio <- sppBio %>%
+  left_join(commMetricsBio, by = c("year", "plot"))
+
+plotyear <- richBio %>% 
+  #left_join(ave_selectedTemp, by = "year") %>% 
+  mutate(fire_frequency = 2) %>% 
+  mutate(treatment_comment = "cessation following 2018") %>% 
+    mutate(time_since_fire = ifelse(year %in% burn_y, "0", "1")) %>% 
+  mutate(source = "B1_VIR011_Sppcomp.csv") %>% 
+  mutate(Plot = str_extract(plot, "(?<=\\_)[0-9]+(?=\\_)")) %>% #pulling out plot to join dataset of treatment key
+  left_join(keys_together, by = "Plot") %>% 
+  rename(evenness = Evar)
+  
+plotyear_treat <- plotyear %>%
+  mutate(trt_combo = ifelse(trt_combo == "NCI", "NPK+ & insecticide",
+                            ifelse(trt_combo == "CCC", "control",
+                                   ifelse(trt_combo == "NCC", "NPK+", 
+                                          ifelse(trt_combo == "CCI", "insecticide", as.character(trt_combo)))))) %>%
+  rename(treatment = trt_combo) %>%
+  mutate(measurement_scale_biomass = "0.2",
+         grazing = "ungrazed",
+         disturbance = ifelse(nutrients == "no_fertilizer", "undisturbed", "disturbed")) %>% 
+  mutate(diversity_manipulated = "naturally_assembled") %>% 
+  rename(nutrients_added = nutrients) %>% 
+  mutate(measurement_scale_cover = "1")
 
 
-#combining all Konza data
+####final full datasheet#####
+
+final <- plotyear_treat %>% #ordering columns and checking presence
+  select(year, site, plot, higher_order_organization, uniqueid, treatment, nutrients_added, disturbance, grazing, fire_frequency, time_since_fire, source, treatment_comment, diversity_manipulated, plot_biomass, measurement_scale_biomass, richness, evenness, measurement_scale_cover, abundance, relative_abundance, species)
+
+#separate metadata deom biomass and species abundance data
+#metadata
+B1_B2_metadata<-final%>%
+  select(year,site,plot,higher_order_organization,uniqueid,treatment,nutrients_added, disturbance, grazing, fire_frequency, time_since_fire, source, treatment_comment, diversity_manipulated)%>%
+  distinct()
+#plot level metrics with biomass
+B2_plot_biomass<-final%>%
+  select(year,site,plot,higher_order_organization,uniqueid, plot_biomass, measurement_scale_biomass,measurement_scale_cover)%>%
+  distinct()
+#spp comp data
+B1_sppcomp<-final%>%
+  select(year,site,plot,higher_order_organization,uniqueid, species, relative_abundance,abundance)%>%
+  mutate(original_measurement_unit="%cover")
+```
+
+#combining all Konza data-Joshua
 ```{r}
 #some extra mop up for species level data
 df_I1_KNZ.clean<-df_I1_KNZ.clean%>%
@@ -1093,7 +1264,8 @@ KNZ_specieslevel_abundance<-df_E1_KNZ_species_level%>%
   bind_rows(K1_spp,df_C1_KNZ.cleanest,df_I1_KNZ.clean,df_J2_KNZ.clean.richness.evenness,RaMPs_PlantCommunityComposition)%>%
   select(1:9)%>%
   bind_rows(df_A1_KNZ.clean)%>%
-  select(1:9)
+  select(1:9)%>%
+  bind_rows(B1_sppcomp)
   
 #upload to google drive
 write.csv(KNZ_specieslevel_abundance,file.path(L1_dir,"/KNZ_specieslevel_abundance.csv"))
@@ -1110,11 +1282,14 @@ df_I1_I2_KNZ.clean$block=as.factor(df_I1_I2_KNZ.clean$block)
 RaMPs_ANPP<-RaMPs_ANPP%>%
   mutate(uniqueid=uniqueID)
 RaMPs_ANPP$year<-as.integer(RaMPs_ANPP$year)
+B2_plot_biomass$measurement_scale_biomass=as.numeric(B2_plot_biomass$measurement_scale_biomass)
+B2_plot_biomass$measurement_scale_cover=as.numeric(B2_plot_biomass$measurement_scale_cover)
 #combining konza plot biomass data
 KNZ_plotlevel_metrics<-df_E1_E2_KNZ_clean_plot_metrics%>%
   select(-1,-2,-5)%>%
   bind_rows(K1_mass,df_C2_KNZ.cleanest,df_A1_A2_KNZ.clean,df_J2_KNZ.clean.richness.evenness,df_I1_I2_KNZ.clean,RaMPs_ANPP)%>%
-  select(1:12)
+  select(1:12)%>%
+  bind_rows(B2_plot_biomass)
 
 #upload to google drive
 write.csv(KNZ_plotlevel_metrics,file.path(L1_dir,"/KNZ_plotlevel_metrics.csv"))
@@ -1123,6 +1298,8 @@ write.csv(KNZ_plotlevel_metrics,file.path(L1_dir,"/KNZ_plotlevel_metrics.csv"))
 df_E1_E2_metadata$plot=as.factor(df_E1_E2_metadata$plot)
 K1_meta$plot=as.factor(K1_meta$plot)
 A1_A2_metadata$plot<-as.factor(A1_A2_metadata$plot)
+B1_B2_metadata$plot=as.factor(B1_B2_metadata$plot)
+B1_B2_metadata$time_since_fire=as.integer(B1_B2_metadata$time_since_fire)
 #combine Konza metadata
 
 
@@ -1130,7 +1307,8 @@ KNZ_metadata<-df_E1_E2_metadata%>%
   select(-2,-5)%>%
   bind_rows(K1_meta,df_J2_KNZ.clean.richness.evenness,df_C1_KNZ.cleanest,A1_A2_metadata,df_I1_I2_KNZ.clean,RaMPs_PlantCommunityComposition)%>%
   select(1:18)%>%
-  distinct()
+  distinct()%>%
+  bind_rows(B1_B2_metadata)
 
 #upload to google drive
 write.csv(KNZ_metadata,file.path(L1_dir,"/KNZ_metadata.csv"))

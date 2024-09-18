@@ -1,5 +1,5 @@
 # TITLE:        LTER Grassland Rock: Merge CDR, KBS, and KNZ datasets
-# AUTHORS:      
+# AUTHORS:      Ashley Darst
 # COLLABORATORS:  
 # DATA INPUT:   Data imported as cleaned site-specific csv files from shared Google drive L1 folder
 # DATA OUTPUT:    

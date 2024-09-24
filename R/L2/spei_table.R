@@ -11,6 +11,7 @@ rm(list=ls())
 
 # Load packages
 library(tidyverse)
+library(ggforce)
 
 # Set working directory 
 L0_dir <- Sys.getenv("L0DIR")
@@ -190,5 +191,19 @@ KNZ_dd <- sum(spei_lump_KNZ$spei_category[-nrow(spei_lump_KNZ)] == "Dry" & spei_
 dry_dry <- c(CDR_dd, KBS_dd, KNZ_dd)
 
 spei_table_lump <- data.frame(sites, wet, dry, wet_dry, dry_wet, wet_wet, dry_dry)
+
+# Look at plant biomass averages by event category
+plot_spei %>%
+  ggplot(aes(x = spei_category, y = plot_biomass)) + 
+  geom_sina() +
+  stat_summary(fun.data = mean_cl_boot, color = "red")
+
+# Look at plant biomass vs spei
+plot_spei %>%
+  ggplot(aes(x = spei12, y = plot_biomass)) + 
+  geom_point()
+
+# Why 3663 missing values for plot biomass
+sum(is.na(plot_spei$plot_biomass))
 
   

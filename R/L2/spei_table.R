@@ -12,6 +12,10 @@ rm(list=ls())
 # Load packages
 library(tidyverse)
 library(ggforce)
+library(lme4)
+library(lmerTest)
+library(emmeans)
+library(sjPlot)
 
 # Set working directory 
 L0_dir <- Sys.getenv("L0DIR")
@@ -198,10 +202,31 @@ plot_spei %>%
   geom_sina() +
   stat_summary(fun.data = mean_cl_boot, color = "red")
 
+# Are there any significant differences?
+biomass.lm <- lmer(plot_biomass ~ spei_category + (1|site) + (1|site:plot), data = plot_spei)
+anova(biomass.lm)
+emmeans(biomass.lm, list(pairwise ~ spei_category), adjust = "tukey")
+plot_model(
+  biomass.lm,
+  type = "pred",
+  terms = c("spei_category")
+)
+
 # Look at plant biomass vs spei
 plot_spei %>%
   ggplot(aes(x = spei12, y = plot_biomass)) + 
   geom_point()
+
+# Is there a quadratic relationship?
+biomass_spei12.lm <- lmer(plot_biomass ~ spei12 + I(spei12^2) + (1|site) + (1|site:plot), data = plot_spei)
+summary(biomass_spei12.lm) # quadratic term significant
+
+plot_model(
+  biomass_spei12.lm,
+  type = "pred",
+  terms="spei12[all]",
+  show.data = TRUE
+)
 
 # Why 3663 missing values for plot biomass
 sum(is.na(plot_spei$plot_biomass))

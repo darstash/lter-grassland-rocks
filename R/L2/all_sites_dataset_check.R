@@ -35,37 +35,36 @@ str(meta)
 summary(meta)
 
 # Metadata
-# - growing_precipitation = growprecip
-# - meantemp = temperature 
-# - annualprecip = precipitation
-# - konza: some experiments are missing the nutrients added -> set NA, "" and "none" to "no_fertilizer",
-# - konza watershed (incorporated in higher order organization) -> delete from metadata
-# - get rid of experiment column
-# - grazing column: set "" to "ungrazed"
+# - growing_precipitation = growprecip (all site done!)
+# - meantemp = temperature (all site done!)
+# - annualprecip = precipitation (all site done!)
+# - konza: some experiments are missing the nutrients added -> set NA, "" and "none" to "no_fertilizer" (KNZ individual)
+# - konza watershed (incorporated in higher order organization) -> delete from metadata (all site done)
+# - get rid of experiment column (all site done)
+# - grazing column: set "" to "ungrazed" (individual sites)
 #
-# - fire frequency and time since fire missing for some experiments (crucial?)
-# - Konza and kbs have NA in some disutbance as NA (crucial?)
-# - growtemp missing for konza (not crucial)
+# - fire frequency and time since fire missing for some experiments (crucial? individual sites)
+# - Konza and kbs have NA in some disutbance as NA (crucial?, individual sites)
 
 
 head(species)
 str(species)
 summary(species %>% select(!c("cover_method", "area_sampled_bio", "area_sampled_cover")))
 
-# - delete cover_method, area_sampled_bio, area_sampled_cover
-# - original_measuurement_unit = original_measurement_unit
-# - some relative abundance values are scaled to 100 instead of 1 in KBS and KNZ
-# - KNZ WAT -> add KNZ to site column!!!
-# - treatment: make sure control is always named control, CDR: add more treatment info back in -> make good metadata what which treatment variable means.
+# - delete cover_method, area_sampled_bio, area_sampled_cover (all sites)
+# - original_measuurement_unit = original_measurement_unit (all sites)
+# - some relative abundance values are scaled to 100 instead of 1 in KBS and KNZ (individual all)
+# - KNZ WAT -> add KNZ to site column!!! (KNZ individual)
+# - treatment: make sure control is always named control, CDR: add more treatment info back in -> make good metadata what which treatment variable means. (individual all)
 
 # species names
 #_______________
-# - knz nutnet ._. ?????
+# - knz nutnet ._. ????? (individual knz)
 # - sites: think about filtering categories (and export them for metadata) like CDR
 #     genus_sp_in_biomass (list of things that are identified to genus level: genus sp.)
 #     non_plant_things_in_biomass
 #     maybe_plant_things_in_biomass (miscellaneous grasses etc.)
-# - unify species names -> capitalization, underscores, etc
+# - unify species names -> capitalization, underscores, etc (all site)
 
 
 

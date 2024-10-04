@@ -62,8 +62,13 @@ CDR_metadata$plot <- as.character(CDR_metadata$plot)
 KNZ_metadata$plot <- as.character(KNZ_metadata$plot)
 
 metadata <- full_join(CDR_metadata, KBS_metadata)
-metadata <- full_join(metadata, KNZ_metadata) # Two different nutrient added columns for KNZ (what is happening?)
+metadata <- full_join(metadata, KNZ_metadata) # Two different nutrient added columns for KNZ
 
+# Merge nutrient columns
+metadata <- metadata %>%
+  mutate(nutrients_added = coalesce(nutrients_added, nutrient_added)) %>%
+  select(-nutrient_added)
+  
 # write.csv(metadata, file.path(L2_dir, "./metadata.csv"), row.names=F)
 
 # Species abundance

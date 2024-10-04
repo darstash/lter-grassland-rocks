@@ -56,6 +56,7 @@ summary(species %>% select(!c("cover_method", "area_sampled_bio", "area_sampled_
 # - original_measuurement_unit = original_measurement_unit
 # - some relative abundance values are scaled to 100 instead of 1 in KBS and KNZ
 # - KNZ WAT -> add KNZ to site column!!!
+# - treatment: make sure control is always named control, CDR: add more treatment info back in -> make good metadata what which treatment variable means.
 
 # species names
 #_______________
@@ -72,10 +73,12 @@ head(plot)
 str(plot)
 summary(plot)
 
-# - remove metadatastuff  from plotlevel data: treatment, source
+# - remove metadatastuff  from plotlevel data: treatment, source, dataset
 # - remove speciesstuff from plotlevel data: orignial_measurement_unit
-# - things that should be calculated based on the full species dataset (add to plotlevel data later): evenness, shannon, richness (?)
-
+# - things that should be calculated based on the full species dataset (add to plotlevel data LATER -> remove now): evenness, shannon, richness (?)
+# - for all sites in some experiments the measurement_scale_cover is missing!
+# - Konza and KBS: in some experiments the measurement_scale_biomass is missing!
+# - Konza: NAs in the biomass (are they from merging with the diversity data? WAT, ConsME)
 
 # ALL DATASETS - Konza: fix year issue
 
@@ -89,6 +92,5 @@ summary(plot)
 
 
 
-# plot level data: for all sites in some experiments the measurement_scale_cover is missing (not crucial)
-# plot level data: Konza and KBS: in some experiments the measurement_scale_biomass is missing (not crucial)
+
 

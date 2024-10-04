@@ -2,7 +2,7 @@
 title: "KNZ_L0_data_wrangling"
 authors: Smriti Pehim Limbu, Joshua Ajowele
 Collaborators: Grassland Rocks working group
-date: "2023-12-11" Last Modified: "August 26, 2024"
+date: "2023-12-11" Last Modified: "Oct 4, 2024"
 output: html_document
 ---
 
@@ -42,20 +42,20 @@ df_J1_KNZ <- read.csv(file.path(L0_dir, "KNZ/J1_CEE012_Sppcomp.csv"), stringsAsF
 df_J2_KNZ <- read.csv(file.path(L0_dir, "KNZ/J2_CEE014_Biomass.csv"), stringsAsFactors = FALSE)
 
 #Alex's directory
-df_C1_KNZ <- read.csv("C:\\Users\\jasig\\Downloads\\C1_WAT012_Sppcomp.csv")
-df_C2_KNZ <- read.csv("C:\\Users\\jasig\\Downloads\\C2_WAT013_Biomass.csv")
-df_ppt <- read.csv("C:\\Users\\jasig\\Downloads\\Precipitation_1982_2023.csv")
+#df_C1_KNZ <- read.csv("C:\\Users\\jasig\\Downloads\\C1_WAT012_Sppcomp.csv")
+#df_C2_KNZ <- read.csv("C:\\Users\\jasig\\Downloads\\C2_WAT013_Biomass.csv")
+#df_ppt <- read.csv("C:\\Users\\jasig\\Downloads\\Precipitation_1982_2023.csv")
 
 #loading directly via google drive
 df_C1_KNZ<-read.csv(file.path(L0_dir, "KNZ/C1_WAT012_Sppcomp.csv"))
 df_C2_KNZ<-read.csv(file.path(L0_dir, "KNZ/C2_WAT013_Biomass.csv"))
 
 #(Alex is dumb & is taking this approach) Convert the date column to Date type 
-df_ppt$RecDate<- as.Date(df_ppt$RecDate, format = "%m/%d/%Y")
+#df_ppt$RecDate<- as.Date(df_ppt$RecDate, format = "%m/%d/%Y")
 #Extract the year from the date
-df_ppt$year <- year(df_ppt$RecDate)
+#df_ppt$year <- year(df_ppt$RecDate)
 #Reading temp data
-df_temp <- read.csv("C:\\Users\\jasig\\Downloads\\Temperature_1982_2023.csv")
+#df_temp <- read.csv("C:\\Users\\jasig\\Downloads\\Temperature_1982_2023.csv")
 ```
 
 #climate data
@@ -201,7 +201,7 @@ df_E1_E2_metadata<-df_E1_E2_KNZ_clean_plot_metrics%>%
 
 ```
 
-#Cleaning data C1 & C2 - Alex
+#Cleaning data C1 & C2 - Alex's code (uploaded and edited by Joshua)
 ```{r}
 ##Species comp
 #Merging Genus & Species columns
@@ -209,8 +209,13 @@ df_C1_KNZ$species <- paste(df_C1_KNZ$Genus,df_C1_KNZ$Species)
 #Removing unnecessary columns
 df_C1_KNZ = df_C1_KNZ %>%
   select(-c("Rectype","Genus","Species"))
+#convert cover class to percentage cover
+cover_class_key<-data.frame(Cover=c(1:7),
+                            abundance=c(0.5,3,15,37.5,62.5,85,97.5))
+df_C1_KNZ<-df_C1_KNZ%>%
+  left_join(cover_class_key, by="Cover")
 #Renaming columns
-df_C1_KNZ.clean <- df_C1_KNZ %>% rename(year = RecYear, treatment = Trt, transect = Transect, plot = Plot, species_code = Spcode, abundance=Cover)
+df_C1_KNZ.clean <- df_C1_KNZ %>% rename(year = RecYear, treatment = Trt, transect = Transect, plot = Plot, species_code = Spcode)
 #Adding columns
 df_C1_KNZ.clean <- df_C1_KNZ.clean %>% 
   mutate(site = "KNZ")
@@ -244,38 +249,23 @@ C1_diversity<-df_C1_KNZ.clean%>%
 #convert to integer to allow joining with biomass data
 C1_diversity$plot=as.integer(C1_diversity$plot)
 
-#Adding in precip data
-df_ppt$ppt = as.numeric(df_ppt$ppt)
-df_ppt[is.na(df_ppt)] <- 0
-df_ppt = df_ppt %>% 
-  group_by(year) %>%
-  mutate(annualprecip = sum(ppt))
-df_ppt = df_ppt %>% 
-  distinct(year, annualprecip, .keep_all = TRUE)
-df_ppt = df_ppt[-c(1:6)]
 
 df_C1_KNZ.cleanest <- df_C1_KNZ.clean %>%
-right_join(df_ppt, by=c("year")) %>%
   mutate(method="sorted_to_species",
          experiment="WAT01",
-         nutrients_added = "no_fertilizer",
-         nitrogen_added = NA,
-         disturbance = "undisturbed",
-         grazing = "ungrazed",
-         fire_frequency = 1,
-         time_since_fire = 0,
-         diversity_manipulated = "naturally_assembled",
-         measurement_scale_biomass = NA,
-         richness = NA,
-         evenness = NA,
-         measurement_scale_cover = NA) %>%
-  unite(higher_order_organization,site,experiment,plot_trt, sep ="_", remove=FALSE)
-
+         cover_method = "physical_quantity",
+         area_sampled_bio = 10,
+         area_sampled_cover = 0.1) %>%
+  unite(higher_level_organization,site,experiment,plot, sep ="_", remove=FALSE) %>%
+  unite(unique_id,site,experiment,year,plot_trt, sep ="_", remove=FALSE)
+  
+df_C1_KNZ.cleanest = df_C1_KNZ.cleanest[-c(1,5,6,9,13)]
+names(df_C1_KNZ.cleanest)[names(df_C1_KNZ.cleanest) == "higher_level_organization"] = "higher_order_organization"
+df_C1_KNZ.cleanest<-df_C1_KNZ.cleanest%>%
+  rename(measurement_scale_cover=area_sampled_bio)%>%
+  mutate(original_measurement_unit="cover_class")
 #Writing sppcomp dataset to upload to L1 folder
-write.csv(df_C1_KNZ.cleanest,"C:\\Users\\jasig\\Downloads\\df_C1_KNZ.cleanest.csv", row.names=FALSE)
-
-## Species comp data is clean ##
-## There are issues with naming conventions, such as transect and treatment being interchanged between datasets
+#write.csv(df_C1_KNZ.cleanest,"C:\\Users\\jasig\\Downloads\\df_C1_KNZ.cleanest.csv", row.names=FALSE)
 
 
 ##Biomass data
@@ -302,40 +292,84 @@ df_C2_KNZ.clean <- df_C2_KNZ.cleaner %>%
 #create unique identifier to consolidate reps
   unite(plot_trt, plot, treatment, sep="_", remove=FALSE)
 
-#Subsetting to just include plots and their average biomass per functional group (to account for four reps each)
+#Subsetting to just include plots and their average biomass per functional group (to #account for four reps each)
 df_C2_KNZ.noreps <- df_C2_KNZ.clean %>% 
   distinct(year, plot_trt, plot_biomass, .keep_all = T)
-df_C2_KNZ.noreps <- df_C2_KNZ.noreps[-c(7:11)] %>%
-  unite(higher_order_organization,site,plot_trt, sep ="_", remove=FALSE)
+df_C2_KNZ.noreps <- df_C2_KNZ.noreps[-c(7:11,13:16)] %>%
+  unite(higher_order_organization,site,DataCode,plot, sep ="_", remove=FALSE)
 
-#Adding precip data
-df_C2_KNZ.cleanest <- df_C2_KNZ.noreps %>%
-right_join(df_ppt, by=c("year")) %>%
-  mutate(experiment="WAT01",
-         nutrients_added = "no_fertilizer",
-         nitrogen_added = NA,
-         disturbance = "undisturbed",
-         grazing = "ungrazed",
-         fire_frequency = 1,
-         time_since_fire = 0,
-         diversity_manipulated = "naturally_assembled",
-         measurement_scale_biomass = NA,
-         richness = NA,
-         evenness = NA,
-         measurement_scale_cover = NA) %>%
-  unite(higher_order_organization,site,experiment,plot_trt, sep ="_", remove=FALSE)
+#Changing treatment naming conventions to match species comp
+df_C2_KNZ.noreps$treatment[df_C2_KNZ.noreps$treatment=="c"]<-"a"
+df_C2_KNZ.noreps$treatment[df_C2_KNZ.noreps$treatment=="ni"]<-"a"
+df_C2_KNZ.noreps$treatment[df_C2_KNZ.noreps$treatment=="b"]<-"a"
+df_C2_KNZ.noreps$treatment[df_C2_KNZ.noreps$treatment=="d"]<-"a"
+unique(df_C2_KNZ.noreps$treatment)
 
-unique(df_C2_KNZ.cleanest$treatment) #6 unique treatment (i, c, ni, b, d, a)
+df_C2_KNZ.noreps = mutate(df_C2_KNZ.noreps, plot_trt = paste(plot, treatment, sep ="_"))
 
-#Writing biomass dataset to upload to L1 folder
-write.csv(df_C2_KNZ.cleanest,"C:\\Users\\jasig\\Downloads\\df_C2_KNZ.cleanest.csv", row.names=FALSE)
+df_C2_KNZ.noreps = mutate(df_C2_KNZ.noreps, unique_id = paste(site, DataCode, year, plot_trt, sep="_"))
+
+#Removing unnecessary columns
+df_C2_KNZ.noreps = df_C2_KNZ.noreps[-c(2,4,6)]
+#Adding column to make it possible to merge with diversity df
+df_C2_KNZ.noreps = mutate(df_C2_KNZ.noreps, year_plot_trt = paste(year, plot_trt, sep="_"))
+
+#Quick clean of diversity df
+unique(C1_diversity$treatment)
+C1_diversity = mutate(C1_diversity, year_plot_trt = paste(year, plot, treatment, sep="_"))
+C1_diversity %>%
+  unite(year_plot_trt, year, plot, treatment, sep="_", remove=FALSE)
+C1_diversity = C1_diversity[-c(1:3)]
+
+  
+#Merging with diversity metrics
+df_C2_KNZ_cleanest <- df_C2_KNZ.noreps %>%
+  right_join(C1_diversity, by=c("year_plot_trt"))%>%
+  mutate(measurement_scale_biomass="0.1")
+df_C2_KNZ_cleanest = df_C2_KNZ_cleanest[-c(3,8)]
 
 
-#Joining dataframes (Not ready yet)
-df_C1_C2_KNZ_clean<-df_C2_KNZ.noreps%>%
-  left_join(C1_diversity, by=c("year","plot"))
 
-## Running into issues with naming, would like to chat at next Konza working hours ##
+#metadata
+#Drop unnecessary columns
+C1_Meta<-df_C2_KNZ_cleanest %>%
+  dplyr::select(-plot_biomass,-richness,-Evar,-Shannon) #drop unneeded columns
+
+
+
+
+
+#treatment:
+C1_Meta[c('knz', 'watershed', 'year', 'plizot', 'treatment')] <- str_split_fixed(C1_Meta$unique_id, '_', 5)
+#drop those new columns besides treatment
+C1_Meta<-C1_Meta %>%
+  dplyr::select(-knz, -year, -plizot)
+C1_Meta<-C1_Meta %>%
+  dplyr::select(-watershed)
+
+#nutrients_added:
+C1_Meta$nutrients_added<-"no_fertilizer"
+
+#disturbance:
+C1_Meta$disturbance<-"undisturbed"
+
+#grazing:
+C1_Meta$grazing<-"ungrazed"
+
+#fire_frequency:
+C1_Meta$fire_frequency<-1
+
+#time_since_fire: 
+C1_Meta$time_since_fire<-0
+
+#Source:
+C1_Meta$source<-"WAT01"
+
+#treatment_comment:
+C1_Meta$treatment_comment<-"irrigation lines shifted in 2017"
+
+#diversity_manipulated
+C1_Meta$diversity_manipulated<-"naturally_assembled"
 
 ```
 
@@ -912,9 +946,9 @@ df_I1_I2_KNZ.clean <- left_join(df_I1_I2_KNZ.clean, KNZ_NUTNET_treatment,
 
 ####Process and clean K1_NGE01_Sppcomp
 #read in data, filter for correct years
-K1_spp<-read.csv("K1_NGE01_Sppcomp_RAW_no deluge plots_all years_20240515.csv")%>%
-  filter(year!=2013)%>% #subset all the pre-treatment 2013 year to avoid confusion
-  select(-X,-nitrogen,-treatment,-experiment) #drop unneeded columns
+#K1_spp<-read.csv("K1_NGE01_Sppcomp_RAW_no deluge plots_all years_20240515.csv")%>%
+  #filter(year!=2013)%>% #subset all the pre-treatment 2013 year to avoid confusion
+  #select(-X,-nitrogen,-treatment,-experiment) #drop unneeded columns
 #loading from google drive
 K1_spp<-read.csv(file.path(L0_dir, "KNZ/K1_NGE01_Sppcomp_RAW_no deluge plots_all years_20240515.csv"))%>%
   filter(year!=2013)%>% #subset all the pre-treatment 2013 year to avoid confusion
@@ -946,15 +980,15 @@ K1_spp$site[K1_spp$site == 'knz']<-'KNZ'
 K1_spp$original_measurement_unit<-"%cover"
 
 #write cleaned document
-write.csv(K1_spp, "K1_NGE01_Sppcomp.csv")
+#write.csv(K1_spp, "K1_NGE01_Sppcomp.csv")
 
 
 ####Process and clean K2_NGE01_Biomass
 #read in data, filter for correct years
-K1_mass<-read.csv("K2_NGE01_Biomass_RAW_no deluge plots_all years_20240515.csv")%>%
-  filter(year!=2013)%>%
-  rename(plot_biomass=anpp)%>%#subset all the pre-treatment 2013 year to avoid confusion
-  select(-X,-nitrogen,-treatment) #drop unneeded columns
+#K1_mass<-read.csv("K2_NGE01_Biomass_RAW_no deluge plots_all years_20240515.csv")%>%
+  #filter(year!=2013)%>%
+  #rename(plot_biomass=anpp)%>%#subset all the pre-treatment 2013 year to avoid confusion
+  #select(-X,-nitrogen,-treatment) #drop unneeded columns
 #loading from google drive
 K1_mass<-read.csv(file.path(L0_dir, "KNZ/K2_NGE01_Biomass_RAW_no deluge plots_all years_20240515.csv"))%>%
   filter(year!=2013)%>%
@@ -975,7 +1009,7 @@ K1_mass$measurement_scale_biomass<-0.1
 K1_mass$measurement_scale_cover<-1
 
 #write cleaned document
-write.csv(, "K2_NGE01_Biomass.csv")
+#write.csv(, "K2_NGE01_Biomass.csv")
 
 
 ####Create K1_NGE01K1_mass metadata file
@@ -984,51 +1018,51 @@ K1_meta<-K1_mass%>%
   select(-measurement_scale_biomass,-measurement_scale_cover,-plot_biomass,-richness,-Evar) #drop unneeded columns
 
 #Load in temperature data, calculate MAT, merge with main dataset
-df_temp <- read.csv("Temperature_1982_2023.csv")%>%
-  filter(TAVE!=".")%>%
-  rename(year=RECYEAR)
+#df_temp <- read.csv("Temperature_1982_2023.csv")%>%
+  #filter(TAVE!=".")%>%
+  #rename(year=RECYEAR)
 
-df_temp_ave_year <- df_temp %>% 
-  group_by(year) %>%
-  summarize(temperature=mean(as.numeric(TAVE)))
+#df_temp_ave_year <- df_temp %>% 
+  #group_by(year) %>%
+  #summarize(temperature=mean(as.numeric(TAVE)))
 
-K1_meta<-merge(K1_meta,df_temp_ave_year, by=c("year"))
+#K1_meta<-merge(K1_meta,df_temp_ave_year, by=c("year"))
 
 #precipitation: load data, calculate annual precip, merge with main dataset
-df_ppt <- read.csv("Precipitation_1982_2023.csv")%>%
-  filter(ppt!=".")
+#df_ppt <- read.csv("Precipitation_1982_2023.csv")%>%
+  #filter(ppt!=".")
 #df_ppt[is.na(df_ppt)] <- 0
 
   #Convert the date column to Date type, then extract year and day of year
-df_ppt$RecDate<- as.Date(df_ppt$RecDate, format = "%m/%d/%Y")
-df_ppt$year <- year(df_ppt$RecDate)
+#df_ppt$RecDate<- as.Date(df_ppt$RecDate, format = "%m/%d/%Y")
+#df_ppt$year <- year(df_ppt$RecDate)
 
   #average across year
-df_ppt_ave_year <- df_ppt %>% 
-  group_by(year) %>%
-  summarize(precipitation=sum(as.numeric(ppt)))
+#df_ppt_ave_year <- df_ppt %>% 
+  #group_by(year) %>%
+  #summarize(precipitation=sum(as.numeric(ppt)))
 
   #merge with main dataset
-K1_meta<-merge(K1_meta,df_ppt_ave_year, by=c("year"))
+#K1_meta<-merge(K1_meta,df_ppt_ave_year, by=c("year"))
 
 #growing_precipitation: calculate growing season precip, merge with main dataset
-df_ppt$doy <- strftime(df_ppt$RecDate, format = "%j")
-df_ppt$doy<-as.numeric(df_ppt$doy)
+#df_ppt$doy <- strftime(df_ppt$RecDate, format = "%j")
+#df_ppt$doy<-as.numeric(df_ppt$doy)
 
   #filter dataset based on growing season defined for KNZ as 85-278 in Robinson etal 2012 
-df_ppt_gs<-filter(df_ppt,doy>=85&doy<=278)
+#df_ppt_gs<-filter(df_ppt,doy>=85&doy<=278)
 
 #average across year
-df_ppt_ave_year_gs <- df_ppt_gs %>% 
-  group_by(year) %>%
-  summarize(growing_precipitation=sum(as.numeric(ppt)))
+#df_ppt_ave_year_gs <- df_ppt_gs %>% 
+  #group_by(year) %>%
+  #summarize(growing_precipitation=sum(as.numeric(ppt)))
 
 #merge with main dataset
-K1_meta<-merge(K1_meta,df_ppt_ave_year_gs, by=c("year"))
+#K1_meta<-merge(K1_meta,df_ppt_ave_year_gs, by=c("year"))
 
 #load in nitrogen treatment info then merge datasets
-K1_N<-read.csv("dropbox_plotlist_trts_copy.csv")%>%
-  rename(higher_order_organization=block, nitrogen_amount=nitrogen) #drop unneeded columns
+#K1_N<-read.csv("dropbox_plotlist_trts_copy.csv")%>%
+  #rename(higher_order_organization=block, nitrogen_amount=nitrogen) #drop unneeded columns
 #loading directly from google drive
 K1_N<-read.csv(file.path(L0_dir,"KNZ/dropbox_plotlist_trts_copy.csv"))%>%
   rename(higher_order_organization=block, nitrogen_amount=nitrogen) #drop unneeded columns
@@ -1064,17 +1098,17 @@ K1_meta$treatment_comment<-"does_not_apply"
 K1_meta$diversity_manipulated<-"naturally_assembled"
 
 #write cleaned document
-write.csv(K1_meta, "K3_NGE01_Metadata.csv")
+#write.csv(K1_meta, "K3_NGE01_Metadata.csv")
 ```
 #Rachael's code for VI data-edited and uploaded by Joshua
 ```{r}
 # watershed, experiment, block, plot
 
-VI_11 <- read.csv("VIR011_raw.csv", stringsAsFactors = F)
-VI_12 <- read.csv("VIR012.csv", stringsAsFactors = F)
-VI_2023 <- read.csv("VI_2023_scomp_clean.csv", stringsAsFactors = F)
-Precipitation <- read.csv("Precipitation_1982_2023.csv", stringsAsFactors = F)
-Temp <- read.csv("Temperature_1982_2023.csv", stringsAsFactors = F)
+#VI_11 <- read.csv("VIR011_raw.csv", stringsAsFactors = F)
+#VI_12 <- read.csv("VIR012.csv", stringsAsFactors = F)
+#VI_2023 <- read.csv("VI_2023_scomp_clean.csv", stringsAsFactors = F)
+#Precipitation <- read.csv("Precipitation_1982_2023.csv", stringsAsFactors = F)
+#Temp <- read.csv("Temperature_1982_2023.csv", stringsAsFactors = F)
 
 #loading data from gogle drive
 VI_11<-read.csv(file.path(L0_dir, "KNZ/B1_VIR011_Sppcomp.csv"), stringsAsFactors = F)
@@ -1239,6 +1273,52 @@ B1_sppcomp<-final%>%
   mutate(original_measurement_unit="%cover")
 ```
 
+
+#precipitation and temperature data-Joshua (modified from Mary's and Smriti's code)
+```{r}
+ 
+df_ppt <- read.csv(file.path(L0_dir, "KNZ/Precipitation_1982_2023.csv"), stringsAsFactors = FALSE)
+df_temp <- read.csv(file.path(L0_dir, "KNZ/Temperature_1982_2023.csv"), stringsAsFactors = FALSE)
+# Convert the date column to Date type 
+df_ppt$RecDate<- as.Date(df_ppt$RecDate, format = "%m/%d/%Y")
+# Extract the year from the date
+df_ppt$year <- year(df_ppt$RecDate)
+
+# Summarizing temperature data
+# Averaging across months
+df_temp_ave_month <- df_temp %>% 
+  group_by(RECYEAR, RECMONTH) %>%
+  summarize(mean=mean(as.numeric(TAVE),na.rm=T))
+
+# Averaging across years
+df_temp_ave_year <- df_temp %>% 
+  group_by(RECYEAR) %>%
+  summarize(temperature=mean(as.numeric(TAVE), na.rm=T))%>%
+  rename(year=RECYEAR)
+
+#average across year
+df_ppt_ave_year <- df_ppt %>% 
+  group_by(year) %>%
+  summarize(precipitation=sum(as.numeric(ppt),na.rm=T))
+
+#growing_precipitation: calculate growing season precip, merge with main dataset
+df_ppt$doy <- strftime(df_ppt$RecDate, format = "%j")
+df_ppt$doy<-as.numeric(df_ppt$doy)
+
+  #filter dataset based on growing season defined for KNZ as 85-278 in Robinson etal 2012 
+df_ppt_gs<-filter(df_ppt,doy>=85&doy<=278)
+
+#average across year
+df_ppt_ave_year_gs <- df_ppt_gs %>% 
+  group_by(year) %>%
+  summarize(growing_precipitation=sum(as.numeric(ppt),na.rm=T))
+
+weather_df<-df_ppt_ave_year%>%
+  left_join(df_ppt_ave_year_gs, by="year")%>%
+  left_join(df_temp_ave_year, by="year")
+
+```
+
 #combining all Konza data-Joshua
 ```{r}
 #some extra mop up for species level data
@@ -1257,6 +1337,8 @@ df_C1_KNZ.cleanest$plot<-as.factor(df_C1_KNZ.cleanest$plot)
 df_I1_KNZ.clean$plot<-as.factor(df_I1_KNZ.clean$plot)
 df_J2_KNZ.clean.richness.evenness$plot<-as.factor(df_J2_KNZ.clean.richness.evenness$plot)
 df_A1_KNZ.clean$plot=as.factor(df_A1_KNZ.clean$plot)
+df_C1_KNZ.cleanest$measurement_scale_cover=as.factor(df_C1_KNZ.cleanest$measurement_scale_cover)
+
 
 #combining species level data set
 KNZ_specieslevel_abundance<-df_E1_KNZ_species_level%>%
@@ -1273,7 +1355,7 @@ write.csv(KNZ_specieslevel_abundance,file.path(L1_dir,"/KNZ_specieslevel_abundan
 #data mop up for plot biomass
 df_E1_E2_KNZ_clean_plot_metrics$plot<-as.factor(df_E1_E2_KNZ_clean_plot_metrics$plot)
 K1_mass$plot<-as.factor(K1_mass$plot)
-df_C2_KNZ.cleanest$plot<-as.factor(df_C2_KNZ.cleanest$plot)
+df_C2_KNZ_cleanest$plot<-as.factor(df_C2_KNZ_cleanest$plot)
 df_I1_I2_KNZ.clean$measurement_scale_biomass=as.integer(df_I1_I2_KNZ.clean$measurement_scale_biomass)
 df_I1_I2_KNZ.clean$measurement_scale_cover=as.integer(df_I1_I2_KNZ.clean$measurement_scale_cover)
 df_I1_I2_KNZ.clean<-df_I1_I2_KNZ.clean%>%
@@ -1284,10 +1366,11 @@ RaMPs_ANPP<-RaMPs_ANPP%>%
 RaMPs_ANPP$year<-as.integer(RaMPs_ANPP$year)
 B2_plot_biomass$measurement_scale_biomass=as.numeric(B2_plot_biomass$measurement_scale_biomass)
 B2_plot_biomass$measurement_scale_cover=as.numeric(B2_plot_biomass$measurement_scale_cover)
+df_C2_KNZ_cleanest$measurement_scale_biomass<-as.numeric(df_C2_KNZ_cleanest$measurement_scale_biomass)
 #combining konza plot biomass data
 KNZ_plotlevel_metrics<-df_E1_E2_KNZ_clean_plot_metrics%>%
   select(-1,-2,-5)%>%
-  bind_rows(K1_mass,df_C2_KNZ.cleanest,df_A1_A2_KNZ.clean,df_J2_KNZ.clean.richness.evenness,df_I1_I2_KNZ.clean,RaMPs_ANPP)%>%
+  bind_rows(K1_mass,df_C2_KNZ_cleanest,df_A1_A2_KNZ.clean,df_J2_KNZ.clean.richness.evenness,df_I1_I2_KNZ.clean,RaMPs_ANPP)%>%
   select(1:12)%>%
   bind_rows(B2_plot_biomass)
 
@@ -1300,15 +1383,20 @@ K1_meta$plot=as.factor(K1_meta$plot)
 A1_A2_metadata$plot<-as.factor(A1_A2_metadata$plot)
 B1_B2_metadata$plot=as.factor(B1_B2_metadata$plot)
 B1_B2_metadata$time_since_fire=as.integer(B1_B2_metadata$time_since_fire)
+C1_Meta$year<-as.numeric(C1_Meta$year)
+C1_Meta$plot<-as.factor(C1_Meta$plot)
+df_I1_I2_KNZ.clean$measurement_scale_biomass<-as.factor(df_I1_I2_KNZ.clean$measurement_scale_biomass)
+
 #combine Konza metadata
 
 
 KNZ_metadata<-df_E1_E2_metadata%>%
   select(-2,-5)%>%
-  bind_rows(K1_meta,df_J2_KNZ.clean.richness.evenness,df_C1_KNZ.cleanest,A1_A2_metadata,df_I1_I2_KNZ.clean,RaMPs_PlantCommunityComposition)%>%
+  bind_rows(K1_meta,df_J2_KNZ.clean.richness.evenness,C1_Meta,A1_A2_metadata,df_I1_I2_KNZ.clean,RaMPs_PlantCommunityComposition)%>%
   select(1:18)%>%
   distinct()%>%
-  bind_rows(B1_B2_metadata)
+  bind_rows(B1_B2_metadata)%>%
+  left_join(weather_df)
 
 #upload to google drive
 write.csv(KNZ_metadata,file.path(L1_dir,"/KNZ_metadata.csv"))

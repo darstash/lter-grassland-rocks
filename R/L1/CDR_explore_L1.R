@@ -644,38 +644,9 @@ e054_anpp = e054_anpp %>%
         all.x = T) %>%
   filter(!species %in% non_plant_things_in_biomass)
 
+
 #metadata df#
-e054_metadata <- e054_anpp %>%
-  clean_names(.) %>%
-  mutate(disturbance = "undisturbed",
-         diversity_manipulated = "naturally_assembled",
-         treatment = "control",
-         treatment_comment = "fields differ in time since abandonment and after 2007 in burn/no burn treatment, but we entered all plots as control, since there is no real control vs. treatment contrast.",
-         source = "https://doi.org/10.6073/pasta/02d38edbe0860ef0a0555ff3e495ca1a",
-         time_since_fire = NA,
-         ) %>%
-  select(site, year, plot, higher_order_organization, uniqueid, 
-         temperature, precipitation, growtemp, growprecip, treatment, disturbance,
-         nutrients_added, nitrogen_amount, grazing, fire_frequency, time_since_fire,
-         source, treatment_comment, diversity_manipulated)
-
-
-df <- burns %>%
-  select(Year,  X108) %>% #26 unburned
-  filter(!Year %in% "2000 Fall") %>%
-  mutate(Year = ifelse(Year %in% "2000 Spring", "2000", Year),
-         Year = as.numeric(paste(Year)),
-         your_column = X108,
-         time_since_fire = 0)
-
-for (i in 2:nrow(df)) {
-  if (is.na(df$your_column[i]) || df$your_column[i] == "") {
-    df$time_since_fire[i] <- df$time_since_fire[i - 1] + 1
-  } else {
-    df$time_since_fire[i] <- 0
-  }
-}
-
+# time since fire
 df_full <- data.frame()
 colnames(df_full) <- c("Year", "time_since_fire", "OldField")
 
@@ -696,11 +667,30 @@ for (j in paste("X", unique(e054_anpp$OldField[e054_anpp$OldField != 26]), sep =
       df$time_since_fire[i] <- 0
     }
   }
-
+  
   df$OldField <- rep(gsub(j, pattern = "X", replacement = ""))
   
   df_full <- rbind.data.frame(df_full, df[,c("Year", "time_since_fire", "OldField")])
-  }
+}
+
+
+
+e054_metadata <- e054_anpp %>%
+  merge(., df_full, by = c("Year", "OldField")) %>%
+  clean_names(.) %>%
+  mutate(disturbance = "undisturbed",
+         diversity_manipulated = "naturally_assembled",
+         treatment = "control",
+         treatment_comment = "fields differ in time since abandonment and after 2007 in burn/no burn treatment, but we entered all plots as control, since there is no real control vs. treatment contrast.",
+         source = "https://doi.org/10.6073/pasta/02d38edbe0860ef0a0555ff3e495ca1a"
+         ) %>%
+  select(site, year, plot, higher_order_organization, uniqueid, 
+         temperature, precipitation, growtemp, growprecip, treatment, disturbance,
+         nutrients_added, nitrogen_amount, grazing, fire_frequency, time_since_fire,
+         source, treatment_comment, diversity_manipulated)
+
+
+
 
 #e054 still needs to time since fire and other variables that the master datasheet will have
 

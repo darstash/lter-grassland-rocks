@@ -570,7 +570,9 @@ nutnet_cover$area_sampled_cover <- 1
 # column management 
 nutnet_cover <- nutnet_cover %>% rename (treatment = trt) # rename to match other datasets
 nutnet_cover <- nutnet_cover %>% rename (species = taxon)
-nutnet_cover <- nutnet_cover %>% rename (relative_abundance = max_cover)
+nutnet_cover <- nutnet_cover %>% 
+  mutate (relative_abundance = max_cover / 100) %>%
+  select(-max_cover)
 nutnet_cover$source <- "NutNet (Not publicly available)" # make column indicating where this came from
 unique (nutnet_cover$treatment)
 unique(micro$fertilized_microplot)

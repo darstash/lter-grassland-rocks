@@ -68,6 +68,14 @@ metadata <- full_join(metadata, KNZ_metadata) # Two different nutrient added col
 metadata <- metadata %>%
   mutate(nutrients_added = coalesce(nutrients_added, nutrient_added)) %>%
   select(-nutrient_added)
+
+# Merge temperature columns
+metadata <- metadata %>%
+  mutate(meantemp = coalesce(meantemp, temperature)) %>%
+  select(-temperature)
+metadata <- metadata %>%
+  mutate(annualprecip = coalesce(annualprecip, precipitation)) %>%
+  select(-precipitation, growtemp, watershed, experiment)
   
 # write.csv(metadata, file.path(L2_dir, "./metadata.csv"), row.names=F)
 

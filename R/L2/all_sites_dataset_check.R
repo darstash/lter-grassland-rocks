@@ -25,9 +25,28 @@ L2_dir <- Sys.getenv("L2DIR")
 list.files(L2_dir)
 
 # Get data
-plot    <- read.csv(file.path(L2_dir, "plot_metrics.csv"))      %>% select(! "X")
-species <- read.csv(file.path(L2_dir, "species_abundance.csv")) %>% select(! "X")
-meta    <- read.csv(file.path(L2_dir, "metadata.csv"))          %>% select(! "X")
+plot    <- read.csv(file.path(L2_dir, "plot_metrics.csv"))      %>% 
+  select(! "X") %>%
+  mutate(site                      = factor(site),
+         original_measurement_unit = factor(original_measurement_unit),
+         dataset                   = factor(dataset),
+         source                    = factor(source))
+
+species <- read.csv(file.path(L2_dir, "species_abundance.csv")) %>% 
+  select(! "X") %>%
+  mutate(original_measurement_unit = factor(original_measurement_unit),
+         cover_method              = factor(cover_method))
+
+meta    <- read.csv(file.path(L2_dir, "metadata.csv"))          %>% 
+  select(! "X") %>%
+  mutate(site = factor(site),
+         dataset = factor(dataset),
+         treatment = factor(treatment),
+         nutrients_added = factor(nutrients_added),
+         disturbance = factor(disturbance),
+         grazing = factor(grazing),
+         source = factor(source),
+         diversity_manipulated = factor(diversity_manipulated))
 
 names(meta)
 head(meta)

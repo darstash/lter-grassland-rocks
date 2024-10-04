@@ -837,6 +837,18 @@ kbs_meta <- rename(kbs_meta, plot = plot_id)
 kbs_meta <- rename(kbs_meta, higher_order_organization = higher_level_organization)
 kbs_meta <- rename(kbs_meta, uniqueid = unique_id)
 
+# Convert experiment specific treatment values into control
+controls <- c("G9", "G10", "Control", "L3", "M2")
+kbs_meta$treatment <- replace(kbs_meta$treatment, kbs_meta$treatment %in% controls, "control")
+
+kbs_meta %>%
+  filter(treatment == "T7" & disturbance == "disturbed")
+
+kbs_meta$treatment[kbs_meta$treatment == "T7" & kbs_meta$nutrients_added == "N" & kbs_meta$disturbance == "undisturbed"] <- "N"
+kbs_meta$treatment[kbs_meta$treatment == "T7" & kbs_meta$nutrients_added == "N" & kbs_meta$disturbance == "disturbed"] <- "N + tilled"
+kbs_meta$treatment[kbs_meta$treatment == "T7" & kbs_meta$nutrients_added != "N" & kbs_meta$disturbance == "disturbed"] <- "tilled"
+
+
 write.csv(kbs_meta, file.path(L1_dir, "./KBS_metadata.csv"), row.names=F)
 
 

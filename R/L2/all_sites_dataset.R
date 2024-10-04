@@ -75,7 +75,10 @@ metadata <- metadata %>%
   select(-temperature)
 metadata <- metadata %>%
   mutate(annualprecip = coalesce(annualprecip, precipitation)) %>%
-  select(-precipitation, growtemp, watershed, experiment)
+  select(-c(precipitation, growtemp, watershed, experiment))
+metadata <- metadata %>%
+  mutate(growprecip = coalesce(growprecip, growing_precipitation)) %>%
+  select(-growing_precipitation)
   
 # write.csv(metadata, file.path(L2_dir, "./metadata.csv"), row.names=F)
 

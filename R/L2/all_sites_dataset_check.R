@@ -54,11 +54,11 @@ str(meta)
 summary(meta)
 
 # Metadata
-# - growing_precipitation = growprecip (all site done!)
-# - meantemp = temperature (all site done!)
-# - annualprecip = precipitation (all site done!)
-# - konza: some experiments are missing the nutrients added -> set NA, "" and "none" to "no_fertilizer" (KNZ individual)
-# - konza watershed (incorporated in higher order organization) -> delete from metadata (all site done)
+## - growing_precipitation = growprecip (all site done!)
+## - meantemp = temperature (all site done!)
+## - annualprecip = precipitation (all site done!)
+# - konza: some experiments are missing the nutrients added -> set NA, "" and "none" to "no_fertilizer" (KNZ individual: HQ), (CDR "" e247)
+## - konza watershed (incorporated in higher order organization) -> delete from metadata (all site done)
 # - get rid of experiment column (all site done)
 # - grazing column: set "" to "ungrazed" (individual sites)
 #

@@ -131,40 +131,47 @@ mean(cdr.aug$spei12)  # looking good.
 # this is the diffeerence between upper and lower quartile ranges. 
 # Calculate 1 in 10 year event 
 # the isbell paper does this a little differently FYI
+# UPDATE: SPEI is already inherently doing this. We need to pick values to stay the same across all sites.
+# Let's use Isbell's:
+#   >= 1.28 = extreme wet
+#   < 1.28 - >= 0.67 = moderate dry
+#   > -0.67 - < 0.67 = normal
+#   > -1.28 - <= -0.67 = moderate dry
+#   <= -1.28 = extreme dry
 
 quantile(kbs.aug$spei12, c(0.1, 0.25, 0.75, 0.9))
 quantile(knz.aug$spei12, c(0.1, 0.25, 0.75, 0.9))
 quantile(cdr.aug$spei12, c(0.1, 0.25, 0.75, 0.9))
 
 
-# add column for classifying years based on quartiles !!!!!
+# add column for classifying years based on isbell's categories
 
 kbs.aug <-kbs.aug   %>% mutate(spei12_category = case_when(
-  kbs.aug$spei12 < -1.4 ~ "Extreme dry", 
-  kbs.aug$spei12 >= -1.4 & kbs.aug$spei12 < -0.7 ~ "Moderate dry", 
-  kbs.aug$spei12 >= -0.7 & kbs.aug$spei12 <= 0.8 ~ "Normal", 
-  kbs.aug$spei12 > 0.8 & kbs.aug$spei12 <= 1.3 ~ "Moderate wet", 
-  kbs.aug$spei12 > 1.3 ~ "Extreme wet"
+  kbs.aug$spei12 <= -1.28 ~ "Extreme dry", 
+  kbs.aug$spei12 > -1.28 & kbs.aug$spei12 <= -0.67 ~ "Moderate dry", 
+  kbs.aug$spei12 > -0.67 & kbs.aug$spei12 < 0.67 ~ "Normal", 
+  kbs.aug$spei12 >= 0.67 & kbs.aug$spei12 < 1.28 ~ "Moderate wet", 
+  kbs.aug$spei12 >= 1.28 ~ "Extreme wet"
 ))
 
 
 # add column for classifying years based on quartiles !!!!!
 knz.aug <-knz.aug   %>% mutate(spei12_category = case_when(
-  knz.aug$spei12 < -1.4 ~ "Extreme dry", 
-  knz.aug$spei12 >= -1.4 & knz.aug$spei12 < -0.7 ~ "Moderate dry", 
-  knz.aug$spei12 >= -0.7 & knz.aug$spei12 <= 0.7 ~ "Normal", 
-  knz.aug$spei12 > 0.7 & knz.aug$spei12 <= 1.2 ~ "Moderate wet", 
-  knz.aug$spei12 > 1.2 ~ "Extreme wet"
+  knz.aug$spei12 <= -1.28 ~ "Extreme dry", 
+  knz.aug$spei12 > -1.28 & knz.aug$spei12 <= -0.67 ~ "Moderate dry", 
+  knz.aug$spei12 > -0.67 & knz.aug$spei12 < 0.67 ~ "Normal", 
+  knz.aug$spei12 >= 0.67 & knz.aug$spei12 < 1.28 ~ "Moderate wet", 
+  knz.aug$spei12 >= 1.28 ~ "Extreme wet"
 ))
 
 
 # add column for classifying years based on quartiles !!!!!
 cdr.aug <-cdr.aug   %>% mutate(spei12_category = case_when(
-  cdr.aug$spei12 < -1.3 ~ "Extreme dry", 
-  cdr.aug$spei12 >= -1.3 & cdr.aug$spei12 < -0.8 ~ "Moderate dry", 
-  cdr.aug$spei12 >= -0.8 & cdr.aug$spei12 <= 0.7 ~ "Normal", 
-  cdr.aug$spei12 > 0.7 & cdr.aug$spei12 <= 1.3 ~ "Moderate wet", 
-  cdr.aug$spei12 > 1.3 ~ "Extreme wet"
+  cdr.aug$spei12 <= -1.28 ~ "Extreme dry", 
+  cdr.aug$spei12 > -1.28 & cdr.aug$spei12 <= -0.67 ~ "Moderate dry", 
+  cdr.aug$spei12 > -0.67 & cdr.aug$spei12 < 0.67 ~ "Normal", 
+  cdr.aug$spei12 >= 0.67 & cdr.aug$spei12 < 1.28 ~ "Moderate wet", 
+  cdr.aug$spei12 >= 1.28 ~ "Extreme wet"
 ))
 
 # order factor

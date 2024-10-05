@@ -647,8 +647,7 @@ e054_anpp = e054_anpp %>%
 
 #metadata df#
 # time since fire
-df_full <- data.frame()
-colnames(df_full) <- c("Year", "time_since_fire", "OldField")
+df_full <- data.frame(Year = integer(0), time_since_fire = numeric(0), OldField = integer(0))
 
 for (j in paste("X", unique(e054_anpp$OldField[e054_anpp$OldField != 26]), sep = "")){
   df <- burns %>%

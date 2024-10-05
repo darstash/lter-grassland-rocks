@@ -988,7 +988,10 @@ cdr_data <- e001e002_metrics %>% mutate(dataset = "e001_e002") %>%
   rbind(e054_metrics %>% mutate(dataset = "e054")) %>%
   rbind(e245_metrics %>% mutate(dataset = "e245")) %>%
   rbind(e061_metrics %>% mutate(dataset = "e061")) %>%
-  rbind(e247_metrics %>% mutate(dataset = "e247"))
+  rbind(e247_metrics %>% mutate(dataset = "e247"))  %>%
+  # abundance measured based on biomass
+  mutate(measurement_scale_cover = case_when(measurement_scale_cover %in% NA ~ measurement_scale_biomass,
+                                             .default = measurement_scale_cover))
 
 #so this has all the bare minimum variables - no metadata information - need to confirm and work on checking off all variables for each data set - then can consider making a master metadata df too????
 

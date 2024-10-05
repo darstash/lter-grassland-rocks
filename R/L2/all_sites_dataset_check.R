@@ -62,7 +62,7 @@ summary(meta)
 # - get rid of experiment column (all site done)
 # - grazing column: set "" to "ungrazed" (individual sites)
 #
-# - fire frequency and time since fire missing for some experiments (crucial? individual sites)
+# - fire frequency and time since fire missing for some experiments (crucial? individual sites) -> what to do with 0 fire frequency when determining time since fire
 # - Konza and kbs have NA in some disutbance as NA (crucial?, individual sites)
 
 

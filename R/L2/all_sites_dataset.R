@@ -54,7 +54,7 @@ plot_metrics <- full_join(CDR_plot_metrics, KBS_plot_metrics)
 plot_metrics <- full_join(plot_metrics, KNZ_plot_metrics)
 
 plot_metrics <- plot_metrics %>%
-  select(-c(treatment, source, shannon, evenness, richness, X))
+  select(-c(treatment, source, shannon, evenness, richness, X, dataset))
 
 # write.csv(plot_metrics, file.path(L2_dir, "./plot_metrics.csv"), row.names=F)
 

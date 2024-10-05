@@ -28,6 +28,7 @@ list.files(L2_dir)
 
 # Read in CSV files ----
 plot_spei <- read.csv(file.path(L2_dir, "plot_metrics_SPEI.csv"))
+metadata <- read.csv(file.path(L2_dir, "metadata.csv"))
 
 # Make sure spei category is a factor
 str(plot_spei)
@@ -231,6 +232,8 @@ plot_spei %>%
 # Is there a quadratic relationship?
 biomass_spei12.lm <- lmer(plot_biomass ~ spei12 + I(spei12^2) + (1|site) + (1|site:plot), data = plot_spei)
 summary(biomass_spei12.lm) # quadratic term significant
+biomass_spei12.lm2 <- lmer(plot_biomass ~ spei12 + (1|site) + (1|site:plot), data = plot_spei)
+
 
 plot_model(
   biomass_spei12.lm,
@@ -239,7 +242,7 @@ plot_model(
   show.data = TRUE
 )
 
-# Why 3663 missing values for plot biomass
+# Why 1 missing values for plot biomass
 sum(is.na(plot_spei$plot_biomass))
 
 
@@ -259,21 +262,31 @@ plot_spei %>%
 
 biomass_spei9.lm <- lmer(plot_biomass ~ spei9 + I(spei9^2) + (1|site) + (1|site:plot), data = plot_spei)
 summary(biomass_spei9.lm) # Quadratic term significant
+biomass_spei9.lm2 <- lmer(plot_biomass ~ spei9 + (1|site) + (1|site:plot), data = plot_spei)
+
 
 biomass_spei6.lm <- lmer(plot_biomass ~ spei6 + I(spei6^2) + (1|site) + (1|site:plot), data = plot_spei)
 summary(biomass_spei6.lm)  # Quadratic term significant
+biomass_spei6.lm2 <- lmer(plot_biomass ~ spei6 + (1|site) + (1|site:plot), data = plot_spei)
+
 
 biomass_spei3.lm <- lmer(plot_biomass ~ spei3 + I(spei3^2) + (1|site) + (1|site:plot), data = plot_spei)
 summary(biomass_spei3.lm) # Quadratic term significant (is this just because of sample size?)
+biomass_spei3.lm2 <- lmer(plot_biomass ~ spei3 + (1|site) + (1|site:plot), data = plot_spei)
+
 
 # Compare models using AICc like Robinson paper
-AICctab(biomass_spei3.lm, biomass_spei6.lm, biomass_spei9.lm, biomass_spei12.lm) # spei9 lowest
+AICctab(biomass_spei3.lm, biomass_spei3.lm2, biomass_spei6.lm, biomass_spei6.lm2, biomass_spei9.lm, biomass_spei9.lm2, biomass_spei12.lm, biomass_spei12.lm2) # spei9 lowest
 
 # Compare model R2 like Robinson
 r.squaredGLMM(biomass_spei3.lm)
+r.squaredGLMM(biomass_spei3.lm2)
 r.squaredGLMM(biomass_spei6.lm)
-r.squaredGLMM(biomass_spei9.lm) # highest R2
+r.squaredGLMM(biomass_spei6.lm2)
+r.squaredGLMM(biomass_spei9.lm)
+r.squaredGLMM(biomass_spei9.lm2)
 r.squaredGLMM(biomass_spei12.lm)
+r.squaredGLMM(biomass_spei12.lm2)
 
 # Plot spei 9 moel
 plot_model(

@@ -97,7 +97,7 @@ summary(plot)
 ## - remove metadatastuff  from plotlevel data: treatment, source, dataset (done)
 # - remove speciesstuff from plotlevel data: orignial_measurement_unit
 ## - things that should be calculated based on the full species dataset (add to plotlevel data LATER -> remove now): evenness, shannon, richness (done)
-# - for all sites in some experiments the measurement_scale_cover is missing! KNZ HQ nutnet wat, KBS glbrc, cdr e061 e245 e054 e001
+# - for all sites in some experiments the measurement_scale_cover is missing! KNZ HQ nutnet wat, KBS glbrc, done: cdr e061 e245 e054 e001
 # - Konza and KBS: in some experiments the measurement_scale_biomass is missing! KBS glbrc, KNZ HQ
 ## - Konza: 1NA in the biomass KNZ_VI_2c_3_22_2 2022 (OK)
 

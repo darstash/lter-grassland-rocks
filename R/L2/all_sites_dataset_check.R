@@ -85,8 +85,8 @@ summary(species %>% select(!c("cover_method", "area_sampled_bio", "area_sampled_
 #     maybe_plant_things_in_biomass (miscellaneous grasses etc.)
 # - unify species names -> capitalization, underscores, etc (all site)
 
-
-
+#biomass was collected in 2020 for KNZ PPLot but not spp comp due to covid
+#suggest removing ConsME data since we dont have up to five years of data (all data sites)
 head(plot)
 str(plot)
 summary(plot)
@@ -98,7 +98,7 @@ summary(plot)
 # - Konza and KBS: in some experiments the measurement_scale_biomass is missing!
 # - Konza: NAs in the biomass (are they from merging with the diversity data? WAT, ConsME)
 
-# ALL DATASETS - Konza: fix year issue
+# ALL DATASETS - Konza: fix year issue-Ramps
 
 
 

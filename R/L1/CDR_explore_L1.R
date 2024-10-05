@@ -818,7 +818,7 @@ e061_anpp  <- e061_anpp %>%
   mutate(site = "CDR",
          #plot = paste("e061_macroplot", macroplot, "_plot", plot, "_", treatment, sep= ""),
          higher_order_organization = paste("e061_fieldB","macroplot", macroplot,sep= ""),
-         uniqueid = paste(higher_order_organization," plot", plot),
+         uniqueid = paste(higher_order_organization," plot", plot, treatment),
          abundance = mass_g_m_2,
          original_measurement_unit = "biomass_g/m2",
          species = ifelse(species %in% "Chenopodiium album", "Chenopodium album", paste(species)),
@@ -838,6 +838,7 @@ e061_anpp  <- e061_anpp %>%
 # set has a column names "Part of field B(e004?)". This field was last burned in
 # 1995. So it can be classified as fire frequency of zero (data used here starts 
 # 1996). Time since fire is therefore year-1995
+# Treatment is added to the uniqueid because it is not inherent to the plotid
 
 
 e061_metadata  <- e061_anpp %>%

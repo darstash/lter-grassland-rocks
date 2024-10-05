@@ -580,7 +580,9 @@ e001e002_metadata <- e001e002_anpp %>%
          treatment_comment = "") %>%
   select(site, year, plot, uniqueid, higher_order_organization, temperature, precipitation, treatment, growtemp, growprecip,
          nutrients_added, nitrogen_amount, grazing, fire_frequency, time_since_fire,
-         disturbance, source, treatment_comment, diversity_manipulated)
+         disturbance, source, treatment_comment, diversity_manipulated) %>%
+  # remove duplicates that are there because of multiple species measured in each plot
+  unique()
 
 #e001 still needs to add temp, precip, and other variables that the master datasheet will have
 
@@ -686,7 +688,8 @@ e054_metadata <- e054_anpp %>%
   select(site, year, plot, higher_order_organization, uniqueid, 
          temperature, precipitation, growtemp, growprecip, treatment, disturbance,
          nutrients_added, nitrogen_amount, grazing, fire_frequency, time_since_fire,
-         source, treatment_comment, diversity_manipulated)
+         source, treatment_comment, diversity_manipulated) %>%
+  unique()
 
 
 

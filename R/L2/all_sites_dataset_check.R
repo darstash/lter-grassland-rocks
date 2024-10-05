@@ -94,6 +94,14 @@ head(plot)
 str(plot)
 summary(plot)
 
+plot %>% 
+  group_by(site, higher_order_organization, uniqueid) %>% 
+  summarize(duration = max(year) - min(year)) %>%
+  filter(duration < 5) %>%
+  View()
+
+
+# - KNZ & KBS: issues with year in uniqueid
 ## - remove metadatastuff  from plotlevel data: treatment, source, dataset (done)
 # - remove speciesstuff from plotlevel data: orignial_measurement_unit
 ## - things that should be calculated based on the full species dataset (add to plotlevel data LATER -> remove now): evenness, shannon, richness (done)

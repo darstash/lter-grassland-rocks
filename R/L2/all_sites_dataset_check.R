@@ -28,8 +28,8 @@ list.files(L2_dir)
 plot    <- read.csv(file.path(L2_dir, "plot_metrics.csv"))      %>% 
   # select(! "X") %>%
   mutate(site                      = factor(site),
-         original_measurement_unit = factor(original_measurement_unit),
-         dataset                   = factor(dataset)#,
+         original_measurement_unit = factor(original_measurement_unit) #,
+         # dataset                   = factor(dataset),
          # source                    = factor(source)
          )
 
@@ -39,7 +39,7 @@ species <- read.csv(file.path(L2_dir, "species_abundance.csv")) %>%
          cover_method              = factor(cover_method))
 
 meta    <- read.csv(file.path(L2_dir, "metadata.csv"))          %>% 
-  select(! "X") %>%
+  # select(! "X") %>%
   mutate(site = factor(site),
          dataset = factor(dataset),
          treatment = factor(treatment),
@@ -58,7 +58,7 @@ summary(meta)
 ## - growing_precipitation = growprecip (all site done!)
 ## - meantemp = temperature (all site done!)
 ## - annualprecip = precipitation (all site done!)
-# - konza: some experiments are missing the nutrients added -> set NA, "" and "none" to "no_fertilizer" (KNZ individual: HQ), (CDR "" e247)
+# - konza: some experiments are missing the nutrients added -> set NA, "" and "none" to "no_fertilizer" (KNZ individual: HQ), (done: CDR "" e247)
 ## - konza watershed (incorporated in higher order organization) -> delete from metadata (all site done)
 ## - get rid of experiment column (all site done)
 # - grazing column: set "" to "ungrazed" (individual sites, KNZ HQ, Nutnet)

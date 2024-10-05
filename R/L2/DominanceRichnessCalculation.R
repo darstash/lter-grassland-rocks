@@ -19,4 +19,4 @@ plot_metrics_SPEI_diversity <- plot_metrics_SPEI %>%
                                                      "spei12", "spei3", "spei6", "spei9", "spei12_category"))
 
 
-write.csv(species_abundance_SPEI_Metric, file.path(L2_dir, "./plot_metrics_SPEI_diversity.csv"), row.names=F)
+write.csv(plot_metrics_SPEI_diversity, file.path(L2_dir, "./plot_metrics_SPEI_diversity.csv"), row.names=F)

@@ -26,14 +26,15 @@ list.files(L2_dir)
 
 # Get data
 plot    <- read.csv(file.path(L2_dir, "plot_metrics.csv"))      %>% 
-  select(! "X") %>%
+  # select(! "X") %>%
   mutate(site                      = factor(site),
          original_measurement_unit = factor(original_measurement_unit),
-         dataset                   = factor(dataset),
-         source                    = factor(source))
+         dataset                   = factor(dataset)#,
+         # source                    = factor(source)
+         )
 
 species <- read.csv(file.path(L2_dir, "species_abundance.csv")) %>% 
-  select(! "X") %>%
+  # select(! "X") %>%
   mutate(original_measurement_unit = factor(original_measurement_unit),
          cover_method              = factor(cover_method))
 
@@ -59,46 +60,48 @@ summary(meta)
 ## - annualprecip = precipitation (all site done!)
 # - konza: some experiments are missing the nutrients added -> set NA, "" and "none" to "no_fertilizer" (KNZ individual: HQ), (CDR "" e247)
 ## - konza watershed (incorporated in higher order organization) -> delete from metadata (all site done)
-# - get rid of experiment column (all site done)
-# - grazing column: set "" to "ungrazed" (individual sites)
+## - get rid of experiment column (all site done)
+# - grazing column: set "" to "ungrazed" (individual sites, KNZ HQ, Nutnet)
+# - treatment: make sure control is always named control, CDR: add more treatment info back in -> make good metadata what which treatment variable means. (individual all, CDR and KNZ)
 #
 # - fire frequency and time since fire missing for some experiments (crucial? individual sites) -> what to do with 0 fire frequency when determining time since fire
 # - Konza and kbs have NA in some disutbance as NA (crucial?, individual sites)
 
-
+names(species)
 head(species)
 str(species)
 summary(species %>% select(!c("cover_method", "area_sampled_bio", "area_sampled_cover")))
 
-# - delete cover_method, area_sampled_bio, area_sampled_cover (all sites)
-# - original_measuurement_unit = original_measurement_unit (all sites)
-# - some relative abundance values are scaled to 100 instead of 1 in KBS and KNZ (individual all)
-# - KNZ WAT -> add KNZ to site column!!! (KNZ individual)
-# - treatment: make sure control is always named control, CDR: add more treatment info back in -> make good metadata what which treatment variable means. (individual all)
+# - delete cover_method, area_sampled_cover, area_sampled_bio (all sites, )
+## - original_measuurement_unit = original_measurement_unit (all sites, done)
+## - some relative abundance values are scaled to 100 instead of 1 in KBS and KNZ (individual all, done)
+## - KNZ WAT -> add KNZ to site column!!! (KNZ individual, done)
 
 # species names
 #_______________
-# - knz nutnet ._. ????? (individual knz)
+## - knz nutnet ._. ????? (individual knz, done)
 # - sites: think about filtering categories (and export them for metadata) like CDR
 #     genus_sp_in_biomass (list of things that are identified to genus level: genus sp.)
 #     non_plant_things_in_biomass
 #     maybe_plant_things_in_biomass (miscellaneous grasses etc.)
 # - unify species names -> capitalization, underscores, etc (all site)
 
-#biomass was collected in 2020 for KNZ PPLot but not spp comp due to covid
-#suggest removing ConsME data since we dont have up to five years of data (all data sites)
+#biomass was collected in 2020 for KNZ PPLot but not spp comp due to covid -> leave in, add comment?
+#suggest removing ConsME data since we dont have up to five years of data (all data sites) -> inclusion criteria not fulfilled, remove!
+
+names(plot)
 head(plot)
 str(plot)
 summary(plot)
 
-# - remove metadatastuff  from plotlevel data: treatment, source, dataset
+## - remove metadatastuff  from plotlevel data: treatment, source, dataset (done)
 # - remove speciesstuff from plotlevel data: orignial_measurement_unit
-# - things that should be calculated based on the full species dataset (add to plotlevel data LATER -> remove now): evenness, shannon, richness (?)
-# - for all sites in some experiments the measurement_scale_cover is missing!
-# - Konza and KBS: in some experiments the measurement_scale_biomass is missing!
-# - Konza: NAs in the biomass (are they from merging with the diversity data? WAT, ConsME)
+## - things that should be calculated based on the full species dataset (add to plotlevel data LATER -> remove now): evenness, shannon, richness (done)
+# - for all sites in some experiments the measurement_scale_cover is missing! KNZ HQ nutnet wat, KBS glbrc, cdr e061 e245 e054 e001
+# - Konza and KBS: in some experiments the measurement_scale_biomass is missing! KBS glbrc, KNZ HQ
+## - Konza: 1NA in the biomass KNZ_VI_2c_3_22_2 2022 (OK)
 
-# ALL DATASETS - Konza: fix year issue-Ramps
+## ALL DATASETS - Konza: fix year issue-Ramps (done)
 
 
 

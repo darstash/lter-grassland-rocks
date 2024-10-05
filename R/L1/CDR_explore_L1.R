@@ -912,7 +912,7 @@ e247_metadata <- e247_cover %>%
          nutrients_added = gsub(nutrients_added, pattern = "Control", replacement = "no_fertilizer"),
          disturbance = "undisturbed",
          grazing = ifelse(trt %in% c("NPK+Fence", "Fence"), "ungrazed", "grazed"),
-         fire_frequency = NA,
+         fire_frequency = 0,
          time_since_fire = NA,
          diversity_manipulated = "naturally_assembled",
          measurement_scale_biomass = "0.2m^2",

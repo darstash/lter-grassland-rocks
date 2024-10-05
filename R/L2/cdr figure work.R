@@ -7,16 +7,33 @@ cdr_data #pulled this data fom CDR_explore_L1.R script
 # PROJECT:       LTER Grassland Rock synthesis group
 # DATE:          2/28/2024
 
-cdr_data
+
+L0_dir <- Sys.getenv("L0DIR")
+L1_dir <- Sys.getenv("L1DIR")
+L2_dir <- Sys.getenv("L2DIR")
+cdr_data <- read.csv(paste(L1_dir, "CDR_plotlevel_metrics.csv", sep = "/"))
+cdr_meta <- read.csv(paste(L1_dir, "CDR_metadata.csv", sep = "/"))
 
 library(ggpubr) #for quick visual stats on plots
 # super basic questions - 
 
 # across all expts and trts does diversity increase ANPP?
-ggplot(cdr_data, aes (x = richness, y = log(plot_biomass))) +  # richness
-  geom_point() +
+ggplot(cdr_data, aes (x = richness, y = log(plot_biomass), color = dataset)) +  # richness
+  geom_point(alpha = 0.1) +
   geom_smooth(method="lm") + 
-  #stat_cor() +
+  ggpubr::stat_cor() +
+  labs(x="Species Richness", y="log Plant Biomass (g/m2)", title="Cedar Creek") +
+  theme_classic () 
+
+cdr_data %>% 
+  merge(.,
+        cdr_meta %>% select(uniqueid, treatment, year), 
+        by = c("year", "uniqueid")) %>%
+  filter(treatment %in% "control")  %>%
+ggplot(aes (x = richness, y = log(plot_biomass), color = dataset)) +  # richness
+  geom_point(alpha = 0.1) +
+  geom_smooth(method="lm") + 
+  ggpubr::stat_cor() +
   labs(x="Species Richness", y="log Plant Biomass (g/m2)", title="Cedar Creek") +
   theme_classic () 
 

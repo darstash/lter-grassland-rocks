@@ -53,6 +53,9 @@ KNZ_plot_metrics$plot <- as.character(KNZ_plot_metrics$plot)
 plot_metrics <- full_join(CDR_plot_metrics, KBS_plot_metrics)
 plot_metrics <- full_join(plot_metrics, KNZ_plot_metrics)
 
+plot_metrics <- plot_metrics %>%
+  select(-c(treatment, source, shannon, evenness, richness, X))
+
 # write.csv(plot_metrics, file.path(L2_dir, "./plot_metrics.csv"), row.names=F)
 
 # Metadata
@@ -78,7 +81,7 @@ metadata <- metadata %>%
   select(-c(precipitation, growtemp, watershed, experiment))
 metadata <- metadata %>%
   mutate(growprecip = coalesce(growprecip, growing_precipitation)) %>%
-  select(-growing_precipitation)
+  select(-c(growing_precipitation, X))
   
 # write.csv(metadata, file.path(L2_dir, "./metadata.csv"), row.names=F)
 
@@ -90,6 +93,9 @@ KNZ_species_abundance$plot <- as.character(KNZ_species_abundance$plot)
 
 species_abundance <- full_join(CDR_species_abundance, KBS_species_abundance)
 species_abundance <- full_join(species_abundance, KNZ_species_abundance)
+
+species_abundance <- species_abundance %>%
+  select(-X)
 
 # write.csv(species_abundance, file.path(L2_dir, "./species_abundance.csv"), row.names=F)
 

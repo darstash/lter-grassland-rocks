@@ -97,5 +97,170 @@ species_abundance <- full_join(species_abundance, KNZ_species_abundance)
 species_abundance <- species_abundance %>%
   select(-X)
 
+######### UNFINISHED SPECIES NAMES FIXING #####################
+# make species information dataset
+# idea: at this stage, don't touch names in the dataset anymore, but have a 
+# dataframe that assigns each weirdo and non-weirdo entry in the species column
+# a cleaned up version of names 
+
+## CDR list of things
+genus_sp_in_biomass <- c("Acer sp.",
+                         "Allium sp.",
+                         "Alnus sp.",
+                         "Apocynum sp.",
+                         "Arabis sp.",
+                         "Aristida sp.",
+                         "Asclepias sp.",
+                         "Aster sp.",
+                         "Bromus sp.",
+                         "Calamovilfa sp.",
+                         "Carex sp.",
+                         "Chenopodium sp.",
+                         "Cirsium sp.",
+                         "Cyperus sp.",
+                         "Digitaria sp.",
+                         "Digitaria sp.",
+                         "Equisetum sp.",
+                         "Eragrostis sp.",
+                         "Erigeron sp.",
+                         "Galium sp.",
+                         "Helianthus sp.",
+                         "Hieracium sp.",
+                         "Juncus sp.",
+                         "Lactuca sp.",
+                         "Liatris sp.",
+                         "Lithospermum sp.",
+                         "Melilotus sp.",
+                         "Oenothera sp.",
+                         "Oxalis sp.",
+                         "Panicum sp.",
+                         "Parthenocissus sp.",
+                         "Penstemon sp.",
+                         "Pinus sp.",
+                         "Plantago sp.",
+                         "Poa sp.",
+                         "Polygala sp.",
+                         "Polygonatum sp.",
+                         "Potentilla sp.",
+                         "Prunus sp.",
+                         "Quercus borealis-ellipsoidalis",
+                         "Quercus sp.",
+                         "Ranunculus sp.",
+                         "Rhus sp.",
+                         "Rudbeckia sp.",
+                         "Rubus sp.",
+                         "Rumex sp.",
+                         "Salix sp.",
+                         "Sedges",
+                         "Senecio sp.",
+                         "Setaria sp.",
+                         "Silene sp.",
+                         "Solidago sp.",
+                         "Sporobolus sp.",
+                         "Tradescantia sp.",
+                         "Tragopogon sp.",
+                         "Trifolium sp.",
+                         "Viola sp.")
+
+non_plant_things_in_biomass <- c("Corn litter", 
+                                 "Fungi",
+                                 "Fungi sp.",
+                                 "Ground",
+                                 "Miscellaneous litter",
+                                 "Mosses",
+                                 "Mosses & lichens",
+                                 "Mosses & lichens 2",
+                                 "moses & lichens",
+                                 "Mosses and lichens",
+                                 "Lichen",
+                                 "Lichens",
+                                 "Other",
+                                 "Other animal diggings",
+                                 "Other litter",
+                                 "Pine litter",
+                                 "Pine cones",
+                                 "pine needles",
+                                 "Pine needles",
+                                 "Pine twigs",
+                                 "woody debris",
+                                 "Woody debris",
+                                 "Leaves")
+
+maybe_plant_things_in_biomass <- c("Grass seedlings",
+                                   "1st year woody",
+                                   "Bryophyte",
+                                   "C3 grasses",
+                                   "C4 grasses",
+                                   "Forb",
+                                   "Forb seedlings",
+                                   "Forb sp.",
+                                   "Forbes",
+                                   "Legumes",
+                                   "Miscellaneous forb",
+                                   "Miscellaneous forbs",
+                                   "Miscellaneous forb 1",
+                                   "Miscellaneous forb 2",
+                                   "Miscellaneous grass",
+                                   "Miscellaneous grasses",
+                                   "Miscellaneous grasses 2",
+                                   "Miscellaneous herb",
+                                   "Miscellaneous herbs",
+                                   "Miscellaneous herbs 2",
+                                   "Miscellaneous legumes",
+                                   "Miscellaneous liter",
+                                   "Miscellaneous litter",
+                                   "Miscellaneous rushes",
+                                   "Miscellaneous sedges",
+                                   "Miscellaneous sp.",
+                                   "Miscellaneous sp. 2",
+                                   "Miscellaneous woody tree",
+                                   "Miscellaneous  woody",
+                                   "Miscellaneous Woody",
+                                   "Miscellaneous woody 1",
+                                   "Miscellaneous woody 2",
+                                   "Miscellaneous woody plants",
+                                   "Miscellaneous woody plants 1",
+                                   "Miscellaneous woody plants 2",
+                                   "Miscellaneous woody litter",
+                                   "Unknown",
+                                   "Unknown cupressaceae sp.",
+                                   "Unknown fabaceae",
+                                   "Unknown lamiaceae",
+                                   "Unknown sp.",
+                                   "Sedges",
+                                   "Woody")
+
+
+
+species_list <- cbind.data.frame(
+  species = species_abundance$species %>%
+    factor() %>%
+    levels(),
+  species_clean = species_abundance$species %>%
+    factor() %>%
+    levels() %>%
+    str_trim() %>%
+    str_squish() %>%
+    str_to_sentence() %>%
+    gsub(pattern = " \\(\\*\\)", replacement = "") %>%
+    gsub(pattern = " \\(l\\.\\)", replacement = "_") %>%
+    gsub(pattern = " l\\.", replacement = "_") %>%
+    gsub(pattern = "Unk ", replacement = "Unknown ") %>%
+    gsub(pattern = "Unk_", replacement = "Unknown ") %>%
+    gsub(pattern = " ", replacement = "_") 
+) %>%
+  mutate(
+    category = case_when(startsWith(as.character(species), "Unknown")       ~ "unidentified_plant_things",
+                         startsWith(as.character(species), "Miscellaneous") ~ "unidentified_plant_things",
+                         species_clean %in% genus_sp_in_biomass           | species %in% genus_sp_in_biomass ~"identified_to_genus",
+                         species_clean %in% non_plant_things_in_biomass   | species %in% non_plant_things_in_biomass ~ "non_plant_things",
+                         species_clean %in% maybe_plant_things_in_biomass | species %in% maybe_plant_things_in_biomass  ~ "unidentified_plant_things")
+  ) %>%
+  arrange(species_clean)
+
+species_list %>% select(species_clean, category) %>% unique()
+
+species_abundance %>% filter(species %in% (species_list %>% filter(str_detect(species, " \\(\\*\\)")))$species) %>% select(site, higher_order_organization) %>% unique()
+
 # write.csv(species_abundance, file.path(L2_dir, "./species_abundance.csv"), row.names=F)
 

@@ -144,7 +144,36 @@ quantile(knz.aug$spei12, c(0.1, 0.25, 0.75, 0.9))
 quantile(cdr.aug$spei12, c(0.1, 0.25, 0.75, 0.9))
 
 
-# add column for classifying years based on isbell's categories
+# add column for classifying spei6 years based on isbell's categories
+
+kbs.aug <-kbs.aug   %>% mutate(spei6_category = case_when(
+  kbs.aug$spei6 <= -1.28 ~ "Extreme dry", 
+  kbs.aug$spei6 > -1.28 & kbs.aug$spei6 <= -0.67 ~ "Moderate dry", 
+  kbs.aug$spei6 > -0.67 & kbs.aug$spei6 < 0.67 ~ "Normal", 
+  kbs.aug$spei6 >= 0.67 & kbs.aug$spei6 < 1.28 ~ "Moderate wet", 
+  kbs.aug$spei6 >= 1.28 ~ "Extreme wet"
+))
+
+
+knz.aug <-knz.aug   %>% mutate(spei6_category = case_when(
+  knz.aug$spei6 <= -1.28 ~ "Extreme dry", 
+  knz.aug$spei6 > -1.28 & knz.aug$spei6 <= -0.67 ~ "Moderate dry", 
+  knz.aug$spei6 > -0.67 & knz.aug$spei6 < 0.67 ~ "Normal", 
+  knz.aug$spei6 >= 0.67 & knz.aug$spei6 < 1.28 ~ "Moderate wet", 
+  knz.aug$spei6 >= 1.28 ~ "Extreme wet"
+))
+
+
+cdr.aug <-cdr.aug   %>% mutate(spei6_category = case_when(
+  cdr.aug$spei6 <= -1.28 ~ "Extreme dry", 
+  cdr.aug$spei6 > -1.28 & cdr.aug$spei6 <= -0.67 ~ "Moderate dry", 
+  cdr.aug$spei6 > -0.67 & cdr.aug$spei6 < 0.67 ~ "Normal", 
+  cdr.aug$spei6 >= 0.67 & cdr.aug$spei6 < 1.28 ~ "Moderate wet", 
+  cdr.aug$spei6 >= 1.28 ~ "Extreme wet"
+))
+
+
+# add column for classifying spei12 years based on isbell's categories
 
 kbs.aug <-kbs.aug   %>% mutate(spei12_category = case_when(
   kbs.aug$spei12 <= -1.28 ~ "Extreme dry", 
@@ -155,7 +184,6 @@ kbs.aug <-kbs.aug   %>% mutate(spei12_category = case_when(
 ))
 
 
-# add column for classifying years based on quartiles !!!!!
 knz.aug <-knz.aug   %>% mutate(spei12_category = case_when(
   knz.aug$spei12 <= -1.28 ~ "Extreme dry", 
   knz.aug$spei12 > -1.28 & knz.aug$spei12 <= -0.67 ~ "Moderate dry", 
@@ -165,7 +193,6 @@ knz.aug <-knz.aug   %>% mutate(spei12_category = case_when(
 ))
 
 
-# add column for classifying years based on quartiles !!!!!
 cdr.aug <-cdr.aug   %>% mutate(spei12_category = case_when(
   cdr.aug$spei12 <= -1.28 ~ "Extreme dry", 
   cdr.aug$spei12 > -1.28 & cdr.aug$spei12 <= -0.67 ~ "Moderate dry", 
@@ -176,10 +203,40 @@ cdr.aug <-cdr.aug   %>% mutate(spei12_category = case_when(
 
 # order factor
 
+kbs.aug$spei6_category <- factor(kbs.aug$spei6_category, levels = c("Extreme dry", "Moderate dry", "Normal", "Moderate wet", "Extreme wet"))
+knz.aug$spei6_category <- factor(knz.aug$spei6_category, levels = c("Extreme dry", "Moderate dry", "Normal", "Moderate wet", "Extreme wet"))
+cdr.aug$spei6_category <- factor(cdr.aug$spei6_category, levels = c("Extreme dry", "Moderate dry", "Normal", "Moderate wet", "Extreme wet"))
+
 kbs.aug$spei12_category <- factor(kbs.aug$spei12_category, levels = c("Extreme dry", "Moderate dry", "Normal", "Moderate wet", "Extreme wet"))
 knz.aug$spei12_category <- factor(knz.aug$spei12_category, levels = c("Extreme dry", "Moderate dry", "Normal", "Moderate wet", "Extreme wet"))
 cdr.aug$spei12_category <- factor(cdr.aug$spei12_category, levels = c("Extreme dry", "Moderate dry", "Normal", "Moderate wet", "Extreme wet"))
 
+# Plot SPEI6
+ggplot(kbs.aug , aes (x = year, y = spei6)) +
+  geom_line(alpha = 0.5) + 
+  geom_point( aes(color = spei6_category), size = 1.25) + theme_bw() +
+  scale_x_continuous(breaks = seq(1900, 2025, by = 10)) +
+  annotate( "text", label = "KBS",
+            x = 1910, y = 2, size = 5, colour = "black") + 
+  scale_color_manual(values = c("#F5191CFF", "#E78200FF", "#EAC728FF", "#81BB95FF", "#3B99B1FF"))
+
+ggplot(knz.aug , aes (x = year, y = spei6)) +
+  geom_line(alpha = 0.5) + 
+  geom_point( aes(color = spei6_category), size = 1.25) + theme_bw() +
+  scale_x_continuous(breaks = seq(1900, 2025, by = 10)) +
+  annotate( "text", label = "KNZ",
+            x = 1910, y = 2, size = 5, colour = "black") + 
+  scale_color_manual(values = c("#F5191CFF", "#E78200FF", "#EAC728FF", "#81BB95FF", "#3B99B1FF"))
+
+ggplot(cdr.aug , aes (x = year, y = spei6)) +
+  geom_line(alpha = 0.5) + 
+  geom_point( aes(color = spei6_category), size = 1.25) + theme_bw() +
+  scale_x_continuous(breaks = seq(1900, 2025, by = 10)) +
+  annotate( "text", label = "CDR",
+            x = 1910, y = 2, size = 5, colour = "black") + 
+  scale_color_manual(values = c("#F5191CFF", "#E78200FF", "#EAC728FF", "#81BB95FF", "#3B99B1FF"))
+
+# Plot SPEI12
 kbs_spei <- ggplot(kbs.aug , aes (x = year, y = spei12)) +
   geom_line(alpha = 0.5) + 
   geom_point( aes(color = spei12_category), size = 1.25) + theme_bw() +

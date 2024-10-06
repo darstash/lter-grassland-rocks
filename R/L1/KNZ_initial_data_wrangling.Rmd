@@ -1351,12 +1351,17 @@ df_I1_KNZ.clean$plot<-as.factor(df_I1_KNZ.clean$plot)
 df_J2_KNZ.clean.richness.evenness$plot<-as.factor(df_J2_KNZ.clean.richness.evenness$plot)
 df_C1_KNZ.cleanest$measurement_scale_cover=as.factor(df_C1_KNZ.cleanest$measurement_scale_cover)
 RaMPs_PlantCommunityComposition$measurement_scale_cover<-as.factor(RaMPs_PlantCommunityComposition$measurement_scale_cover)
-
+df_C1_KNZ.cleanest<-df_C1_KNZ.cleanest%>%
+  mutate(site="KNZ")
+df_I1_KNZ.clean<-df_I1_KNZ.clean%>%
+  mutate(original_measurement_unit="%cover")
 #combining species level data set
 KNZ_specieslevel_abundance<-df_E1_KNZ_species_level%>%
-  select(DataCode,RecType,PlotID,)
-  bind_rows(K1_spp,df_C1_KNZ.cleanest)#,df_I1_KNZ.clean,df_J2_KNZ.clean.richness.evenness)%>%
-  select(1:9)%>%
+  select(-DataCode,-RecType,-PlotID,-total_abundance,-Spnum,-Treatment)%>%
+  bind_rows(K1_spp,df_C1_KNZ.cleanest,df_I1_KNZ.clean)%>%
+  select(-10:-17)%>%
+  #bind_rows(df_J2_KNZ.clean.richness.evenness)%>% notspecies identity need to confirm before including
+  #select(-10:-22)#%>%
   bind_rows(B1_sppcomp)
 
 
@@ -1365,6 +1370,8 @@ KNZ_specieslevel_abundance<-df_E1_KNZ_species_level%>%
 write.csv(KNZ_specieslevel_abundance,file.path(L1_dir,"/KNZ_specieslevel_abundance.csv"))
 
 #data mop up for plot biomass
+df_E1_E2_KNZ_clean_plot_metrics<-df_E1_E2_KNZ_clean_plot_metrics%>%
+  mutate(original_measurement_unit="%cover")
 df_E1_E2_KNZ_clean_plot_metrics$plot<-as.factor(df_E1_E2_KNZ_clean_plot_metrics$plot)
 K1_mass$plot<-as.factor(K1_mass$plot)
 df_C2_KNZ_cleanest$plot<-as.factor(df_C2_KNZ_cleanest$plot)
@@ -1373,17 +1380,35 @@ df_I1_I2_KNZ.clean$measurement_scale_cover=as.integer(df_I1_I2_KNZ.clean$measure
 df_I1_I2_KNZ.clean<-df_I1_I2_KNZ.clean%>%
   mutate(plot_biomass=total)
 df_I1_I2_KNZ.clean$block=as.factor(df_I1_I2_KNZ.clean$block)
-RaMPs_ANPP<-RaMPs_ANPP%>%
-  mutate(uniqueid=uniqueID)
+#RaMPs_ANPP<-RaMPs_ANPP%>%
+  #mutate(uniqueid=uniqueID)
 B2_plot_biomass$measurement_scale_biomass=as.numeric(B2_plot_biomass$measurement_scale_biomass)
 B2_plot_biomass$measurement_scale_cover=as.numeric(B2_plot_biomass$measurement_scale_cover)
 df_C2_KNZ_cleanest$measurement_scale_biomass<-as.numeric(df_C2_KNZ_cleanest$measurement_scale_biomass)
+df_C2_KNZ_cleanest$measurement_scale_cover<-as.numeric(df_C2_KNZ_cleanest$measurement_scale_cover)
+K1_mass$
+K1_mass<-K1_mass%>%
+  mutate(original_measurement_unit="%cover")
+df_I1_I2_KNZ.clean<-df_I1_I2_KNZ.clean%>%
+  mutate(original_measurement_unit="%cover",
+         measurement_scale_biomass=0.1,
+         measurement_scale_cover=1)
+B2_plot_biomass<-B2_plot_biomass%>%
+  mutate(original_measurement_unit="%cover")
+  
+
 #combining konza plot biomass data
 KNZ_plotlevel_metrics<-df_E1_E2_KNZ_clean_plot_metrics%>%
-  select(-1,-2,-5)%>%
-  bind_rows(K1_mass,df_C2_KNZ_cleanest,df_J2_KNZ.clean.richness.evenness,df_I1_I2_KNZ.clean,RaMPs_ANPP)%>%
-  select(1:12)%>%
-  bind_rows(B2_plot_biomass)
+  select(-DataCode,-RecType,-Treatment,-richness,-evenness,-Shannon,-treatment)%>%
+  bind_rows(K1_mass)%>%select(-10,-11)%>%
+  bind_rows(df_C2_KNZ_cleanest)%>%
+  select(-treatment)%>%
+  bind_rows(df_I1_I2_KNZ.clean)%>%
+  select(-10:-21)%>%
+  #,df_J2_KNZ.clean.richness.evenness,RaMPs_ANPP)%>%
+  
+  bind_rows(B2_plot_biomass)%>%
+  distinct()
 
 summary(KNZ_plotlevel_metrics)
 
@@ -1398,16 +1423,16 @@ B1_B2_metadata$time_since_fire=as.integer(B1_B2_metadata$time_since_fire)
 C1_Meta$plot<-as.factor(C1_Meta$plot)
 C1_Meta<-C1_Meta%>%select(-measurement_scale_biomass)
 df_I1_I2_KNZ.clean$measurement_scale_biomass<-as.factor(df_I1_I2_KNZ.clean$measurement_scale_biomass)
-RaMPs_PlantCommunityComposition$measurement_scale_cover<-as.integer(RaMPs_PlantCommunityComposition$measurement_scale_cover)
-RaMPs_PlantCommunityComposition$measurement_scale_biomass<-as.factor(RaMPs_PlantCommunityComposition$measurement_scale_biomass)
+#RaMPs_PlantCommunityComposition$measurement_scale_cover<-as.integer(RaMPs_PlantCommunityComposition$measurement_scale_cover)
+#RaMPs_PlantCommunityComposition$measurement_scale_biomass<-as.factor(RaMPs_PlantCommunityComposition$measurement_scale_biomass)
 K1_meta$plot<-as.factor(K1_meta$plot)
 #combine Konza metadata
 
 
 KNZ_metadata<-df_E1_E2_metadata%>%
-  select(-2,-5)%>%
-  bind_rows(K1_meta,df_J2_KNZ.clean.richness.evenness,C1_Meta,df_I1_I2_KNZ.clean,RaMPs_PlantCommunityComposition)%>%
-  select(1:18)%>%
+  select(-RecType,-Treatment,-source,-watershed)%>%
+  bind_rows(K1_meta,C1_Meta)#,df_I1_I2_KNZ.clean#df_J2_KNZ.clean.richness.evenness,RaMPs_PlantCommunityComposition)%>%
+  select()%>%
   distinct()%>%
   bind_rows(B1_B2_metadata)%>%
   left_join(weather_df)%>%

@@ -575,7 +575,7 @@ e001e002_metadata <- e001e002_anpp %>%
         all.x = TRUE) %>%
   clean_names(.) %>%
   mutate(diversity_manipulated = "naturally_assembled",
-         treatment = ifelse(n_trt %in% 1, "control", "treatment"),
+         treatment = ifelse(n_trt %in% 1, "control", paste("nitrogen", nitr_add+n_atm_n_add, sep = "_")),
          source = "https://doi.org/10.6073/pasta/2eba7aac6b347d27a92208e03fd3f8ea; https://doi.org/10.6073/pasta/66724d71711b80d520fa33a690f962b2",
          treatment_comment = "") %>%
   select(site, year, plot, uniqueid, higher_order_organization, temperature, precipitation, treatment, growtemp, growprecip,
@@ -791,7 +791,7 @@ e245_metadata <- e245_anpp %>%
   rename(treatment_comment = treatment) %>%
   unique() %>%
   mutate(
-    treatment = ifelse(treatment_comment %in% "Control", "control", "treatment"),
+    treatment = ifelse(treatment_comment %in% "Control", "control", paste("ConsumerExclusion", treatment_comment, sep = "_")),
     nutrients_added = "no_fertilizer",
     nitrogen_amount = 0,
     disturbance = "undisturbed",
@@ -846,7 +846,7 @@ e061_metadata  <- e061_anpp %>%
   select(year, site, plot, higher_order_organization, uniqueid, treatment, fert_trt) %>%
   unique() %>%
   mutate(treatment_comment = ifelse(treatment %in% "BEX", "birds excluded", "control"),
-         treatment = ifelse(treatment %in% "BEX", "treatment", "control"),
+         treatment = ifelse(treatment %in% "BEX", "birds_excluded", "control"),
          nutrients_added = "no_fertilizer",
          nitrogen_amount = 0,
          disturbance = "undisturbed",
@@ -908,7 +908,7 @@ e247_metadata <- e247_cover %>%
   select(year, site, plot, higher_order_organization, uniqueid, trt, Exclose, nitrogen_amount) %>%
   unique() %>%
   mutate(source = "e247",
-         treatment = ifelse(trt %in% "Control", "control", "treatment"),
+         treatment = ifelse(trt %in% "Control", "control", paste("nutnet", trt, sep = "_")),
          nutrients_added = trt,
          nutrients_added = case_when(trt %in% "NPK+Fence" ~ "NPK",
                                      trt %in% c("Fence", "Control") ~ "no_fertilizer",

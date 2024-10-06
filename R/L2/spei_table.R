@@ -42,6 +42,17 @@ spei_summary <- plot_spei %>%
             spei6 = mean(spei6),
             spei3 = mean(spei3))
 
+# Merge metadata with spei to get treatment column
+metadata_filter <- metadata %>%
+  drop_na(uniqueid)
+plot_filter <- plot_spei %>%
+  drop_na(uniqueid) %>%
+  filter(higher_order_organization != "RaMPs_Block1",
+         higher_order_organization != "RaMPs_Block2",
+         higher_order_organization != "RaMPs_Block3")
+x <- plot_filter %>% group_by(site, year, uniqueid, higher_order_organization) %>% summarize(count = n())
+plot_trt <- left_join(plot_filter, metadata_filter)
+
 # Look at SPEI plots for each site in the range the data exist
 spei_summary %>%
   filter(site == "CDR") %>%
@@ -324,4 +335,83 @@ biomass_knz_spei6.lm <- lmer(plot_biomass ~ spei6 + I(spei6^2) + (1|plot), data 
 biomass_knz_spei3.lm <- lmer(plot_biomass ~ spei3 + I(spei3^2) + (1|plot), data = plot_spei, subset = site == "KNZ")
 
 AICctab(biomass_knz_spei12.lm, biomass_knz_spei9.lm, biomass_knz_spei6.lm, biomass_knz_spei3.lm) # spei9 better
+
+
+
+# Only look at control biomass ----
+plot_control <- plot_trt %>%
+  filter(treatment == "control")
+
+# Look at plant biomass averages by event category
+plot_control %>%
+  ggplot(aes(x = spei12_category, y = plot_biomass)) + 
+  geom_sina(alpha = 0.2) +
+  stat_summary(fun.data = mean_cl_boot, color = "red")
+
+# Look at plant biomass vs spei12
+plot_control %>%
+  ggplot(aes(x = spei12, y = plot_biomass)) + 
+  geom_point(alpha=0.2) +
+  geom_smooth() +
+  ggpubr::stat_cor()
+
+plot_control %>%
+  ggplot(aes(x = spei12, y = plot_biomass)) + 
+  geom_point(alpha  = 0.2) +
+  facet_wrap(~site)
+
+# Model comparison with spei12, 9, 6, 3 for ONLY control plots
+control_spei3.lm2 <- lmer(plot_biomass ~ spei3 + I(spei3^2) + (1|site) + (1|site:plot), data = plot_control)
+summary(control_spei3.lm2) # Quadratic term significant
+control_spei3.lm <- lmer(plot_biomass ~ spei3 + (1|site) + (1|site:plot), data = plot_control)
+
+control_spei6.lm2 <- lmer(plot_biomass ~ spei6 + I(spei6^2) + (1|site) + (1|site:plot), data = plot_control)
+summary(control_spei6.lm2) # Quadratic term significant
+control_spei6.lm <- lmer(plot_biomass ~ spei6 + (1|site) + (1|site:plot), data = plot_control)
+
+control_spei9.lm2 <- lmer(plot_biomass ~ spei9 + I(spei9^2) + (1|site) + (1|site:plot), data = plot_control)
+summary(control_spei9.lm2) # Quadratic term significant
+control_spei9.lm <- lmer(plot_biomass ~ spei9 + (1|site) + (1|site:plot), data = plot_control)
+
+control_spei12.lm2 <- lmer(plot_biomass ~ spei12 + I(spei12^2) + (1|site) + (1|site:plot), data = plot_control)
+summary(control_spei12.lm2) # Quadratic term significant
+control_spei12.lm <- lmer(plot_biomass ~ spei12 + (1|site) + (1|site:plot), data = plot_control)
+
+AICctab(control_spei3.lm2, control_spei3.lm, control_spei6.lm2, control_spei6.lm, control_spei9.lm2, control_spei9.lm, control_spei12.lm2, control_spei12.lm)
+
+# SPEI 6 with a quadratic term best model when all sites in one model
+
+# Compare model R2 like Robinson
+r.squaredGLMM(control_spei3.lm2)
+r.squaredGLMM(control_spei3.lm)
+r.squaredGLMM(control_spei6.lm2) # best R2m
+r.squaredGLMM(control_spei6.lm)
+r.squaredGLMM(control_spei9.lm2)
+r.squaredGLMM(control_spei9.lm)
+r.squaredGLMM(control_spei12.lm2)
+r.squaredGLMM(control_spei12.lm)
+
+# Plot the quadratic SPEI6 model
+plot_model(
+  control_spei6.lm2,
+  type = "pred",
+  terms="spei6[all]",
+  show.data = TRUE
+)
+
+# Try logging biomass
+plot_control <- plot_control %>%
+  mutate(plot_biomass_log = log1p(plot_biomass))
+control_spei6.lm2.ln <- lmer(plot_biomass_log ~ spei6 + I(spei6^2) + (1|site) + (1|site:plot), data = plot_control)
+control_spei6.lm.ln <- lmer(plot_biomass_log ~ spei6 + (1|site) + (1|site:plot), data = plot_control)
+
+AICctab(control_spei6.lm2.ln, control_spei6.lm.ln)
+
+# Plot the quadratic SPEI6 model
+plot_model(
+  control_spei6.lm2.ln,
+  type = "pred",
+  terms="spei6[all]",
+  show.data = TRUE
+)
 

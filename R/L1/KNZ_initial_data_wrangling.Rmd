@@ -1406,7 +1406,6 @@ KNZ_plotlevel_metrics<-df_E1_E2_KNZ_clean_plot_metrics%>%
   bind_rows(df_I1_I2_KNZ.clean)%>%
   select(-10:-21)%>%
   #,df_J2_KNZ.clean.richness.evenness,RaMPs_ANPP)%>%
-  
   bind_rows(B2_plot_biomass)%>%
   distinct()
 
@@ -1431,10 +1430,12 @@ K1_meta$plot<-as.factor(K1_meta$plot)
 
 KNZ_metadata<-df_E1_E2_metadata%>%
   select(-RecType,-Treatment,-source,-watershed)%>%
-  bind_rows(K1_meta,C1_Meta)#,df_I1_I2_KNZ.clean#df_J2_KNZ.clean.richness.evenness,RaMPs_PlantCommunityComposition)%>%
-  select()%>%
-  distinct()%>%
+  bind_rows(K1_meta,C1_Meta)%>%
+  select(-16:-18)%>%
+  bind_rows(df_I1_I2_KNZ.clean)%>%#%>%#need to include other metadata in NUTNET e.g time_since_fire#df_J2_KNZ.clean.richness.evenness,RaMPs_PlantCommunityComposition)%>%
+  select(-16:-31)%>%
   bind_rows(B1_B2_metadata)%>%
+  select(-16)%>%
   left_join(weather_df)%>%
   distinct()
 

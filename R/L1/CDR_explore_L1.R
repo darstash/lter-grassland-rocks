@@ -611,6 +611,7 @@ names(e054_anpp)
 e054_anpp <- e054_anpp %>%
   mutate(site="CDR",
          higher_order_organization = paste("Experiment", Exp, " field", OldField), # note I added the field string, so that it is not a random A. Not sure this is needed
+         Species_names = case_when(Species_names %in% "#N/A", TaxonID, Species_names),
          species = as.factor(Species_names), #to look at all the species and identify things to remove
          Plot = case_when(Transect == "G" ~ 1, #sampling is done once in each transect within a field
                           Transect == "R" ~ 2, #so we are denoting the transect as 1-4 where biomass was collected in this plot column

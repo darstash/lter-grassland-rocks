@@ -1,5 +1,5 @@
 # TITLE:        LTER Grassland Rock: KBS ANPP biomass and plant composition cleanup
-# AUTHORS:      Caitlin Broderick
+# AUTHORS:      Caitlin Broderick and Ashley Darst
 # COLLABORATORS:  
 # DATA INPUT:   Data imported as csv files from shared Google drive L0 folder
 # DATA OUTPUT:    
@@ -132,10 +132,140 @@ unique(t7$species)
 # "Monocots"
 # "Moss"  
 
+# Biomass categories for all datasets
+genus_sp_in_biomass <- c("Hieracium sp. (*)",
+                         "Desmodium sp.",
+                         "Rumex species",
+                         "Vitis sp.",
+                         "Cornus sp.",
+                         "Setaria sp. (*)",
+                         "Monarda sp.",
+                         "Malus spp. (*)",
+                         "Festuca sp. (*)",
+                         "Celastrus sp.",
+                         "Rosa sp. (*)",
+                         "Fragaria sp. (*)",
+                         "Rubus sp. (*)",
+                         "Trifolium sp. (*)",
+                         "Lonicera spp.",
+                         "Geum sp.",
+                         "Crataegus spp.",
+                         "Rhamnus sp.",
+                         "Solidago sp. (*)",
+                         "Melilotus sp.",
+                         "Vicia sp.",
+                         "Carex sp.",
+                         "Solanum sp. (*)",
+                         "Cirsium sp. (*)",
+                         "Populus sp. (*)",
+                         "Bromus sp. (*)",
+                         "Aster sp. (*)",
+                         "Plantago sp.",
+                         "Acer spp.",
+                         "Lactuca sp. (*)",
+                         "Veronica sp.",
+                         "Prunus spp. (*)",
+                         "Cerastium sp.",
+                         "Sonchus sp.",
+                         "Poa sp. (*)",
+                         "Diervilla sp.",
+                         "Brassica sp. (*)",
+                         "Juncus sp. (*)",
+                         "Composite sp. (*)",
+                         "Mimosa sp.",
+                         "Erigeron sp.",
+                         "Agrostis sp.",
+                         "Galium sp. (*)",
+                         "Lamium sp.",
+                         "Lolium sp. (*)",
+                         "Morus spp. (*)",
+                         "Muhlenbergia species",
+                         "Polygonum sp. (*)",
+                         "Amaranthus species",
+                         "Cenchrus sp.",
+                         "Anthemis sp.",
+                         "Apocynum sp. (*)",
+                         "Crepis sp.",
+                         "Digitaria sp",
+                         "Epilobium sp.",
+                         "Euphorbia sp.",
+                         "Lathyrus sp.",
+                         "Lepidium sp.",
+                         "Lespedeza sp. (*)",
+                         "Morrenia Sp.",
+                         "Oxalis sp.",
+                         "Panicum sp",
+                         "Potentilla sp.",
+                         "Quercus spp.",
+                         "Ribes spp.",
+                         "Silene sp.",
+                         "Sorghum sp. (*)",
+                         "Verbascum sp.",
+                         "Viola sp. (*)",
+                         "Rhus spp.",
+                         "Selaginella sp.",
+                         "ACER SP.",
+                         "ALLIUM SP.",
+                         "HIERACIUM SP.",
+                         "JUNCUS SP.",
+                         "LONICERA SP.",
+                         "MALUS SP.",
+                         "MELILOTUS SP.",
+                         "PLANTAGO SP.",
+                         "PRUNUS SP.",
+                         "SETARIA SP.",
+                         "TRIFOLIUM",
+                         "ULMUS SP.",
+                         "VERONICA SP.",
+                         "VITIS SP. (kbs.us)"
+                         )
+non_plant_things_in_biomass <- c("Standing Dead",
+                                 "Moss",
+                                 "Lichen",
+                                 "Surface Litter",
+                                 "Fungi",
+                                 "Leaf Litter",
+                                 "BRYOPHYTE SP.",
+                                 "GROUND",
+                                 "OTHER ANIMAL DIGGING",
+                                 "OTHER ANIMAL DROPPINGS",
+                                 "OTHER LITTER",
+                                 "OTHER WOODY OVERSTORY"
+                                 )
+
+maybe_plant_things_in_biomass <- c("UnSorted",
+                                   "Unknown dicot (*)",
+                                   "Unknown grass",
+                                   "unknown Sedge",
+                                   "Unkown Fabaceae",
+                                   "Unknown monocot (*)",
+                                   "unknown Brassicaceae",
+                                   "Woody",
+                                   "another unknown dicot",
+                                   "unknown Asteraceae",
+                                   "Unknown Orchidaceae",
+                                   "Aster basal leaves",
+                                   "Dicots",
+                                   "Monocots",
+                                   "Composite Basal Leaves",
+                                   "Unknown",
+                                   "unknown Elm",
+                                   "another unknown woody species",
+                                   "Dead Dicot",
+                                   "Ferns",
+                                   "Unknown Dicot",
+                                   "Unknown Monocot",
+                                   "Unknown Rosacae",
+                                   "Unknown Solanaceae",
+                                   "UNKNOWN",
+                                   "UNKNOWN ASTERACEAE",
+                                   "UNKNOWN BRASSICACEAE",
+                                   "UNKNOWN GRASS",
+                                   "UNKNOWN PTERIDOPHYTA"
+                                   )
+
 t7_nounknown <- t7 %>% 
-  filter(species != "UnSorted" & 
-           species != "Surface Litter" &
-           species != "Standing Dead")
+  filter(!species %in% non_plant_things_in_biomass)
 
 
 # check to make sure all grouping variables good - number of rows should be 1
@@ -203,10 +333,7 @@ micro$cover_method <- "pseudo percent cover from mass"
 
 
 micro_nounknown <- micro %>% 
-  filter(species != "Unknown" &  # should we take out unknown????
-           species != "UnSorted" &  # take out.
-           species != "Surface Litter" &  # take out
-           species != "Standing Dead") # take out
+  filter(!species %in% non_plant_things_in_biomass)
 
 # check to make sure all grouping variables good - number of rows should be 1
 micro_nounknown %>% 
@@ -371,10 +498,8 @@ unique(glbrc_grassland$species)
 # remove: "UnSorted",   ,"Unknown" ,  "Standing Dead",  "Surface Litter"   
 
 glbrc_grassland_nounknown <- glbrc_grassland %>% 
-  filter(species != "UnSorted" & 
-           species != "Unknown" & 
-           species != "Standing Dead" & 
-           species != "Surface Litter"  )
+  filter(!species %in% non_plant_things_in_biomass)
+
 # calculate total ANPP: sum up ANPP for ALL species
 anpp_rich_glbrc <- glbrc_grassland_nounknown %>% 
   group_by(year, treatment, glbrc_site, replicate, station,experiment, nutrients_added, area_sampled_bio,area_sampled_cover,
@@ -433,9 +558,8 @@ unique(glbrc_scaleup_grassland$species)
 # remove"UnSorted" ,    "Surface Litter",     "Standing Dead"
 
 glbrc_scaleup_grassland_nounknown <- glbrc_scaleup_grassland %>% 
-  filter(species != "UnSorted" &
-           species !=  "Surface Litter" &
-           species != "Standing Dead" )
+  filter(!species %in% non_plant_things_in_biomass)
+
 
 # calculate total ANPP and rich: sum up ANPP for each plot, count rows
 names(glbrc_scaleup_grassland_nounknown)
@@ -570,9 +694,6 @@ nutnet_cover$area_sampled_cover <- 1
 # column management 
 nutnet_cover <- nutnet_cover %>% rename (treatment = trt) # rename to match other datasets
 nutnet_cover <- nutnet_cover %>% rename (species = taxon)
-nutnet_cover <- nutnet_cover %>% 
-  mutate (relative_abundance = max_cover / 100) %>%
-  select(-max_cover)
 nutnet_cover$source <- "NutNet (Not publicly available)" # make column indicating where this came from
 unique (nutnet_cover$treatment)
 unique(micro$fertilized_microplot)
@@ -593,12 +714,7 @@ nutnet_cover$cover_method <- "percent cover to nearest 1 percent"
 # remove dead litter and unknown
 unique(nutnet_cover$species)
 nutnet_cover_nounknown <- nutnet_cover %>% 
-  filter(species != "GROUND" & 
-           species != "OTHER LITTER" & 
-           species != "OTHER ANIMAL DROPPINGS" & 
-           species != "OTHER ANIMAL DIGGING" & 
-           species != "UNKNOWN"  &
-           species != "OTHER WOODY OVERSTORY")
+  filter(!species %in% non_plant_things_in_biomass)
 
 names(nutnet_cover_nounknown )
 
@@ -876,3 +992,4 @@ kbs_species_level_abundance$original_measurement_unit <- "g_m2"
 
 
 write.csv(kbs_species_level_abundance, file.path(L1_dir, "./KBS_species_level_abundance.csv"), row.names=F)
+

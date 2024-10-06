@@ -2,7 +2,7 @@
 title: "KNZ_L0_data_wrangling"
 authors: Smriti Pehim Limbu, Joshua Ajowele
 Collaborators: Grassland Rocks working group
-date: "2023-12-11" Last Modified: "Oct 4, 2024"
+date: "2023-12-11" Last Modified: "Oct 6, 2024"
 output: html_document
 ---
 
@@ -29,9 +29,6 @@ list.files(L0_dir)
 ##Load files, more needs to be loaded
 
 ```{r}
-df_A1_KNZ <- read.csv(file.path(L0_dir, "KNZ/A1_CME011_Sppcomp.csv"), stringsAsFactors = FALSE)
-df_A2_KNZ <- read.csv(file.path(L0_dir, "KNZ/A2_CME012_Biomass.csv"), stringsAsFactors = FALSE)
-
 #Joshua's directory
 #df_E1_KNZ<-read.csv("C:/Users/JAAJOWELE/Downloads/E1_PPL011_Sppcomp.csv")
 #df_E2_KNZ<-read.csv("C:/Users/JAAJOWELE/Downloads/E2_PPL012_Biomass.csv")
@@ -179,7 +176,7 @@ df_E1_E2_KNZ_clean_plot_metrics<-df_E2_KNZ%>%
 
 #create metadata 
 #create metadata keys
-treatment_key_metadata=tibble(treatment=levels(factor(df_E1_E2_KNZ_clean_plot_metrics$treatment)),               nutrient_added=c("no_fertilizer","P","P","P","N","NP","NP","NP"),
+treatment_key_metadata=tibble(treatment=levels(factor(df_E1_E2_KNZ_clean_plot_metrics$treatment)),               nutrients_added=c("no_fertilizer","P","P","P","N","NP","NP","NP"),
                               nitrogen_amount=c(0,0,0,0,10,10,10,10),
                               phosphorus_amount=c(0,10,2.5,5,0,10,2.5,5),
                               disturbance="undisturbed",
@@ -239,24 +236,24 @@ unique(df_C1_KNZ.clean$transect) #Four transects
 unique(df_C1_KNZ.clean$treatment)
 #clean and wrangle spp comp data
 df_C1_KNZ.clean<-df_C1_KNZ.clean%>%
-  group_by(year, plot, treatment)%>%
+  group_by(year, transect,plot, treatment)%>%
   mutate(total_abundance=sum(abundance))%>%
-  group_by(year, plot, treatment, species)%>%
+  group_by(year, transect,plot, treatment, species)%>%
   mutate(relative_abundance=(abundance/total_abundance))%>%
   ungroup()%>%
   #create unique identifier for codyn package for community metric
-  unite(plot_trt, plot, treatment, sep="_", remove=FALSE)
+  unite(plot_transect_trt, plot,transect, treatment, sep="_", remove=FALSE)
 
 #calculate diversity/richness/evenness
 C1_richness<-df_C1_KNZ.clean%>%
   community_diversity(time.var="year",abundance.var="relative_abundance",
-                      replicate.var="plot_trt",metric = "Shannon")
+                      replicate.var="plot_transect_trt",metric = "Shannon")
 C1_diversity<-df_C1_KNZ.clean%>%
   #calculates richness and evenness as Evar
   community_structure(time.var="year",abundance.var="relative_abundance",
-                      replicate.var="plot_trt")%>%
-  left_join(C1_richness, by=c("year","plot_trt"))%>%
-  separate_wider_delim(plot_trt,"_", names=c("plot","treatment"))
+                      replicate.var="plot_transect_trt")%>%
+  left_join(C1_richness, by=c("year","plot_transect_trt"))%>%
+  separate_wider_delim(plot_transect_trt,"_", names=c("plot", "transect","treatment"))
 #convert to integer to allow joining with biomass data
 C1_diversity$plot=as.integer(C1_diversity$plot)
 
@@ -267,14 +264,12 @@ df_C1_KNZ.cleanest <- df_C1_KNZ.clean %>%
          cover_method = "physical_quantity",
          area_sampled_bio = 10,
          area_sampled_cover = 0.1) %>%
-  unite(higher_level_organization,site,experiment,plot, sep ="_", remove=FALSE) %>%
-  unite(unique_id,site,experiment,year,plot_trt, sep ="_", remove=FALSE)
-  
-df_C1_KNZ.cleanest = df_C1_KNZ.cleanest[-c(1,5,6,9,13)]
-names(df_C1_KNZ.cleanest)[names(df_C1_KNZ.cleanest) == "higher_level_organization"] = "higher_order_organization"
-df_C1_KNZ.cleanest<-df_C1_KNZ.cleanest%>%
-  rename(measurement_scale_cover=area_sampled_bio)%>%
+  unite(higher_order_organization,site,experiment,plot, sep ="_", remove=FALSE) %>%
+  unite(uniqueid,site,experiment,plot,treatment, sep ="_", remove=FALSE)%>%
+  select(year,plot,uniqueid,species,abundance,relative_abundance,higher_order_organization)%>%
   mutate(original_measurement_unit="%cover")
+  
+
 #Writing sppcomp dataset to upload to L1 folder
 #write.csv(df_C1_KNZ.cleanest,"C:\\Users\\jasig\\Downloads\\df_C1_KNZ.cleanest.csv", row.names=FALSE)
 
@@ -297,74 +292,53 @@ df_C2_KNZ.cleaner$woody[is.na(df_C2_KNZ.cleaner$woody)]<-0
 df_C2_KNZ.cleaner$total_biomass = df_C2_KNZ.cleaner$livegrass + df_C2_KNZ.cleaner$forbs + df_C2_KNZ.cleaner$woody+df_C2_KNZ.cleaner$currentdead
 
 
-
+#Changing treatment naming conventions to match species comp
+df_C2_KNZ.cleaner$treatment[df_C2_KNZ.cleaner$treatment=="c"]<-"a"
+df_C2_KNZ.cleaner$treatment[df_C2_KNZ.cleaner$treatment=="ni"]<-"a"
 #Calculating plot_biomass and more
 df_C2_KNZ.clean <- df_C2_KNZ.cleaner %>%
-  group_by(year, plot) %>%
   filter(year%in%c(1991:2016))%>%
-  mutate(plot_biomass = sum(total_biomass)) %>%
-  mutate(mean_livegrass_rep = mean(livegrass)) %>%
-  mutate(mean_forbs_rep = mean(forbs)) %>%
-  mutate(mean_woody_rep = mean(woody)) %>%
-  mutate(mean_biomass_rep = mean(total_biomass)) %>%
+  group_by(year,plot,treatment) %>%
+  mutate(plot_biomass = mean(total_biomass, na.rm=T))%>%
   mutate(site = "KNZ") %>%
 #create unique identifier to consolidate reps
-  unite(plot_trt, plot, treatment, sep="_", remove=FALSE)
+  unite(plot_trt, plot, treatment, sep="_", remove=FALSE)%>%
+  unite(higher_order_organization,site,DataCode,plot, sep ="_", remove=FALSE)%>%
+  mutate(uniqueid = paste(site,DataCode,plot_trt, sep ="_"),#Adding column to make it possible to merge with diversity df
+         year_plot_trt = paste(year, plot_trt, sep="_"))%>%
+  select(year,site,plot,higher_order_organization,uniqueid,plot_biomass,year_plot_trt)%>%
+  distinct()
+  
 
-#Subsetting to just include plots and their average biomass per functional group (to #account for four reps each)
-df_C2_KNZ.noreps <- df_C2_KNZ.clean %>% 
-  distinct(year, plot_trt, plot_biomass, .keep_all = T)
-df_C2_KNZ.noreps <- df_C2_KNZ.noreps[-c(7:11,13:16)] %>%
-  unite(higher_order_organization,site,DataCode,plot, sep ="_", remove=FALSE)
 
-#Changing treatment naming conventions to match species comp
-df_C2_KNZ.noreps$treatment[df_C2_KNZ.noreps$treatment=="c"]<-"a"
-df_C2_KNZ.noreps$treatment[df_C2_KNZ.noreps$treatment=="ni"]<-"a"
 
-#need to check this and confirm with folks who know
 
-df_C2_KNZ.noreps = mutate(df_C2_KNZ.noreps, plot_trt = paste(plot, treatment, sep ="_"))
-
-df_C2_KNZ.noreps = mutate(df_C2_KNZ.noreps, unique_id = paste(site,DataCode,year,plot_trt, sep ="_"))
-
-#Removing unnecessary columns
-df_C2_KNZ.noreps = df_C2_KNZ.noreps[-c(2,4)]
-#Adding column to make it possible to merge with diversity df
-df_C2_KNZ.noreps = mutate(df_C2_KNZ.noreps, year_plot_trt = paste(year, plot_trt, sep="_"))
-
-#Quick clean of diversity df
-unique(C1_diversity$treatment)
-C1_diversity = mutate(C1_diversity, year_plot_trt = paste(year, plot, treatment, sep="_"))
-C1_diversity %>%
-  unite(year_plot_trt, year, plot, treatment, sep="_", remove=FALSE)
-C1_diversity = C1_diversity[-c(1:3)]
 
   
 #Merging with diversity metrics
-df_C2_KNZ_cleanest <- df_C2_KNZ.noreps %>%
-  left_join(C1_diversity, by=c("year_plot_trt"))%>%
-  mutate(measurement_scale_biomass="0.1")%>%
-  rename(plot_biomass=total_biomass)
-df_C2_KNZ_cleanest = df_C2_KNZ_cleanest[-c(3,7,10)]
+df_C2_KNZ_cleanest <- df_C2_KNZ.clean %>%
+  mutate(plot_biomass=plot_biomass*10)%>%
+  mutate(measurement_scale_biomass="0.1",
+         measurement_scale_cover="10",
+         original_measurement_unit="%cover")%>%
+  select(-year_plot_trt)%>%
+  mutate(treatment=case_when(treatment=="a"~"control",
+                             treatment=="i"~"irrigated"))
+  
+
 
 
 
 #metadata
 #Drop unnecessary columns
 C1_Meta<-df_C2_KNZ_cleanest %>%
-  dplyr::select(-plot_biomass,-richness,-Evar,-Shannon) #drop unneeded columns
+  dplyr::select(-plot_biomass) #drop unneeded columns
 
 
 
 
 
-#treatment:
-C1_Meta[c('knz', 'watershed', 'plizot', 'treatment')] <- str_split_fixed(C1_Meta$unique_id, '_', 4)
-#drop those new columns besides treatment
-C1_Meta<-C1_Meta %>%
-  dplyr::select(-knz, -plizot)
-C1_Meta<-C1_Meta %>%
-  dplyr::select(-watershed)
+
 
 #nutrients_added:
 C1_Meta$nutrients_added<-"no_fertilizer"
@@ -389,6 +363,8 @@ C1_Meta$treatment_comment<-"irrigation lines shifted in 2017"
 
 #diversity_manipulated
 C1_Meta$diversity_manipulated<-"naturally_assembled"
+
+
 
 
 
@@ -552,12 +528,13 @@ RaMPs_PlantCommunityComposition<-RaMPs_PlantCommunityComposition%>%
 
 # Cleaning data A1 & A2 (ConSME)- Maya
 Note: for ConSME, it looks like there are only 4 years of species comp data, and 2 years of biomass data. There should be more biomass data for sure though. 
+#we are excluding this dataset-just leaving the code in here
 ```{r}
 
 #Reading in the data
-df_A1_KNZ <- read.csv(file.path(L0_dir, "KNZ/A1_CME011_Sppcomp.csv"), stringsAsFactors = FALSE)
-df_A2_KNZ <- read.csv(file.path(L0_dir, "KNZ/A2_CME012_Biomass.csv"), stringsAsFactors = FALSE)
-df_A3_KNZ <- read.csv(file.path(L0_dir, "KNZ/A3_CME01_treatments.csv"), stringsAsFactors = FALSE)
+#df_A1_KNZ <- read.csv(file.path(L0_dir, "KNZ/A1_CME011_Sppcomp.csv"), stringsAsFactors = FALSE)
+#df_A2_KNZ <- read.csv(file.path(L0_dir, "KNZ/A2_CME012_Biomass.csv"), stringsAsFactors = FALSE)
+#df_A3_KNZ <- read.csv(file.path(L0_dir, "KNZ/A3_CME01_treatments.csv"), stringsAsFactors = FALSE)
 
 #I added the Konza species list to the drive as well
 spplist <- read.csv(file.path(L0_dir, "KNZ/KNZ_specieslist_PPS011.csv"), stringsAsFactors = FALSE)
@@ -921,7 +898,8 @@ df_I2_KNZ.clean <- df_I2_KNZ.clean %>%
          comments = Comments
          ) %>% 
   group_by(source, rectype, year, block, plot) %>% summarize(lvgrass = mean(lvgrass), forb = mean(forb), woody = mean(woody), pryrdead = mean(pryrdead), total = mean(total)*10) %>%
-  mutate(site = "KNZ",
+  mutate(plot_biomass=(lvgrass+forb+woody)*10,
+         site = "KNZ",
          experiment  = "NUTNET") %>%
   unite(higher_order_organization,
         experiment, site, sep = "_", remove = FALSE) %>%
@@ -1156,10 +1134,11 @@ VI_12<-read.csv(file.path(L0_dir, "KNZ/B2_VIR012_Biomass.csv"), stringsAsFactors
 
 #cleaning biomass data
 VI_biomass <- VI_12 %>% 
-  mutate(plot_id = paste(Block, Plot, SubPlot, sep = "_")) %>% 
+  mutate(plot_id = paste(Block, Plot, sep = "_")) %>% 
   select(-Pryrdead) %>% 
   group_by(RecYear, Lvgrass, Forbs, Woody, plot_id) %>% 
-  mutate(plot_biomass = Lvgrass + Forbs + Woody) %>% 
+  mutate(Lvgrass=mean(Lvgrass,na.rm=T,Forbs=mean(Forbs,na.rm=T),Woody=mean(Woody,na.rm=T),
+         plot_biomass = (Lvgrass + Forbs + Woody))) %>% 
   ungroup() %>% 
   select(-Datacode, -Rectype, -Lvgrass, -Forbs, -Woody, -Comments) %>% 
   rename(year = RecYear) %>% 
@@ -1250,12 +1229,12 @@ biomass <- VI_12 %>%
   rename(year = RecYear) %>% 
   # select(year, plot, Plot, plot_biomass) %>% 
   group_by(year, Block, Plot) %>% 
-  summarize(total_biomass = sum(plot_biomass)) %>% 
+  summarize(total_biomass = mean(plot_biomass,na.rm=T)) %>% 
   rename(block = Block) %>% 
   rename(plot = Plot) %>% 
   ungroup()
 #replacing missing value
-biomass$total_biomass[biomass$total_biomass == -29134.0] <- NA
+biomass$total_biomass[biomass$total_biomass == -14567.0] <- NA
   # separate(biomass, into = c("Block", "Plot", "Subplot"), sep = "_")
 
   # mutate(block_subplot = str_extract(biomass, "^[^_]+_[^_]+")) #separating block and subplot
@@ -1363,11 +1342,8 @@ weather_df<-df_ppt_ave_year%>%
 #combining all Konza data-Joshua
 ```{r}
 #some extra mop up for species level data
-df_C1_KNZ.cleanest<-df_C1_KNZ.cleanest%>%
-  rename(uniqueid=unique_id)%>% mutate(site="KNZ")
-
-RaMPs_PlantCommunityComposition<-RaMPs_PlantCommunityComposition%>%
-  mutate(uniqueid=uniqueID)
+#RaMPs_PlantCommunityComposition<-RaMPs_PlantCommunityComposition%>%
+  #mutate(uniqueid=uniqueID)
 df_E1_KNZ_species_level$plot<-as.factor(df_E1_KNZ_species_level$plot)
 K1_spp$plot<-as.factor(K1_spp$plot)
 df_C1_KNZ.cleanest$plot<-as.factor(df_C1_KNZ.cleanest$plot)
@@ -1378,9 +1354,8 @@ RaMPs_PlantCommunityComposition$measurement_scale_cover<-as.factor(RaMPs_PlantCo
 
 #combining species level data set
 KNZ_specieslevel_abundance<-df_E1_KNZ_species_level%>%
-  select(-1:-2,-5,-6,-9,-15)%>%
-  bind_rows(K1_spp,df_C1_KNZ.cleanest,df_I1_KNZ.clean,df_J2_KNZ.clean.richness.evenness,RaMPs_PlantCommunityComposition)%>%
-  select(1:9)%>%
+  select(DataCode,RecType,PlotID,)
+  bind_rows(K1_spp,df_C1_KNZ.cleanest)#,df_I1_KNZ.clean,df_J2_KNZ.clean.richness.evenness)%>%
   select(1:9)%>%
   bind_rows(B1_sppcomp)
 

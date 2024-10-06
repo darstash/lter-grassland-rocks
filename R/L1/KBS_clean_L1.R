@@ -690,7 +690,7 @@ names(allkbsdata_spcomp_tp)
 # made this LTER_Site for now. because GLBRC hamde 
 allkbsdata_spcomp_tp$site <- "KBS"
 
-idcols <- c("site", "experiment","year", "treatment", "station", "replicate" ,"block", "plot", "subplot", "nutrients_added", "disturbance")
+idcols <- c("site", "experiment","treatment", "station", "replicate" ,"block", "plot", "subplot", "nutrients_added", "disturbance")
 plotid <- c("site", "experiment", "treatment", "station", "replicate" ,"block", "plot", "subplot","nutrients_added", "disturbance")
 higher_level_organization <-  c("site", "experiment", "treatment", "station", "replicate" ,"block")
 

@@ -62,7 +62,7 @@ summary(meta)
 ## - konza watershed (incorporated in higher order organization) -> delete from metadata (all site done)
 ## - get rid of experiment column (all site done)
 # - grazing column: set "" to "ungrazed" (individual sites, KNZ HQ, Nutnet)
-# - treatment: make sure control is always named control, CDR: add more treatment info back in -> make good metadata what which treatment variable means. (individual all, CDR and KNZ)
+# - treatment: make sure control is always named control, CDR: add more treatment info back in -> make good metadata what which treatment variable means. (individual all, CDR and KNZ) CDR done
 #
 # - fire frequency and time since fire missing for some experiments (crucial? individual sites) -> what to do with 0 fire frequency when determining time since fire
 # - Konza and kbs have NA in some disutbance as NA (crucial?, individual sites)

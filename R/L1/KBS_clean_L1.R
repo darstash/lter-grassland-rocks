@@ -597,9 +597,16 @@ nutnet_cover_nounknown <- nutnet_cover %>%
            species != "OTHER LITTER" & 
            species != "OTHER ANIMAL DROPPINGS" & 
            species != "OTHER ANIMAL DIGGING" & 
-           species != "UNKNOWN"  )
+           species != "UNKNOWN"  &
+           species != "OTHER WOODY OVERSTORY")
 
 names(nutnet_cover_nounknown )
+
+nutnet_cover_nounknown <- nutnet_cover_nounknown %>% 
+  group_by(year, treatment,   block, plot, subplot, experiment, nutrients_added, area_sampled_cover,
+           nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire, source) %>%
+  mutate (relative_abundance = max_cover / sum(max_cover))
+
 # calculate richness
 rich_nutnet <- nutnet_cover_nounknown %>% 
   group_by(year, treatment,   block, plot, subplot,experiment, nutrients_added, area_sampled_cover,

@@ -533,7 +533,9 @@ glbrc_scaleup$nutrients_added <- "no_fertilizer"
 glbrc_scaleup <- glbrc_scaleup %>%  # rename "site" column, need to use that for later.
   rename(  "glbrc_site" ="site")
 
-
+# Add area sampled information based on https://data.sustainability.glbrc.org/protocols/156
+glbrc_scaleup$area_sampled_bio <- 1
+glbrc_scaleup$area_sampled_cover <- 1
 
 # filter to only be trts we caare about
 # ALSO REMOVE 2009, there are only 2 species (Bromus, )
@@ -565,7 +567,7 @@ glbrc_scaleup_grassland_nounknown <- glbrc_scaleup_grassland %>%
 names(glbrc_scaleup_grassland_nounknown)
 anpp_rich_glbrc_scaleup <- glbrc_scaleup_grassland_nounknown %>% 
   group_by(year, treatment,  station,glbrc_site, experiment, nutrients_added,
-           nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire, source) %>% 
+           nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire, source, area_sampled_cover, area_sampled_bio) %>% 
   summarise(plot_biomass = sum(biomass_g_m2),
             plot_richness = n()) # SOMETHING GOING ON IN 2009!
 
@@ -989,7 +991,8 @@ kbs_species_level_abundance <- rename(kbs_species_level_abundance, higher_order_
 kbs_species_level_abundance <- rename(kbs_species_level_abundance, uniqueid = unique_id)
 kbs_species_level_abundance <- rename(kbs_species_level_abundance, abundance = biomass_g_m2)
 kbs_species_level_abundance$original_measurement_unit <- "g_m2"
-
+kbs_species_level_abundance <- kbs_species_level_abundance %>%
+  select(-c(area_sampled_bio, area_sampled_cover))
 
 write.csv(kbs_species_level_abundance, file.path(L1_dir, "./KBS_species_level_abundance.csv"), row.names=F)
 

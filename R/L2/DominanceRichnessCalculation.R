@@ -10,7 +10,7 @@ plot_metrics_SPEI <- read.csv(file.path(L2_dir, "plot_metrics_SPEI.csv"), string
 species_abundance_SPEI_Metric <- species_abundance_SPEI %>% 
   filter(relative_abundance > 0) %>% 
   group_by(year, site, dataset, plot, higher_order_organization, uniqueid,
-           cover_method, area_sampled_bio, area_sampled_cover,
+           cover_method,
            spei12, spei3, spei6, spei9, spei12_category) %>% 
   summarize(Berger_Parker = max(relative_abundance),
             Richness = n())

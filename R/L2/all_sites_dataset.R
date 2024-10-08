@@ -54,7 +54,7 @@ plot_metrics <- full_join(CDR_plot_metrics, KBS_plot_metrics)
 plot_metrics <- full_join(plot_metrics, KNZ_plot_metrics)
 
 plot_metrics <- plot_metrics %>%
-  select(-c(treatment, source, shannon, evenness, richness, X, dataset))
+  select(-c(source, shannon, evenness, richness, X, dataset))
 
 # write.csv(plot_metrics, file.path(L2_dir, "./plot_metrics.csv"), row.names=F)
 
@@ -67,18 +67,13 @@ KNZ_metadata$plot <- as.character(KNZ_metadata$plot)
 metadata <- full_join(CDR_metadata, KBS_metadata)
 metadata <- full_join(metadata, KNZ_metadata) # Two different nutrient added columns for KNZ
 
-# Merge nutrient columns
-metadata <- metadata %>%
-  mutate(nutrients_added = coalesce(nutrients_added, nutrient_added)) %>%
-  select(-nutrient_added)
-
 # Merge temperature columns
 metadata <- metadata %>%
   mutate(meantemp = coalesce(meantemp, temperature)) %>%
   select(-temperature)
 metadata <- metadata %>%
   mutate(annualprecip = coalesce(annualprecip, precipitation)) %>%
-  select(-c(precipitation, growtemp, watershed, experiment))
+  select(-c(precipitation, growtemp, experiment))
 metadata <- metadata %>%
   mutate(growprecip = coalesce(growprecip, growing_precipitation)) %>%
   select(-c(growing_precipitation, X))

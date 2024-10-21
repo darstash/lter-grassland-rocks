@@ -46,7 +46,6 @@ CDR_plot_metrics$measurement_scale_biomass <- gsub("\\m.*", "", CDR_plot_metrics
 CDR_plot_metrics$measurement_scale_biomass <- as.double(CDR_plot_metrics$measurement_scale_biomass)
 CDR_plot_metrics$measurement_scale_cover <- gsub("\\m.*", "", CDR_plot_metrics$measurement_scale_cover)
 CDR_plot_metrics$measurement_scale_cover <- as.double(CDR_plot_metrics$measurement_scale_cover)
-KNZ_plot_metrics <- rename(KNZ_plot_metrics, shannon = Shannon)
 CDR_plot_metrics$plot <- as.character(CDR_plot_metrics$plot)
 KNZ_plot_metrics$plot <- as.character(KNZ_plot_metrics$plot)
 

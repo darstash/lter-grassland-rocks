@@ -23,7 +23,7 @@ plot_metrics <- read.csv(file.path(L2_dir, "plot_metrics_SPEI_diversity.csv"), s
 
 # Create dataframe that contains extreme years at each site
 extreme_per_site <- plot_metrics %>% 
-  filter(spei12_category == "Extreme wet" | spei12_category == "Extreme dry")
+  filter(spei6_category == "Extreme wet" | spei6_category == "Extreme dry")
   
 
 # Create dataframe that contains average normal biomass for each plot

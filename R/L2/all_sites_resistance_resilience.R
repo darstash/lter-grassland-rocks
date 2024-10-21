@@ -53,8 +53,7 @@ for(i in 1:nrow(extreme_per_site)) {
 }
 
 # save dataframe of plot resistance and resilience to ECEs as .csv in Google Drive L2 folder
-write.csv(df, "G:/Shared drives/LTER Grassland Rock/Data/L2/ece_resist_resil.csv")
-
+write.csv(df, file.path(L2_dir, "./ece_resist_resil.csv"), row.names=F)
 
 ### troubleshooting loop and calculations
 ##### loop for KBS data only for troubleshooting

@@ -16,10 +16,10 @@ library(tidyverse)
 L0_dir <- Sys.getenv("L0DIR")
 L1_dir <- Sys.getenv("L1DIR")
 L2_dir <- Sys.getenv("L2DIR")
-list.files(L1_dir)
+list.files(L2_dir)
 
 # Read in CSV files
-plot_metrics <- read.csv("G:/Shared drives/LTER Grassland Rock/Data/L2/plot_metrics_SPEI_diversity.csv", header=T)
+plot_metrics <- read.csv(file.path(L2_dir, "plot_metrics_SPEI_diversity.csv"), stringsAsFactors = FALSE)
 
 # Create dataframe that contains extreme years at each site
 extreme_per_site <- plot_metrics %>% 

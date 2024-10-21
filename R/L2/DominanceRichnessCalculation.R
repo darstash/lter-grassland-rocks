@@ -1,3 +1,14 @@
+# LTER Grassland Rock: Calculate richness and dominance
+# AUTHORS: 
+# COLLABORATORS:  
+# DATA INPUT: .csv file of plot metrics and species abundance imported from Google Drive L2 folder
+# DATA OUTPUT: .csv of updated plot metrics dataset that includes richness and dominance  
+# PROJECT: LTER Grassland Rock
+# DATE: October 2024
+
+# Clear all existing data
+rm(list=ls())
+
 library(tidyverse)
 
 L2_dir <- Sys.getenv("L2DIR")

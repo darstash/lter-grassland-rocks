@@ -57,6 +57,12 @@ plot_ece %>%
   scale_y_log10() +
   annotation_logticks(sides = "l")
 
+plot_ece %>%
+  drop_na(resistance) %>%
+  ggplot(aes(x = log(resistance))) +
+  geom_histogram() +
+  facet_wrap(~site)
+  
 # Look at dominance (hard to see any pattern, low richness = high dominance)
 plot_ece %>%
   drop_na(resistance) %>%

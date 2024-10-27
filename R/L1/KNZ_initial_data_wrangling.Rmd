@@ -371,7 +371,7 @@ C1_Meta$diversity_manipulated<-"naturally_assembled"
 ```
 
 
-# Cleaning data D1 and D2 - Matt
+# Cleaning data D1 and D2 - Matt (uploaded and edited by Joshua)
 ```{r}
 
 ## bring in RaMPs data
@@ -386,13 +386,25 @@ ramps$RampNo <- as.factor(ramps$RampNo)
 ramps$Species <- as.factor(ramps$Species)
 
 
+## bring in RaMPs data
+# ramps <- read.csv("D1_D2_RMP011_Sppcomp_Biomass .csv",header = TRUE, sep = ",") # NOTICE there is a space before the .csv
+#Note from Maya: I am going to read in data from the shared Google drive instead
+
+
 ##### ANPP #####
 RaMPs_ANPP_working <- ramps %>% 
+  filter(season == "F") %>% 
   mutate(A_g_m2 = A*10,
          B_g_m2 = B*10,
          C_g_m2 = C*10,
          D_g_m2 = D*10) %>% 
-  group_by(RecYear, season, RampNo) %>% 
+  group_by(RecYear, season, RampNo, Species) %>% 
+  summarize(A_g_m2 = mean(A_g_m2),
+            B_g_m2 = mean(B_g_m2),
+            C_g_m2 = mean(C_g_m2),
+            D_g_m2 = mean(D_g_m2)) %>% 
+  ungroup() %>% 
+  group_by(RecYear, RampNo) %>% 
   summarize(A_ANPP = sum(A_g_m2),
             B_ANPP = sum(B_g_m2),
             C_ANPP = sum(C_g_m2),
@@ -410,26 +422,26 @@ control_ramps <- c(1, 8, 14)
 levels(as.factor(RaMPs_ANPP_working$RampNo))
 class(RaMPs_ANPP_working$RampNo)
 
+
 RaMPs_ANPP <- RaMPs_ANPP_working %>% 
   dplyr::rename(year = RecYear,
                 subplot = plot) %>% 
-  filter(year!=1997)%>%
   mutate(site = "KNZ",
          ramps = "RampNo",
          experiment = "RaMPs",
-         treatment  = case_when(RampNo %in% ambient_ramps ~ "control",#made the ambient the control since the actual control were not needed
+         treatment  = case_when(RampNo %in% ambient_ramps ~ "control",
                                 RampNo %in% altered_ramps ~ "altered",
-                                RampNo %in% control_ramps ~ "ambient"),
-         block = case_when(RampNo %in% c(1:5) ~ "Block1",
-                           RampNo %in% c(6:10) ~ "Block2",
-                           RampNo %in% c(11:15) ~ "Block3")) %>%
+                                RampNo %in% control_ramps ~"control_without_shelter")) %>%
   filter(year != "1997") %>% # 1997 was year before shelters were put up
   #group_by(year, season, RampNo, site, ramps, experiment, treatment) %>% 
   #summarize(plot_biomass = mean(plot_biomass)) %>% 
-  tidyr::unite("higher_order_organization", c(experiment, block), remove = F) %>% #ramps, RampNo
-  tidyr::unite("uniqueID", c(higher_order_organization, ramps, RampNo, subplot), remove = F) %>%
+  group_by(year, site, RampNo, treatment) %>% 
+  summarize(plot_biomass = mean(plot_biomass)) %>% 
+  mutate(experiment = "RaMPs") %>% 
+  tidyr::unite("higher_order_organization", experiment, remove = F) %>% #ramps, RampNo
+  tidyr::unite("uniqueid", c(higher_order_organization, RampNo), remove = F) %>%
   dplyr::rename(plot = RampNo) %>% 
-  dplyr::select(year, season, site, plot, higher_order_organization, uniqueID, treatment, plot_biomass) %>% 
+  dplyr::select(year, site, plot, higher_order_organization, uniqueid, treatment, plot_biomass) %>% 
   mutate(nutrients_added = "no_fertilizer",
          nitrogen_added = 0,
          disturbance = "undisturbed",
@@ -440,12 +452,18 @@ RaMPs_ANPP <- RaMPs_ANPP_working %>%
          measurement_scale_biomass = 0.1,
          richness = NA,
          evenness = NA,
-         measurement_scale_cover = 0.1) %>% 
+         measurement_scale_cover = 0.4,
+         original_measurement_unit="biomass_g/m2") %>% 
   mutate(treatment_comment = case_when(treatment == "altered" & as.numeric(year) <= 2001 ~ "Could be reduced quantity, altered pattern, or both",
                                        treatment == "altered" & as.numeric(year) == 2001 ~ "Reduced quantity ended",
                                        treatment == "altered" & as.numeric(year) >= 2003 ~ "Heat lamps added to two random subplots",
-                                       treatment == "control" ~ "sheltered controls to account for effects from shelter infrastructure"))
+                                       treatment == "control" ~ "sheltered controls to account for effects from shelter infrastructure",
+                                       treatment== "control_without_shelter"~ "unsheltered controls,does not account for effects from shelter infrastructure"))
 
+
+
+summary(RaMPs_ANPP$plot_biomass)
+hist(RaMPs_ANPP$plot_biomass)
 
 # factors we need: year, site, plot, higher_order_organization, temperature, 
 # precipitation, nutrients_added, nitrogen_amount, disturbance, grazing, 
@@ -458,38 +476,74 @@ ambient_ramps <- c(3, 4, 6, 7, 11, 15)
 altered_ramps <- c(2,5,9, 10, 12, 13)
 control_ramps <- c(1, 8, 14)
 
-RaMPs_PlantCommunityComposition <- ramps %>% 
+#RaMPs_ANPP$year <- as.factor(RaMPs_ANPP$year)
+#ramps$RecYear <- as.factor(ramps$RecYear)
+
+
+# first, have biomass of individual spp in a subplot (per year) as own row
+biomass_per_species_SubplotYear <- ramps %>% 
+  filter(RecYear != 1997) %>% 
   mutate(A_g_m2 = A*10,
          B_g_m2 = B*10,
          C_g_m2 = C*10,
          D_g_m2 = D*10) %>% 
   dplyr::select(RecType,RecYear,season,RampNo,Species,A_g_m2,B_g_m2,C_g_m2,D_g_m2) %>% 
+  group_by(RecYear, season, RampNo, Species) %>% 
+  summarize(A_g_m2 = mean(A_g_m2),
+            B_g_m2 = mean(B_g_m2),
+            C_g_m2 = mean(C_g_m2),
+            D_g_m2 = mean(D_g_m2)) %>% 
+  ungroup() %>% 
   dplyr::rename(A = A_g_m2,
                 B = B_g_m2,
                 C = C_g_m2,
                 D = D_g_m2) %>% 
-  tidyr::gather(key="plot", value="plot_biomass_spp", A, B, C, D) %>% 
-  merge(., RaMPs_ANPP_working, 
-        by=c("RecYear", "season", "RampNo", "plot")) %>% 
-  mutate(relative_abundance = plot_biomass_spp/plot_biomass) %>% 
-  dplyr::rename(year = RecYear,
-                subplot = plot) %>% 
+  tidyr::gather(key="subplot", value="plot_biomass_spp", A, B, C, D) %>% 
+  dplyr::rename(plot = RampNo,
+                year = RecYear) %>% 
+  group_by(year, season, plot, Species, subplot) %>% 
+  filter(plot_biomass_spp > 0) 
+  
+# next, calculate the total biomass of each subplot from each row, separating by season
+biomass_per_SubplotYear <- ramps %>% 
+  filter(RecYear != 1997) %>% 
+  mutate(A_g_m2 = A*10,
+         B_g_m2 = B*10,
+         C_g_m2 = C*10,
+         D_g_m2 = D*10) %>% 
+  dplyr::select(RecType,RecYear,season,RampNo,Species,A_g_m2,B_g_m2,C_g_m2,D_g_m2) %>% 
+  group_by(RecYear, season, RampNo, Species) %>% 
+  summarize(A_g_m2 = mean(A_g_m2),
+            B_g_m2 = mean(B_g_m2),
+            C_g_m2 = mean(C_g_m2),
+            D_g_m2 = mean(D_g_m2)) %>% 
+  ungroup() %>%
+  dplyr::rename(A = A_g_m2,
+                B = B_g_m2,
+                C = C_g_m2,
+                D = D_g_m2) %>% 
+tidyr::gather(key="subplot", value="plot_biomass_spp", A, B, C, D) %>% 
+  dplyr::rename(plot = RampNo,
+                year = RecYear) %>% 
+  group_by(year, season, plot, subplot) %>% 
+  summarize(subplot_total_biomass = sum(plot_biomass_spp))
+
+# finally, consolidate the two objects, divide spp biomass by total biomass during collection, then take maximum relative abundance
+ramps_spp_comp <- biomass_per_species_SubplotYear %>% 
+  merge(., biomass_per_SubplotYear, by = c("year", "plot", "subplot", "season")) %>% 
+  mutate(relative_abundance_subplot = plot_biomass_spp/subplot_total_biomass) %>% 
+  group_by(year, plot, season, Species) %>% 
+  summarize(plot_biomass_spp_avg_plot = (sum(relative_abundance_subplot)/4)) %>% 
+  group_by(year, plot, Species) %>% 
+  summarize(relative_abundance = max(plot_biomass_spp_avg_plot)) %>% 
   mutate(site = "KNZ",
-         ramps = "RampNo",
          experiment = "RaMPs",
-         treatment  = case_when(RampNo %in% ambient_ramps ~ "control",#made ambient control 
-                                RampNo %in% altered_ramps ~ "altered",
-                                RampNo %in% control_ramps ~ "ambient"),
-         block = case_when(RampNo %in% c(1:5) ~ "Block1",
-                           RampNo %in% c(6:10) ~ "Block2",
-                           RampNo %in% c(11:15) ~ "Block3")) %>% 
-  filter(year != "1997") %>% # 1997 was year before shelters were put up
-  #group_by(year, season, RampNo, site, ramps, experiment, treatment) %>% 
-  #summarize(plot_biomass = mean(plot_biomass)) %>% 
-  tidyr::unite("higher_order_organization", c(experiment, block), remove = F) %>% #ramps, RampNo
-  tidyr::unite("uniqueID", c(higher_order_organization, ramps, RampNo, subplot), remove = F) %>%
-  dplyr::rename(plot = RampNo) %>% 
-  dplyr::select(year, season, site, plot, higher_order_organization, uniqueID, treatment, relative_abundance, Species) %>% 
+         treatment  = case_when(plot %in% ambient_ramps ~ "control",#made ambient control 
+                                plot %in% altered_ramps ~ "altered",
+                                plot %in% control_ramps ~ "control_without_shelter")) %>% 
+  tidyr::unite("higher_order_organization", experiment, remove = F) %>% #ramps, RampNo
+  tidyr::unite("uniqueid", c(higher_order_organization, plot), remove = F) %>%
+  dplyr::select(year, site, plot, higher_order_organization, uniqueid, treatment, relative_abundance, Species) %>% 
   mutate(nutrients_added = "no_fertilizer",
          nitrogen_added = 0,
          disturbance = "undisturbed",
@@ -498,29 +552,17 @@ RaMPs_PlantCommunityComposition <- ramps %>%
          time_since_fire = 0,
          diversity_manipulated = "naturally_assembled",
          measurement_scale_biomass = 0.1,
-         measurement_scale_cover = 1,
+         measurement_scale_cover = 0.4,
          original_measurement_unit="biomass_g/m2") %>% 
   mutate(treatment_comment = case_when(treatment == "altered" & as.numeric(year) <= 2001 ~ "Could be reduced quantity, altered pattern, or both",
                                        treatment == "altered" & as.numeric(year) == 2001 ~ "Reduced quantity ended",
                                        treatment == "altered" & as.numeric(year) >= 2003 ~ "Heat lamps added to two random subplots",
-                                       treatment == "control" ~ "sheltered controls to account for effects from shelter infrastructure"))%>%
+                                       treatment == "control_without_shelter" ~ "unsheltered controls does not account for effects of shelter infrastructure",
+                                       treatment == "control" ~ "sheltered controls to account for effects of shelter infrastructure"))%>%
   rename(species=Species)
 
-#calculate species richness/diversity
-diver_ramp_df<-RaMPs_PlantCommunityComposition%>%
-  select(uniqueID,year,relative_abundance,species)%>%
-  community_diversity(time.var="year",abundance.var="relative_abundance",
-                      replicate.var="uniqueID",metric = "Shannon")
-rich_ramp_df<-RaMPs_PlantCommunityComposition%>%
-  select(uniqueID,year,relative_abundance,species)%>%
-  #calculates richness and evenness as Evar
-  community_structure(time.var="year",abundance.var="relative_abundance",
-                      replicate.var="uniqueID")%>%
-  left_join(diver_ramp_df, by=c("year","uniqueID"))
 
-#combine diversity metrics with all composition data
-RaMPs_PlantCommunityComposition<-RaMPs_PlantCommunityComposition%>%
-  left_join(rich_ramp_df, by=c("year","uniqueID"))
+
 
 
 ```
@@ -957,7 +999,7 @@ df_I1_I2_KNZ.clean <- left_join(df_I1_I2_KNZ.clean, KNZ_NUTNET_treatment,
 ```
 
 
-#Mary's code
+#Mary's code-(uploaded and edited by Joshua)
 ```{r}
 #Mary's Code!!! for ChANGE K1_NGE01
 # >:)
@@ -1294,6 +1336,271 @@ B1_sppcomp<-final%>%
 ```
 
 
+Mary's code (Konza longest datasets)-uploaded and edited by Joshua
+```{r}
+#read in data, remove unneeded cols
+F1_AB_spp_soil_allwatersheds<-read.csv(file.path(L0_dir,"KNZ/F1_PVC021_Sppcomp_RAW.csv"))%>%
+  filter(RecYear!="1983")%>% #Remove 1983 data, no corresponding biomass data is on record
+  rename(gen=AB_genus,spec=AB_species,code=SpeCode,plot=Plot,year=RecYear)%>%
+  select(-DataCode,-RecType,-Comments,-Pid,-RecDay) #drop unneeded columns 
+
+#Exclude all watershed data that isn't replicated in the ANPP data
+#All data needs biomass and sppcomp--only three watersheds have associated biomass: 001d,004b,020b
+F1_AB_spp_allsoil <- F1_AB_spp_soil_allwatersheds %>% 
+  filter(WaterShed=="001d"|WaterShed=="004b"|WaterShed=="020b"|WaterShed=="002c"|WaterShed=="002d"|WaterShed=="004a") #should leave us with 201278 rows
+
+#We do not have production data for all years in all water sheds: but sppcomp from 1984-2023
+ #001d: 1984-2023
+ #004b: 1984-2023
+ #020b: 1984-2023
+ #002c: 1993-2016*
+ #002d: 1985-2016*
+ #004a: 1993-2016*
+
+#Exclude the years of sppcomp data that aren't found in biomass data
+  #file starts with 201278 rows
+F1_AB_spp_allsoil <- F1_AB_spp_allsoil %>% 
+  filter(!(WaterShed=="002c"&(year<1993|year>2016|year==2015)))
+F1_AB_spp_allsoil <- F1_AB_spp_allsoil %>% 
+  filter(!(WaterShed=="002d"&(year<1985|year>2016|year==2015)))
+F1_AB_spp_allsoil <- F1_AB_spp_allsoil %>% 
+  filter(!(WaterShed=="004a"&(year<1993|year>2016|year==2015)))
+#removing 20 year fire frequency to avoid incorporating shrubland/woodland
+F1_AB_spp_allsoil<-F1_AB_spp_allsoil%>%
+  filter(WaterShed!="020b")
+
+#Exclude all soil data that isn't replicated in the ANPP data
+#All data needs biomass and sppcomp--only two soiltypes have associated biomass: t (tully soils) and f (florence soils)
+F1_AB_spp_soil <- F1_AB_spp_allsoil %>% 
+  filter(SoilType=="f"|SoilType=="t") #should leave us with 109607 rows
+
+#Update soil abbreviations to match biomass data
+F1_AB_spp_soil$SoilType[F1_AB_spp_soil$SoilType == "f"]<-"fl"
+F1_AB_spp_soil$SoilType[F1_AB_spp_soil$SoilType == "t"]<-"tu"
+
+#Combine Watershed, Transect, and Soiltype to create higher order organization then create the uniqueID col
+F1_AB_spp_soil$higher_order_organization<-paste(F1_AB_spp_soil$WaterShed, F1_AB_spp_soil$Transect,F1_AB_spp_soil$SoilType,sep="_")
+F1_AB_spp_soil$uniqueid<-paste(F1_AB_spp_soil$year, F1_AB_spp_soil$higher_order_organization, F1_AB_spp_soil$plot, sep="_")
+
+#remove unneeded cols
+F1_AB_spp<-select(F1_AB_spp_soil,-WaterShed,-Transect,-SoilType)
+
+#Add site col
+F1_AB_spp$site<-"KNZ"
+
+#Check for duplicates
+F1_AB_spp[duplicated(F1_AB_spp[,1:10]),]
+
+#F1_PVC021 uses abbreviated names, while we need entire species names
+#load and merge with species list
+PPS011<-read.csv(file.path(L0_dir,"KNZ/PPS011_Spplist.csv"))%>%
+  rename(species_b=species)%>%
+  select(-updatedyear,-family,-lifespan,-growthform,-origin,-photo,-Comments) #drop unneeded columns
+
+F1_spp<-merge(F1_AB_spp,PPS011,by=c("gen","spec","code"))
+
+#capitalize genus
+F1_spp$genus<-str_to_sentence(F1_spp$genus)
+
+#unite genus and species col to create final species col
+F1_spp$species<-paste(F1_spp$genus, F1_spp$species_b, sep=" ")
+
+#drop cols no longer needed for species
+F1_spp2<-select(F1_spp, -gen,-spec,-code,-genus,-species_b)
+
+#F1_PVC021 includes data from early and late season, we only need the higher cover
+#spread data across months
+F1_wide <- pivot_wider(F1_spp2, names_from = RecMonth, values_from = Cover)
+
+#take the max value for all months
+F1_wide$abundance <- pmax(F1_wide$"4",F1_wide$"5",F1_wide$"6",F1_wide$"7",F1_wide$"8",F1_wide$"9",F1_wide$"10", na.rm = TRUE)
+
+#drop cols no longer needed
+F1_wide<-select(F1_wide, -"4",-"5",-"6",-"7",-"8",-"9",-"10")
+
+#F1_PVC021 uses a modified Daubenmire cover scale--need to covert to % cover
+#convert scale to the midpoint cover data  
+#1 - 0-1% cover --> 0.5
+#2 - 2-5% cover --> 3.5
+#3 - 5-25% cover --> 15
+#4 - 25-50% cover --> 37.5
+#5 - 50-75% cover --> 62.5
+#6 - 75-95% cover --> 85
+#7 - 95-100% cover --> 97.5
+
+#add original measurement col col
+F1_wide$original_measurement_unit<-"%cover"
+
+F1_wide$abundance[F1_wide$abundance == '1']<-0.5
+F1_wide$abundance[F1_wide$abundance == '2']<-3.5
+F1_wide$abundance[F1_wide$abundance == '3']<-15
+F1_wide$abundance[F1_wide$abundance == '4']<-37.5
+F1_wide$abundance[F1_wide$abundance == '5']<-62.5
+F1_wide$abundance[F1_wide$abundance == '6']<-85
+F1_wide$abundance[F1_wide$abundance == '7']<-97.5
+
+#Check for duplicates
+F1_wide[duplicated(F1_wide[,1:8]),]
+
+#Calculate relative abundance
+#relative_abundance: calculate so all sum to 1
+#aggregate rows to sum cover across plot and get a "total cover" metric
+totalcover_only<-aggregate(F1_wide$abundance,
+                           by=list(higher_order_organization=F1_wide$higher_order_organization,
+                                   plot=F1_wide$plot,
+                                   site=F1_wide$site,
+                                   uniqueid=F1_wide$uniqueid,
+                                   year=F1_wide$year), FUN=sum)
+names(totalcover_only)[names(totalcover_only)=="x"] <- "totalcover"
+
+#add totalcover value to main dataset
+F1_wide2<-merge(totalcover_only,F1_wide, by=c("site","plot","year","uniqueid","higher_order_organization"))
+
+#calculate relative abundance in new col then remove the "totalcover" col
+F1_wide2$relative_abundance <- (F1_wide2$abundance/F1_wide2$totalcover)
+F1_wide2 <- select(F1_wide2,-totalcover)
+
+#write cleaned document
+write.csv(F1_wide2, "F1_PVC021_Sppcomp.csv")
+
+
+####Process and clean F1_PAB_Biomass
+  #We are using two biomass datasets:
+  #PAB011: end-of-season clips on core watersheds: 001d, 004b and 020b.
+  #PAB041: end-of-season clips on non-core watershed: 002c, 002d and 004a.
+
+#read in data, remove unneeded cols
+F2_1mass<-read.csv(file.path(L0_dir,"KNZ/F2_PAB011_Biomass_RAW.csv"))%>%
+  rename(plot=PLOTNUM,year=RECYEAR)%>%
+  select(-DATACODE,-RECTYPE,-RECMONTH,-RECDAY,-COMMENTS, -PRYRDEAD) #drop unneeded columns
+
+summary.factor(F2_1mass$WATERSHED)
+
+#read in data, remove unneeded cols
+F2_4mass<-read.csv(file.path(L0_dir,"KNZ/F2_PAB041_Biomass_RAW.csv"))%>%
+  rename(plot=PLOTNUM,year=RECYEAR)%>%
+  select(-DATACODE,-RECTYPE,-RECMONTH,-RECDAY,-COMMENTS, -PRYRDEAD) #drop unneeded columns
+
+  #fix the watershed titles: during 2012, the watersheds of interest are capitalized, not sure why
+F2_4mass$WATERSHED[F2_4mass$WATERSHED == '002C']<-"002c"
+F2_4mass$WATERSHED[F2_4mass$WATERSHED == '002D']<-"002d"
+F2_4mass$WATERSHED[F2_4mass$WATERSHED == '004A']<-"004a"
+
+  #filter for watersheds of interest--Don't know why there are so many watershed--they shouldn't be there
+F2_4mass<-filter(F2_4mass,WATERSHED=="001d"|WATERSHED=="004b"|WATERSHED=="020b"|WATERSHED=="002c"|WATERSHED=="002d"|WATERSHED=="004a") #should leave us with 201278 rows
+summary.factor(F2_4mass$WATERSHED)
+
+#Bind the two datasets
+F2_mass<-rbind(F2_1mass,F2_4mass)
+summary.factor(F2_mass$WATERSHED)
+
+#Fix transect to match sppcomp
+F2_mass$TRANSECT<-str_to_upper(F2_mass$TRANSECT)
+F2_mass[duplicated(F2_mass[,1:9]),]
+
+#Exclude all soil data that isn't replicated in the sppcomp data
+#All data needs biomass and sppcomp--only two soiltypes have associated biomass: tu (tully soils) and fl (florence soils)
+summary.factor(F2_mass$SOILTYPE)
+
+F2_mass <- F2_mass %>% 
+  filter(SOILTYPE=="fl"|SOILTYPE=="tu") #should leave us with 4800 rows
+
+#Add site col
+F2_mass$site<-"KNZ"
+
+#Combine Watershed, Transect, and Soil to create higher order organization then create the uniqueID col
+F2_mass$higher_order_organization<-paste(F2_mass$WATERSHED, F2_mass$TRANSECT,F2_mass$SOILTYPE,sep="_")
+F2_mass$uniqueid<-paste(F2_mass$year, F2_mass$higher_order_organization, F2_mass$plot, sep="_")
+#removing 20 year fire frequency to avoid shrubland/woodland confounding grassland results
+F2_mass<-F2_mass%>%
+  filter(WATERSHED!="020b")
+#drop cols no longer needed for species
+F2_mass2<-select(F2_mass,-WATERSHED,-TRANSECT,-SOILTYPE)
+
+#Sum all production to the plot biomass level
+F2_mass2[is.na(F2_mass2)] <- 0
+F2_mass2$plot_biomass<-rowSums(F2_mass2[,3:6])
+F2_mass2$plot_biomass<-10*(F2_mass2$plot_biomass)
+
+#drop cols that are no longer needed
+F2_mass3<-select(F2_mass2, -LVGRASS,-FORBS,-CUYRDEAD,-WOODY)
+
+#calculate richness and diversity (as evenness) then merge with the main biomass dataset
+F2_diversity <- community_structure(F1_wide2, time.var = "year", abundance.var = "relative_abundance",
+                                    replicate.var = "uniqueid", metric = c("Evar"))
+
+F2_mass4<-merge(F2_mass3,F2_diversity, by=c("year","uniqueid"))
+  #20 rows dropped: 1991_002d missing species comp data, not worried about this, we have plenty of data
+
+#Add scale data
+F2_mass4$measurement_scale_biomass<-0.1
+F2_mass4$measurement_scale_cover<-10
+
+#write cleaned document
+write.csv(F2_mass4, "F2_PAB_Biomass.csv")
+
+
+
+####Create K1_NGE01 metadata file
+#Read in biomass dataset and remove unneeded columns
+F3_meta<-F2_mass4%>%
+  select(-measurement_scale_biomass,-measurement_scale_cover,-plot_biomass,-richness,-Evar) #drop unneeded columns
+
+
+#treatment:
+F3_meta$treatment<-"control"
+
+#nutrients_added:
+F3_meta$nutrients_added<-"no_fertilizer"
+
+#nitrogen_amount:
+F3_meta$nitrogen_amount<-0
+
+#disturbance:
+F3_meta$disturbance<-"undisturbed"
+
+#grazing:
+F3_meta$grazing<-"ungrazed"
+
+#treatment_comment:
+F3_meta$treatment_comment<-"does_not_apply"
+
+#diversity_manipulated
+F3_meta$diversity_manipulated<-"naturally_assembled"
+
+#fire frequency information:
+  #fire is not consistent, so I created an excel sheet that can be merged
+fireinfo<-read.csv(file.path(L0_dir,"KNZ/F3_PAB_Metadata_fireinformation.csv"))
+  #depends on watershed: need to separate cols temporarily to merge treatment
+F3_meta_temp<-separate(F3_meta, higher_order_organization, into = c("watershed_temp", "transect_temp","soil_temp"), sep="_")
+
+F3_meta_fire<-merge(F3_meta_temp,fireinfo,by=c("year","watershed_temp"))
+
+#Bring temporarily separated higher_order_organization column back together
+F3_meta_fire$higher_order_organization<-paste(F3_meta_fire$watershed_temp, F3_meta_fire$transect_temp,F3_meta_fire$soil_temp,sep="_")
+  #delete the temp cols
+F3_meta_fire<-select(F3_meta_fire, -watershed_temp,-transect_temp,-soil_temp)
+
+#before writing the final doc, ensure that all biomass data has corresponding sppcomp data
+check_biomass<-F3_meta_fire %>%
+  ungroup() %>% 
+  dplyr::select(uniqueid,plot) %>%
+  unique()
+
+check_sppcomp<-F1_wide2 %>%
+  ungroup() %>% 
+  dplyr::select(uniqueid, plot) %>%
+  unique()
+
+check_all<-merge(check_sppcomp,check_biomass,by=c("uniqueid"),all = TRUE)
+
+
+
+```
+
+
+
+
 #precipitation and temperature data-Joshua (modified from Mary's and Smriti's code)
 ```{r}
  
@@ -1348,21 +1655,26 @@ df_E1_KNZ_species_level$plot<-as.factor(df_E1_KNZ_species_level$plot)
 K1_spp$plot<-as.factor(K1_spp$plot)
 df_C1_KNZ.cleanest$plot<-as.factor(df_C1_KNZ.cleanest$plot)
 df_I1_KNZ.clean$plot<-as.factor(df_I1_KNZ.clean$plot)
-df_J2_KNZ.clean.richness.evenness$plot<-as.factor(df_J2_KNZ.clean.richness.evenness$plot)
-df_C1_KNZ.cleanest$measurement_scale_cover=as.factor(df_C1_KNZ.cleanest$measurement_scale_cover)
-RaMPs_PlantCommunityComposition$measurement_scale_cover<-as.factor(RaMPs_PlantCommunityComposition$measurement_scale_cover)
+#df_J2_KNZ.clean.richness.evenness$plot<-as.factor(df_J2_KNZ.clean.richness.evenness$plot)
+#df_C1_KNZ.cleanest$measurement_scale_cover=as.factor(df_C1_KNZ.cleanest$measurement_scale_cover)
+ramps_spp_comp$measurement_scale_cover<-as.factor(ramps_spp_comp$measurement_scale_cover)
 df_C1_KNZ.cleanest<-df_C1_KNZ.cleanest%>%
   mutate(site="KNZ")
 df_I1_KNZ.clean<-df_I1_KNZ.clean%>%
   mutate(original_measurement_unit="%cover")
+F1_wide2$plot<-as.factor(F1_wide2$plot)
+
 #combining species level data set
 KNZ_specieslevel_abundance<-df_E1_KNZ_species_level%>%
   select(-DataCode,-RecType,-PlotID,-total_abundance,-Spnum,-Treatment)%>%
   bind_rows(K1_spp,df_C1_KNZ.cleanest,df_I1_KNZ.clean)%>%
   select(-10:-17)%>%
-  #bind_rows(df_J2_KNZ.clean.richness.evenness)%>% notspecies identity need to confirm before including
+  #bind_rows(df_J2_KNZ.clean.richness.evenness)%>% no species identity need to confirm before including
   #select(-10:-22)#%>%
-  bind_rows(B1_sppcomp)
+  bind_rows(B1_sppcomp)%>%
+  bind_rows(ramps_spp_comp)%>%
+  select(-10:-20)%>%
+  bind_rows(F1_wide2)
 
 
   
@@ -1380,8 +1692,6 @@ df_I1_I2_KNZ.clean$measurement_scale_cover=as.integer(df_I1_I2_KNZ.clean$measure
 df_I1_I2_KNZ.clean<-df_I1_I2_KNZ.clean%>%
   mutate(plot_biomass=total)
 df_I1_I2_KNZ.clean$block=as.factor(df_I1_I2_KNZ.clean$block)
-#RaMPs_ANPP<-RaMPs_ANPP%>%
-  #mutate(uniqueid=uniqueID)
 B2_plot_biomass$measurement_scale_biomass=as.numeric(B2_plot_biomass$measurement_scale_biomass)
 B2_plot_biomass$measurement_scale_cover=as.numeric(B2_plot_biomass$measurement_scale_cover)
 df_C2_KNZ_cleanest$measurement_scale_biomass<-as.numeric(df_C2_KNZ_cleanest$measurement_scale_biomass)
@@ -1395,8 +1705,11 @@ df_I1_I2_KNZ.clean<-df_I1_I2_KNZ.clean%>%
          measurement_scale_cover=1)
 B2_plot_biomass<-B2_plot_biomass%>%
   mutate(original_measurement_unit="%cover")
-  
-
+F2_mass4$measurement_scale_biomass<-as.numeric(F2_mass4$measurement_scale_biomass)
+F2_mass4$plot<-as.factor(F2_mass4$plot)
+F2_mass4<-F2_mass4%>%
+  mutate(original_measurement_unit="%cover")
+df_I1_I2_KNZ.clean$measurement_scale_biomass<-as.numeric(df_I1_I2_KNZ.clean$measurement_scale_biomass)
 #combining konza plot biomass data
 KNZ_plotlevel_metrics<-df_E1_E2_KNZ_clean_plot_metrics%>%
   select(-DataCode,-RecType,-Treatment,-richness,-evenness,-Shannon,-treatment)%>%
@@ -1407,6 +1720,11 @@ KNZ_plotlevel_metrics<-df_E1_E2_KNZ_clean_plot_metrics%>%
   select(-10:-21)%>%
   #,df_J2_KNZ.clean.richness.evenness,RaMPs_ANPP)%>%
   bind_rows(B2_plot_biomass)%>%
+  select(-10:-13)%>%
+  bind_rows(RaMPs_ANPP)%>%
+  select(-10:-20)%>%
+  bind_rows(F2_mass4)%>%
+  select(-10:-11)%>%
   distinct()
 
 summary(KNZ_plotlevel_metrics)
@@ -1422,12 +1740,13 @@ B1_B2_metadata$time_since_fire=as.integer(B1_B2_metadata$time_since_fire)
 C1_Meta$plot<-as.factor(C1_Meta$plot)
 C1_Meta<-C1_Meta%>%select(-measurement_scale_biomass)
 df_I1_I2_KNZ.clean$measurement_scale_biomass<-as.factor(df_I1_I2_KNZ.clean$measurement_scale_biomass)
-#RaMPs_PlantCommunityComposition$measurement_scale_cover<-as.integer(RaMPs_PlantCommunityComposition$measurement_scale_cover)
+ramps_spp_comp$measurement_scale_cover<-as.integer(ramps_spp_comp$measurement_scale_cover)
 #RaMPs_PlantCommunityComposition$measurement_scale_biomass<-as.factor(RaMPs_PlantCommunityComposition$measurement_scale_biomass)
 K1_meta$plot<-as.factor(K1_meta$plot)
+F3_meta_fire$plot<-as.factor(F3_meta_fire$plot)
+
+
 #combine Konza metadata
-
-
 KNZ_metadata<-df_E1_E2_metadata%>%
   select(-RecType,-Treatment,-source,-watershed)%>%
   bind_rows(K1_meta,C1_Meta)%>%
@@ -1436,6 +1755,9 @@ KNZ_metadata<-df_E1_E2_metadata%>%
   select(-16:-31)%>%
   bind_rows(B1_B2_metadata)%>%
   select(-16)%>%
+  bind_rows(ramps_spp_comp)%>%
+  select(-17:-22)%>%
+  bind_rows(F3_meta_fire)%>%
   left_join(weather_df)%>%
   distinct()
 

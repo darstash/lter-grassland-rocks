@@ -1031,7 +1031,7 @@ K1_spp$relative_abundance <- (K1_spp$abundance/K1_spp$totalcover)
 K1_spp <- K1_spp %>% select(-totalcover)
 
 #combine block and plot for the uniqueid col
-K1_spp$uniqueid<-paste(K1_spp$year,K1_spp$higher_order_organization,K1_spp$plot)
+K1_spp$uniqueid<-paste(K1_spp$higher_order_organization,K1_spp$plot)
 
 #site: update name to fit convention
 K1_spp$site[K1_spp$site == 'knz']<-'KNZ'
@@ -1056,7 +1056,7 @@ K1_mass<-read.csv(file.path(L0_dir, "KNZ/K2_NGE01_Biomass_RAW_no deluge plots_al
   select(-X,-nitrogen,-treatment) #drop unneeded columns
 
 #combine block and plot for the uniqueid col
-K1_mass$uniqueid<-paste(K1_mass$year,K1_mass$higher_order_organization,K1_mass$plot)
+K1_mass$uniqueid<-paste(K1_mass$higher_order_organization,K1_mass$plot)
 
 #calculate richness and diversity (as evenness) then merge with the main biomass dataset
 K1_diversity <- community_structure(K1_spp, time.var = "year", abundance.var = "relative_abundance",
@@ -1380,7 +1380,7 @@ F1_AB_spp_soil$SoilType[F1_AB_spp_soil$SoilType == "t"]<-"tu"
 
 #Combine Watershed, Transect, and Soiltype to create higher order organization then create the uniqueID col
 F1_AB_spp_soil$higher_order_organization<-paste(F1_AB_spp_soil$WaterShed, F1_AB_spp_soil$Transect,F1_AB_spp_soil$SoilType,sep="_")
-F1_AB_spp_soil$uniqueid<-paste(F1_AB_spp_soil$year, F1_AB_spp_soil$higher_order_organization, F1_AB_spp_soil$plot, sep="_")
+F1_AB_spp_soil$uniqueid<-paste(F1_AB_spp_soil$higher_order_organization, F1_AB_spp_soil$plot, sep="_")
 
 #remove unneeded cols
 F1_AB_spp<-select(F1_AB_spp_soil,-WaterShed,-Transect,-SoilType)
@@ -1510,7 +1510,7 @@ F2_mass$site<-"KNZ"
 
 #Combine Watershed, Transect, and Soil to create higher order organization then create the uniqueID col
 F2_mass$higher_order_organization<-paste(F2_mass$WATERSHED, F2_mass$TRANSECT,F2_mass$SOILTYPE,sep="_")
-F2_mass$uniqueid<-paste(F2_mass$year, F2_mass$higher_order_organization, F2_mass$plot, sep="_")
+F2_mass$uniqueid<-paste(F2_mass$higher_order_organization, F2_mass$plot, sep="_")
 #removing 20 year fire frequency to avoid shrubland/woodland confounding grassland results
 F2_mass<-F2_mass%>%
   filter(WATERSHED!="020b")

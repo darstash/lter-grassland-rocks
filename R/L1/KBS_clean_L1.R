@@ -500,6 +500,10 @@ unique(glbrc_grassland$species)
 glbrc_grassland_nounknown <- glbrc_grassland %>% 
   filter(!species %in% non_plant_things_in_biomass)
 
+# Remove observations when subplots were lumped together for harvest
+glbrc_grassland_nounknown <- glbrc_grassland_nounknown %>%
+  filter(station != "")
+
 # calculate total ANPP: sum up ANPP for ALL species
 anpp_rich_glbrc <- glbrc_grassland_nounknown %>% 
   group_by(year, treatment, glbrc_site, replicate, station,experiment, nutrients_added, area_sampled_bio,area_sampled_cover,

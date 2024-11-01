@@ -609,7 +609,8 @@ names(e054_anpp)
 
 #adding study information and renaming columns to match master data sheet
 e054_anpp <- e054_anpp %>%
-  mutate(site="CDR",
+  mutate(Transect = ifelse(Transect %in% "y", "Y", Transect),
+         site="CDR",
          higher_order_organization = paste("Experiment", Exp, " field", OldField), # note I added the field string, so that it is not a random A. Not sure this is needed
          Species_names = case_when(Species_names %in% "#N/A" ~ TaxonID, .default = Species_names),
          species = as.factor(Species_names), #to look at all the species and identify things to remove

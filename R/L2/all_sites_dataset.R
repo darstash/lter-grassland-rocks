@@ -55,7 +55,7 @@ plot_metrics <- full_join(plot_metrics, KNZ_plot_metrics)
 plot_metrics <- plot_metrics %>%
   select(-c(source, shannon, evenness, richness, X, dataset))
 
-# write.csv(plot_metrics, file.path(L2_dir, "./plot_metrics.csv"), row.names=F)
+write.csv(plot_metrics, file.path(L2_dir, "./plot_metrics.csv"), row.names=F)
 
 # Metadata
 
@@ -77,7 +77,7 @@ metadata <- metadata %>%
   mutate(growprecip = coalesce(growprecip, growing_precipitation)) %>%
   select(-c(growing_precipitation, X))
   
-# write.csv(metadata, file.path(L2_dir, "./metadata.csv"), row.names=F)
+write.csv(metadata, file.path(L2_dir, "./metadata.csv"), row.names=F)
 
 # Species abundance
 
@@ -256,5 +256,5 @@ species_list %>% select(species_clean, category) %>% unique()
 
 species_abundance %>% filter(species %in% (species_list %>% filter(str_detect(species, " \\(\\*\\)")))$species) %>% select(site, higher_order_organization) %>% unique()
 
-# write.csv(species_abundance, file.path(L2_dir, "./species_abundance.csv"), row.names=F)
+write.csv(species_abundance, file.path(L2_dir, "./species_abundance.csv"), row.names=F)
 

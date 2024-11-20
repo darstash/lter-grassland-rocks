@@ -17,6 +17,7 @@ library(janitor)
 library(DHARMa)
 library(bbmle)
 library(ggeffects)
+library(MuMIn)
 
 # Set working directory 
 L0_dir <- Sys.getenv("L0DIR")
@@ -27,6 +28,7 @@ list.files(L2_dir)
 # Read in CSV files
 plot <- read.csv(file.path(L2_dir, "plot_metrics_SPEI_diversity.csv"))
 ece <- read.csv(file.path(L2_dir, "ece_resist_resil.csv"))
+meta <- read.csv(file.path(L2_dir, "metadata.csv"))
 
 # Only keep distinct rows in ece
 ece <- distinct(ece)
@@ -48,8 +50,60 @@ plot_ece <- plot_ece %>%
 # Standardize column names
 plot_ece <- clean_names(plot_ece)
 
-# Analysis 1: resistance vs richness ----
+# Merge with metadata
+plot_ece_meta <- left_join(plot_ece, meta)
 
+# Remove NAs for non-extreme years
+plot_ece_rm_na <- plot_ece_meta %>%
+  drop_na(resistance)
+
+# Subset to only have control plots
+plot_ece_control <- plot_ece_rm_na %>%
+  filter(treatment == "control")
+
+# Analysis 1: resistance vs richness ----
+## Control plot only ----
+
+# Model with all variables and maximal random effects (need to add experiment)
+resist.control.full <- lmer(log10(resistance) ~ scale(richness)*scale(berger_parker)*site*spei6_category + year + (1|site/uniqueid), data = plot_ece_control, na.action = na.fail) # failed to converge
+summary(resist.control.full)
+plot(resist.control.full)
+simres <- simulateResiduals(resist.control.full)
+plot(simres) # Very bad!
+
+# dredge(resist.control.full) # best model only has spei_category lol
+
+# Additive only model
+resist.control.add <- lmer(log10(resistance) ~ richness + berger_parker + site + spei6_category + year + (1|site/uniqueid), data = plot_ece_control) # failed to converge
+
+# Three way interaction, drop site, scale richness and dominance
+resist.control.int <- lmer(log10(resistance) ~ scale(richness)*scale(berger_parker)*spei6_category + year + (1|site/uniqueid), data = plot_ece_control)
+summary(resist.control.int)
+simres <- simulateResiduals(resist.control.int)
+plot(simres) # Very bad!
+
+# Drop non significant interactions (need to compare AIC)
+resist.control <- lmer(log10(resistance) ~ scale(richness)*spei6_category + scale(berger_parker) + year + (1|site/uniqueid), data = plot_ece_control)
+summary(resist.control)
+simres <- simulateResiduals(resist.control)
+plot(simres) # Very bad!
+
+# Make a model based on hypotheses
+resist.control.hyp <- lmer(log10(resistance) ~ scale(richness)*spei6_category + scale(berger_parker)*scale(richness) + scale(berger_parker)*spei6_category + year + (1|site/uniqueid), data = plot_ece_control)
+summary(resist.control.hyp)
+simres <- simulateResiduals(resist.control.hyp)
+plot(simres) # Very bad!
+
+AICctab(resist.control.int, resist.control, resist.control.hyp)
+
+# Plot best model
+ggpredict(model = resist.control, terms = c("richness", "spei6_category"), back_transform = F) %>%
+  plot(show_data = TRUE)
+
+
+
+
+## All plots ----
 # Model 1
 resist.lm <- lmer(resistance ~ richness + (1|site) + (1|site:plot) + (1|year), data = plot_ece)
 summary(resist.lm) # boundary singular fit, site explains 0 variance
@@ -141,7 +195,7 @@ ggpredict(model = resist.lm.r2.log, terms = c("richness", "spei6_category"), bac
   plot(show_data = TRUE)
 
 
-## Analysis 2 - resilience vs richness
+## Analysis 2 - resilience vs richness ----
 
 # Model 1
 resil.lm <- lmer(resilience ~ richness + (1|site) + (1|site:plot), data = plot_ece)

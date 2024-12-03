@@ -61,7 +61,7 @@ plot_ece_rm_na <- plot_ece_meta %>%
 plot_ece_control <- plot_ece_rm_na %>%
   filter(treatment == "control")
 
-# Analysis 1: resistance vs richness ----
+# Analysis 1: resistance ----
 ## Control plot only ----
 
 # Model with all variables and maximal random effects (need to add experiment)
@@ -88,16 +88,46 @@ summary(resist.control)
 simres <- simulateResiduals(resist.control)
 plot(simres) # Very bad!
 
+# Drop dominance (but it's in our hypothesis so we might want to include it)
+resist.control.rich <- lmer(log10(resistance) ~ scale(richness)*spei6_category + year + (1|site/uniqueid), data = plot_ece_control)
+summary(resist.control.rich)
+simres <- simulateResiduals(resist.control.rich)
+plot(simres) # Very bad!
+
+# Year as random effect
+resist.control.rich.ny <- lmer(log10(resistance) ~ scale(richness)*spei6_category + (1|year) + (1|site/uniqueid), data = plot_ece_control)
+summary(resist.control.rich.ny)
+simres <- simulateResiduals(resist.control.rich.ny)
+plot(simres) # Very bad!
+
+# Drop interaction (but it's in our hypothesis so we might want to include it)
+resist.control.rich.add <- lmer(log10(resistance) ~ scale(richness) + spei6_category + year + (1|site/uniqueid), data = plot_ece_control)
+summary(resist.control.rich.add)
+simres <- simulateResiduals(resist.control.rich.add)
+plot(simres) # Very bad!
+
+# Drop spei category
+resist.control.rich.nc <- lmer(log10(resistance) ~ scale(richness) + year + (1|site/uniqueid), data = plot_ece_control)
+summary(resist.control.rich.nc)
+simres <- simulateResiduals(resist.control.rich.nc)
+plot(simres) # Very bad!
+
+# Only spei category
+resist.control.spei <- lmer(log10(resistance) ~ spei6_category + year + (1|site/uniqueid), data = plot_ece_control) # singular fit, site explains zero variance
+summary(resist.control.spei)
+simres <- simulateResiduals(resist.control.spei)
+plot(simres) # Very bad!
+
 # Make a model based on hypotheses
 resist.control.hyp <- lmer(log10(resistance) ~ scale(richness)*spei6_category + scale(berger_parker)*scale(richness) + scale(berger_parker)*spei6_category + year + (1|site/uniqueid), data = plot_ece_control)
 summary(resist.control.hyp)
 simres <- simulateResiduals(resist.control.hyp)
 plot(simres) # Very bad!
 
-AICctab(resist.control.int, resist.control, resist.control.hyp)
+AICctab(resist.control.int, resist.control, resist.control.rich, resist.control.rich.add, resist.control.rich.nc, resist.control.spei, resist.control.hyp, resist.control.rich.ny)
 
 # Plot best model
-ggpredict(model = resist.control, terms = c("richness", "spei6_category"), back_transform = F) %>%
+ggpredict(model = resist.control.rich.ny, terms = c("richness", "spei6_category"), back_transform = F) %>%
   plot(show_data = TRUE)
 
 
@@ -195,8 +225,81 @@ ggpredict(model = resist.lm.r2.log, terms = c("richness", "spei6_category"), bac
   plot(show_data = TRUE)
 
 
-## Analysis 2 - resilience vs richness ----
+# Analysis 2 - resilience ----
+## Control plots only ----
+# Model with all variables and maximal random effects (need to add experiment)
+resil.control.full <- lmer(log10(resilience) ~ scale(richness)*scale(berger_parker)*site*spei6_category + year + (1|site/uniqueid), data = plot_ece_control, na.action = na.fail) # singular fit
+summary(resil.control.full)
+plot(resil.control.full)
+simres <- simulateResiduals(resil.control.full)
+plot(simres) # Bad, but not terrible
 
+# Move year to random effect (need to add experiment)
+resil.control.full.r <- lmer(log10(resilience) ~ scale(richness)*scale(berger_parker)*site*spei6_category + (1|year) + (1|site/uniqueid), data = plot_ece_control, na.action = na.fail) # failed to converge
+
+# dredge(resil.control.full) # best model has richness*spei_cat, second best adds year
+# dredge(resil.control.full.r) # best model has site*spei_cat, second best adds richness
+
+# Best model as predicted by dredge function (but including year)
+resil.control.rich <- lmer(log10(resilience) ~ scale(richness)*spei6_category + year + (1|site/uniqueid), data = plot_ece_control) # singular fit
+summary(resil.control.rich)
+simres <- simulateResiduals(resil.control.rich)
+plot(simres) # Very bad!
+
+# Move year to random effects
+resil.control.rich.ny <- lmer(log10(resilience) ~ scale(richness)*spei6_category + (1|year) + (1|site/uniqueid), data = plot_ece_control) # singular fit
+summary(resil.control.rich.ny)
+simres <- simulateResiduals(resil.control.rich.ny)
+plot(simres) # Very bad!
+
+# Additive only model
+resil.control.add <- lmer(log10(resilience) ~ richness + berger_parker + site + spei6_category + year + (1|site/uniqueid), data = plot_ece_control) #singular fit
+
+# Additive only model (year as random effect)
+resil.control.add.ny <- lmer(log10(resilience) ~ richness + berger_parker + site + spei6_category + (1|year) + (1|site/uniqueid), data = plot_ece_control) #singular fit
+
+# Three way interaction, drop site, scale richness and dominance
+resil.control.int <- lmer(log10(resilience) ~ scale(richness)*scale(berger_parker)*spei6_category + year + (1|site/uniqueid), data = plot_ece_control)
+summary(resil.control.int)
+
+# Three way interaction (year as random effect)
+resil.control.int.ny <- lmer(log10(resilience) ~ scale(richness)*scale(berger_parker)*spei6_category + (1|year) + (1|site/uniqueid), data = plot_ece_control)
+summary(resil.control.int)
+
+# Drop non significant interactions (need to compare AIC)
+resil.control <- lmer(log10(resilience) ~ scale(richness)*spei6_category + scale(berger_parker)*spei6_category + year + (1|site/uniqueid), data = plot_ece_control)
+summary(resil.control)
+simres <- simulateResiduals(resil.control)
+plot(simres) # Very bad!
+
+# Drop non significant interactions (year as random effect)
+resil.control.ny <- lmer(log10(resilience) ~ scale(richness)*spei6_category + scale(berger_parker)*spei6_category + (1|year) + (1|site/uniqueid), data = plot_ece_control)
+
+# Add site
+resil.control.rich.site <- lmer(log10(resilience) ~ scale(richness)*spei6_category + site + (1|year) + (1|site/uniqueid), data = plot_ece_control) # failed to converge
+
+# Drop interaction, keep site
+resil.control.rich.site.add <- lmer(log10(resilience) ~ scale(richness) + spei6_category + site + (1|year) + (1|site/uniqueid), data = plot_ece_control) # singular fit
+summary(resil.control.rich.site.add)
+simres <- simulateResiduals(resil.control.rich.site.add)
+plot(simres) # Very bad!
+
+# Site and spei interaction
+resil.control.site.int <- lmer(log10(resilience) ~ scale(richness) + spei6_category*site + (1|year) + (1|site/uniqueid), data = plot_ece_control) # failed to converge
+
+# Drop richness
+resil.control.site.int.nr <- lmer(log10(resilience) ~ spei6_category*site + (1|year) + (1|site/uniqueid), data = plot_ece_control) # failed to converge
+
+
+AICctab(resil.control.rich, resil.control.rich.ny, resil.control.rich.site.add, resil.control.add.ny, resil.control, resil.control.int, resil.control.int.ny, resil.control.add, resil.control.ny)
+
+# Plot best model
+ggpredict(model = resil.control.rich.ny, terms = c("richness", "spei6_category"), back_transform = F) %>%
+  plot(show_data = TRUE)
+
+
+
+## All plots ----
 # Model 1
 resil.lm <- lmer(resilience ~ richness + (1|site) + (1|site:plot), data = plot_ece)
 summary(resil.lm) # boundary singular fit, site and plot explain 0 variance

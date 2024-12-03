@@ -91,6 +91,17 @@ plot_ece_meta %>%
   scale_y_log10() +
   annotation_logticks(sides = "l")
 
+# Dominance vs resistance by spei category
+plot_ece_meta %>%
+  drop_na(resistance) %>%
+  filter(treatment == "control") %>%
+  ggplot(aes(x = Berger_Parker, y = resistance, col = spei6_category)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm") +
+  scale_y_log10() +
+  annotation_logticks(sides = "l") +
+  facet_wrap(~site)
+
 # Compare dominance vs richness
 plot_ece_meta %>%
   drop_na(resistance) %>%
@@ -98,6 +109,8 @@ plot_ece_meta %>%
   ggplot(aes(x = Richness, y = Berger_Parker)) +
   geom_point(alpha = 0.2) +
   geom_smooth()
+
+cor(plot_ece_meta$Richness, plot_ece_meta$Berger_Parker)
 
 # Look at dominance on x axis # Decreases with more dominance
 plot_ece_meta %>%
@@ -159,6 +172,17 @@ plot_ece_meta %>%
   geom_smooth(method = "lm", aes(linetype = dom_category)) +
   scale_y_log10() +
   annotation_logticks(sides = "l")
+
+# Dominance vs resistance by spei category
+plot_ece_meta %>%
+  drop_na(resilience) %>%
+  filter(treatment == "control") %>%
+  ggplot(aes(x = Berger_Parker, y = resilience, col = spei6_category)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm") +
+  scale_y_log10() +
+  annotation_logticks(sides = "l") +
+  facet_wrap(~site)
 
 # Look at dominance on x axis # Decreases with more dominance
 plot_ece_meta %>%

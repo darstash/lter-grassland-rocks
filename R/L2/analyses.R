@@ -50,12 +50,34 @@ plot_ece <- plot_ece %>%
 # Standardize column names
 plot_ece <- clean_names(plot_ece)
 
+# Add experiment column
+plot_ece$experiment <- sub("nutnet.*", "nutnet", plot_ece$higher_order_organization)
+plot_ece$experiment <- sub("glbrc_scaleup.*", "glbrc_scaleup", plot_ece$experiment)
+plot_ece$experiment <- sub("glbrc_G10.*", "glbrc", plot_ece$experiment)
+plot_ece$experiment <- sub("glbrc_G9.*", "glbrc", plot_ece$experiment)
+plot_ece$experiment <- sub("mcse.*", "mcse", plot_ece$experiment)
+plot_ece$experiment <- sub("microplots.*", "microplots", plot_ece$experiment)
+plot_ece$experiment <- sub("Experiment 1.*", "Experiment 1", plot_ece$experiment)
+plot_ece$experiment <- sub("001d.*", "001d", plot_ece$experiment)
+plot_ece$experiment <- sub("004b.*", "004b", plot_ece$experiment)
+plot_ece$experiment <- sub("002d.*", "002d", plot_ece$experiment)
+plot_ece$experiment <- sub("Experiment 54.*", "Experiment 54", plot_ece$experiment)
+plot_ece$experiment <- sub("KNZ_WAT01.*", "KNZ_WAT01", plot_ece$experiment)
+plot_ece$experiment <- sub("002c.*", "002c", plot_ece$experiment)
+plot_ece$experiment <- sub("e061.*", "e061", plot_ece$experiment)
+plot_ece$experiment <- sub("e247.*", "e247", plot_ece$experiment)
+plot_ece$experiment <- sub("e245.*", "e245", plot_ece$experiment)
+
 # Merge with metadata
 plot_ece_meta <- left_join(plot_ece, meta)
 
 # Remove NAs for non-extreme years
 plot_ece_rm_na <- plot_ece_meta %>%
   drop_na(resistance)
+
+# Make year a factor
+str(plot_ece_rm_na)
+plot_ece_rm_na$year <- as.factor(plot_ece_rm_na$year)
 
 # Subset to only have control plots
 plot_ece_control <- plot_ece_rm_na %>%
@@ -64,14 +86,14 @@ plot_ece_control <- plot_ece_rm_na %>%
 # Analysis 1: resistance ----
 ## Control plot only ----
 
-# Model with all variables and maximal random effects (need to add experiment)
+# Model with all variables (need to add experiment)
 resist.control.full <- lmer(log10(resistance) ~ scale(richness)*scale(berger_parker)*site*spei6_category + year + (1|site/uniqueid), data = plot_ece_control, na.action = na.fail) # failed to converge
-summary(resist.control.full)
-plot(resist.control.full)
-simres <- simulateResiduals(resist.control.full)
-plot(simres) # Very bad!
+
+# Model with all variables (year and experiment as random effects)
+resist.control.fuller <- lmer(log10(resistance) ~ scale(richness)*scale(berger_parker)*site*spei6_category + (1|year) + (1|site/experiment/uniqueid), data = plot_ece_control, na.action = na.fail) # failed to converge
 
 # dredge(resist.control.full) # best model only has spei_category lol
+# dredge(resist.control.fuller) # best model has richness*spei_category
 
 # Additive only model
 resist.control.add <- lmer(log10(resistance) ~ richness + berger_parker + site + spei6_category + year + (1|site/uniqueid), data = plot_ece_control) # failed to converge
@@ -227,18 +249,14 @@ ggpredict(model = resist.lm.r2.log, terms = c("richness", "spei6_category"), bac
 
 # Analysis 2 - resilience ----
 ## Control plots only ----
-# Model with all variables and maximal random effects (need to add experiment)
+# Model with all variables (need to add experiment)
 resil.control.full <- lmer(log10(resilience) ~ scale(richness)*scale(berger_parker)*site*spei6_category + year + (1|site/uniqueid), data = plot_ece_control, na.action = na.fail) # singular fit
-summary(resil.control.full)
-plot(resil.control.full)
-simres <- simulateResiduals(resil.control.full)
-plot(simres) # Bad, but not terrible
 
-# Move year to random effect (need to add experiment)
-resil.control.full.r <- lmer(log10(resilience) ~ scale(richness)*scale(berger_parker)*site*spei6_category + (1|year) + (1|site/uniqueid), data = plot_ece_control, na.action = na.fail) # failed to converge
+# Model with all variables (year and experiment random effects)
+resil.control.fuller <- lmer(log10(resilience) ~ scale(richness)*scale(berger_parker)*site*spei6_category + (1|year) + (1|site/experiment/uniqueid), data = plot_ece_control, na.action = na.fail) # failed to converge
 
 # dredge(resil.control.full) # best model has richness*spei_cat, second best adds year
-# dredge(resil.control.full.r) # best model has site*spei_cat, second best adds richness
+# dredge(resil.control.fuller) # best model has site*spei_cat
 
 # Best model as predicted by dredge function (but including year)
 resil.control.rich <- lmer(log10(resilience) ~ scale(richness)*spei6_category + year + (1|site/uniqueid), data = plot_ece_control) # singular fit

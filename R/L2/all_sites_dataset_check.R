@@ -72,6 +72,11 @@ head(species)
 str(species)
 summary(species %>% select(!c("cover_method", "area_sampled_bio", "area_sampled_cover")))
 
+x <- species %>%
+  group_by(year, site, dataset, plot, higher_order_organization, uniqueid, species, abundance) %>%
+  summarize(n = n()) %>%
+  filter(n > 1)
+
 # - delete cover_method, area_sampled_cover, area_sampled_bio (all sites, )
 ## - original_measuurement_unit = original_measurement_unit (all sites, done)
 ## - some relative abundance values are scaled to 100 instead of 1 in KBS and KNZ (individual all, done)

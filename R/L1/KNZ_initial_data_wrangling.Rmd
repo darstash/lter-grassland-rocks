@@ -2,7 +2,7 @@
 title: "KNZ_L0_data_wrangling"
 authors: Smriti Pehim Limbu, Joshua Ajowele
 Collaborators: Grassland Rocks working group
-date: "2023-12-11" Last Modified: "Oct 6, 2024"
+date: "2023-12-11" Last Modified: "Jan 12, 2025"
 output: html_document
 ---
 
@@ -38,44 +38,10 @@ df_E2_KNZ<-read.csv(file.path(L0_dir, "KNZ/E2_PPL012_Biomass.csv"))
 df_J1_KNZ <- read.csv(file.path(L0_dir, "KNZ/J1_CEE012_Sppcomp.csv"), stringsAsFactors = FALSE)
 df_J2_KNZ <- read.csv(file.path(L0_dir, "KNZ/J2_CEE014_Biomass.csv"), stringsAsFactors = FALSE)
 
-#Alex's directory
-#df_C1_KNZ <- read.csv("C:\\Users\\jasig\\Downloads\\C1_WAT012_Sppcomp.csv")
-#df_C2_KNZ <- read.csv("C:\\Users\\jasig\\Downloads\\C2_WAT013_Biomass.csv")
-#df_ppt <- read.csv("C:\\Users\\jasig\\Downloads\\Precipitation_1982_2023.csv")
 
-#loading directly via google drive
-df_C1_KNZ<-read.csv(file.path(L0_dir, "KNZ/C1_WAT012_Sppcomp.csv"))
-df_C2_KNZ<-read.csv(file.path(L0_dir, "KNZ/C2_WAT013_Biomass.csv"))
-
-#(Alex is dumb & is taking this approach) Convert the date column to Date type 
-#df_ppt$RecDate<- as.Date(df_ppt$RecDate, format = "%m/%d/%Y")
-#Extract the year from the date
-#df_ppt$year <- year(df_ppt$RecDate)
-#Reading temp data
-#df_temp <- read.csv("C:\\Users\\jasig\\Downloads\\Temperature_1982_2023.csv")
 ```
 
-#climate data
 
-```{r}
-df_ppt <- read.csv(file.path(L0_dir, "KNZ/Precipitation_1982_2023.csv"), stringsAsFactors = FALSE)
-df_temp <- read.csv(file.path(L0_dir, "KNZ/Temperature_1982_2023.csv"), stringsAsFactors = FALSE)
-# Convert the date column to Date type 
-df_ppt$RecDate<- as.Date(df_ppt$RecDate, format = "%m/%d/%Y")
-# Extract the year from the date
-df_ppt$year <- year(df_ppt$RecDate)
-
-# Summarizing temperature data
-# Averaging across months
-df_temp_ave_month <- df_temp %>% 
-  group_by(RECYEAR, RECMONTH) %>%
-  summarize(mean=mean(as.numeric(TAVE)))
-
-# Averaging across years
-df_temp_ave_year <- df_temp %>% 
-  group_by(RECYEAR) %>%
-  summarize(mean=mean(as.numeric(TAVE)))
-```
 
 
 #Cleaning CEE data J1 and J2 - Smriti
@@ -567,231 +533,6 @@ ramps_spp_comp <- biomass_per_species_SubplotYear %>%
 
 ```
 
-
-# Cleaning data A1 & A2 (ConSME)- Maya
-Note: for ConSME, it looks like there are only 4 years of species comp data, and 2 years of biomass data. There should be more biomass data for sure though. 
-#we are excluding this dataset-just leaving the code in here
-```{r}
-
-#Reading in the data
-#df_A1_KNZ <- read.csv(file.path(L0_dir, "KNZ/A1_CME011_Sppcomp.csv"), stringsAsFactors = FALSE)
-#df_A2_KNZ <- read.csv(file.path(L0_dir, "KNZ/A2_CME012_Biomass.csv"), stringsAsFactors = FALSE)
-#df_A3_KNZ <- read.csv(file.path(L0_dir, "KNZ/A3_CME01_treatments.csv"), stringsAsFactors = FALSE)
-
-#I added the Konza species list to the drive as well
-spplist <- read.csv(file.path(L0_dir, "KNZ/KNZ_specieslist_PPS011.csv"), stringsAsFactors = FALSE)
-
-
-# Initial checks 
-unique(df_A1_KNZ$RecYear) ##There are only 4 years of recorded species comp data: 2019-2022.  
-unique(df_A2_KNZ$Recyear) ##There are only 2 years of recorded biomass data: 2020 & 2021.
-unique(df_A1_KNZ$Watershed) ##2 watersheds: N1A & N4B
-unique(df_A2_KNZ$Watershed) ##Same two watersheds: N1A & N4B
-unique(sort(df_A1_KNZ$Block)) ##Blocks A-R
-unique(sort(df_A2_KNZ$Block)) ##Same blocks A-R
-unique(sort(df_A1_KNZ$Taxa)) ## Some non-plant observations that need to be removed; 
-
-
-### A1 - sppcomp
-
-## I am going to go ahead and remove non-plant things, and make invalid (negative) entries into 0's (NOT SURE IF THIS IS THE RIGHT PROTOCOL)
-df_A1_KNZ.clean <- subset(df_A1_KNZ, !(Taxa %in% c("NA NA", "Dung ", "Rock ", 
-                                                   "Litter", "Litter ", "Unknown seedlings")))
-df_A1_KNZ.clean$Cover <- replace(df_A1_KNZ.clean$Cover, df_A1_KNZ.clean$Cover < 0, 0) 
-
-
-## Looking through the dataset, I noticed some species names are different/misspelled and some entries are labelled with the wrong species number, so I am going to double check some species numbers, then just merge with the Konza species list to take care of the misspellings.
-
-for(i in 1:nrow(df_A1_KNZ.clean)){
-  if(df_A1_KNZ.clean$Taxa[i] == "Symphyotrichym (Aster) ericoides"){df_A1_KNZ.clean$Sppnum[i] <- 58}
-  if(df_A1_KNZ.clean$Taxa[i] == "Symphyotrichym (Aster) oblongifolium"){df_A1_KNZ.clean$Sppnum[i] <- 59}
-}
-
-
-#Taking just the columns I want (for now) from the species list
-spplist_short <- spplist %>% 
-  unite(species, genus:species, sep = "_" ) %>%
-  mutate(Sppnum = code) %>%
-  dplyr::select(Sppnum, species) %>%
-  add_case(Sppnum =c(-999, 0), 
-           species = c("unknown","bare_ground"))
-
-#Joining the species list and data together, so now we have correct spellings of species.
-df_A1_KNZ.clean <- left_join(df_A1_KNZ.clean, spplist_short, by = "Sppnum")
-
-
-#Rename columns to match datasheet outline
-df_A1_KNZ.clean <- df_A1_KNZ.clean %>%
-  mutate(site = as.factor("KNZ"),
-         rectype = RecType,
-         datacode = Datacode,
-         year = as.numeric(RecYear),
-         recdate = RecDate,
-         season = as.factor(Season),
-         watershed = as.factor(Watershed),
-         block = Block,
-         plot = Plot,
-         sppcode = Sppnum,
-         species = species,
-         abundance = Cover,
-         comments = Comments,
-         experiment  = "ConSME",
-         .keep = "unused") %>%
-  unite(higher_order_organization, 
-        experiment, site, watershed, 
-        block, sep = "_", remove = FALSE) %>%
-  unite(uniqueid, higher_order_organization, plot, sep = "_", remove = FALSE) %>%
-  mutate(higher_order_organization = as.factor(higher_order_organization),
-         uniqueid = as.factor(uniqueid),
-         measurement_scale_cover = 1)
-
-#Keeping the highest plot/species cover per season by summarizing data by the max abundance for every variable but season... there is probably a better way to do this lol.
-df_A1_KNZ.clean <- df_A1_KNZ.clean %>% group_by(datacode, experiment, year, 
-                                                 recdate, higher_order_organization, uniqueid, 
-                                                 site, watershed, block,
-                                                 plot, sppcode, species, Taxa, measurement_scale_cover, comments) %>% 
-  summarize(abundance = max(abundance))
-
-
-## Calculating relative abundance
-df_A1_KNZ.clean <- df_A1_KNZ.clean %>%
- group_by(year, plot, uniqueid, watershed)%>%
-  mutate(total_abundance = sum(abundance))%>%
-  group_by(year, plot, uniqueid, watershed, species)%>%
-  mutate(relative_abundance = (abundance/total_abundance) * 100)%>%
-  ungroup()
-
-## Calculating richness and evenness
-A1_richness <- df_A1_KNZ.clean %>%
-  community_diversity(time.var = "year",
-                      abundance.var = "relative_abundance",
-                      replicate.var = "uniqueid", metric = "Shannon")
-
-A1_diversity <- df_A1_KNZ.clean %>% 
-  #calculates richness and evenness as Evar
-  community_structure(time.var = "year", 
-                      abundance.var = "relative_abundance",
-                      replicate.var = "uniqueid",
-                      metric = "SimpsonEvenness") %>%
-  left_join(A1_richness, by = c("year","uniqueid"))
-
-
-#Creating an dataframe for all the distinct descriptive columns
-df_A1_KNZ.env <- df_A1_KNZ.clean %>% 
-    distinct(datacode, experiment, year, 
-             higher_order_organization, uniqueid, 
-             site, watershed, block, plot)
-
-#Joining the diversity dataframe to the distinct columns dataframe
-A1_diversity <- left_join(A1_diversity, df_A1_KNZ.env, by = c("year", "uniqueid"), keep = FALSE) %>%
-  mutate(plot = as.factor(plot))
-    
-
-
-### A2-biomass
-
-#Renaming variables so they match the sppcomp data (and so that they're all lowercase because I'm weird and I need things to match)
-df_A2_KNZ.clean <- df_A2_KNZ %>%
-  rename(datacode = DataCode,
-         rectype = RecType,
-         year = Recyear,
-         watershed = Watershed,
-         block = Block,
-         plot = Plot,
-         strip = Strip,
-         lvgrass = Lvgrass,
-         forb = Forb,
-         woody = Woody,
-         pdead = Pdead,
-         comments = Comments
-         ) %>% 
-  mutate(site = "KNZ",
-         experiment  = "ConSME") %>%
-  unite(higher_order_organization, 
-        experiment, site, watershed, 
-        block, sep = "_", remove = FALSE) %>%
-  unite(uniqueid, higher_order_organization, plot, sep = "_", remove = FALSE) %>%
-  mutate(higher_order_organization = as.factor(higher_order_organization),
-         uniqueid = as.factor(uniqueid))
-
-#Replacing values that were recorded as -999 to 0 (NOT SURE IF THIS IS THE RIGHT PROTOCOL)
-df_A2_KNZ.clean$lvgrass <- replace(df_A2_KNZ.clean$lvgrass, df_A2_KNZ.clean$lvgrass < 0, 0) 
-df_A2_KNZ.clean$forb <- replace(df_A2_KNZ.clean$forb, df_A2_KNZ.clean$forb < 0, 0)
-df_A2_KNZ.clean$woody <- replace(df_A2_KNZ.clean$woody, df_A2_KNZ.clean$woody < 0, 0)
-df_A2_KNZ.clean$pdead <- replace(df_A2_KNZ.clean$pdead, df_A2_KNZ.clean$pdead < 0, 0)
-
-#Since biomass was taken in 2 strips (both 1m2) per plot, I'm going to average the two strips for each plot... not sure if this is what we want... unfortunately, this gets rid of comments 
-df_A2_KNZ.clean <- df_A2_KNZ.clean %>% group_by(datacode, year, higher_order_organization, uniqueid, watershed, block, plot) %>%
-  summarize(lvgrass_avg = mean(lvgrass),
-            forb_avg = mean(forb),
-            woody_avg = mean(woody),
-            pdead_avg = mean(pdead)) %>% 
-  ungroup() %>%
-  group_by(year, watershed, uniqueid, plot) %>% # Summing the biomass together -- does not include pdead
-  mutate(plot_biomass = sum(lvgrass_avg, forb_avg, woody_avg)*10,
-         plot = as.factor(plot)) %>%
-  ungroup()
-
-
-
-
-# Putting A1_diversity and A2 together
-df_A1_A2_KNZ.clean <- left_join( df_A2_KNZ.clean,A1_diversity,
-                                by = c("year", "higher_order_organization", "uniqueid", 
-                                       "watershed", "block", "plot", "datacode"), keep = FALSE) %>%
-  mutate(measurement_scale_cover = 1,
-         measurement_scale_biomass = 0.1) %>%
-  rename(source = datacode)
-
-#END RESULTs: 
-view(df_A1_KNZ.clean)
-view(df_A1_A2_KNZ.clean)
-
-
-
-
-
-
-#Taking the extra info and putting it into a new metadata data frame?
-A1_A2_metadata <- df_A1_KNZ.env %>% mutate(fire_frequency = NA,
-                                              grazing = "ungrazed",
-                                              time_since_fire = NA,
-                                           nutrients_added = NA,
-                                           nitrogen_amount = NA,
-                                           disturbance = NA) #I am unsure what we are counting as disturbance... like is bison grazing considered a disturbance?
-
-#Choosing just the columns I want from the treatment dataset
-df_A3_KNZ.short <- df_A3_KNZ %>% select(watershed, block, plot, trt)
-
-
-#Joining the species comp data and treatment datasets
-A1_A2_metadata <- left_join(A1_A2_metadata, df_A3_KNZ.short, by = c("watershed", "block", "plot")) %>%
-  mutate(treatment = factor(trt),
-         watershed = as.factor(watershed),
-         .keep = "unused",
-         treatment_comment = NA)
-
-#NOTE: for treatment, the presence of an "B" mean bison were allowed on the plot, "S" means small mammals had access to the plot, and "I" means insects had access. The "X" in place of any of these letters means the herbivore was excluded.
-
-#Adding in the fire and grazing info
-for(i in 1:nrow(A1_A2_metadata)){
-  if(A1_A2_metadata$watershed[i] == "N1A"){A1_A2_metadata$fire_frequency[i] <- 1}
-  if(A1_A2_metadata$watershed[i] == "N4B"){A1_A2_metadata$fire_frequency[i] <- 4}
-  if(A1_A2_metadata$watershed[i] == "N1A"){A1_A2_metadata$time_since_fire[i] <- 0}
-  if(A1_A2_metadata$watershed[i] == "N4B" & A1_A2_metadata$year[i] == 2019){A1_A2_metadata$time_since_fire[i] <- 0}
-  if(A1_A2_metadata$watershed[i] == "N4B" & A1_A2_metadata$year[i] == 2020){A1_A2_metadata$time_since_fire[i] <- 1} #I should put code to calculate this instead of writing it by hand so that it is more integrative, but there are only two watersheds and 4 years of data and I just wanna do it the dumb way for now
-  if(A1_A2_metadata$watershed[i] == "N4B" & A1_A2_metadata$year[i] == 2021){A1_A2_metadata$time_since_fire[i] <- 2}
-  if(A1_A2_metadata$watershed[i] == "N4B" & A1_A2_metadata$year[i] == 2022){A1_A2_metadata$time_since_fire[i] <- 3}
-  if(A1_A2_metadata$treatment[i] == "BSI"){A1_A2_metadata$grazing[i] <- "grazed"}
-  if(A1_A2_metadata$treatment[i] == "BSX"){A1_A2_metadata$grazing[i] <- "grazed"}
-}
-#how did you get the treatment names?
-
-#I have not yet done the precip and temp data
-
-
-```
-
 # Cleaning data I1 & I2 (NutNet)- Maya
 ```{r}
 
@@ -862,7 +603,7 @@ df_I1_KNZ.clean <- left_join(df_I1_KNZ.clean, spplist_short, by = "Sppnum")%>%
 
 
 #Renaming columns to match outline
-df_I1_KNZ.clean <- df_I1_KNZ.clean %>%
+df_I1_KNZ.clean1 <- df_I1_KNZ.clean %>%
   rename(rectype = RecType,
          source = DataCode,
          year = RecYear,
@@ -874,7 +615,10 @@ df_I1_KNZ.clean <- df_I1_KNZ.clean %>%
          species = Taxa,
          abundance = Cover,
          comments = Comments) %>%
-  group_by(rectype, source, year, date, block, plot, sppcode, species) %>% summarize(abundance = max(abundance)) %>% #taking the highest abundance per season, leaving out subplot
+  group_by(rectype, source, year, block, plot, season, sppcode, species) %>%
+  summarize(abund = mean(abundance, na.rm=T)) %>%#taking the average of the subplots
+  group_by(rectype, source, year, block, plot, sppcode, species) %>%
+  summarize(abundance = max(abund, na.rm=T))%>%#taking the highest abundance across season
   mutate(site = as.factor("KNZ"),
          experiment  = "NUTNET") %>%
   unite(higher_order_organization, 
@@ -886,12 +630,12 @@ df_I1_KNZ.clean <- df_I1_KNZ.clean %>%
 
 
 ## Calculating relative abundance
-df_I1_KNZ.clean <- df_I1_KNZ.clean %>%
+df_I1_KNZ.clean <- df_I1_KNZ.clean1 %>%
  group_by(year, plot, uniqueid)%>%
   mutate(total_abundance = sum(abundance))%>%
   group_by(year, plot, uniqueid, species)%>%
   mutate(relative_abundance = (abundance/total_abundance))%>%
-  ungroup() 
+  ungroup()
 
 ## Calculating richness and evenness
 I1_richness <- df_I1_KNZ.clean %>%
@@ -1461,7 +1205,7 @@ F1_wide2$relative_abundance <- (F1_wide2$abundance/F1_wide2$totalcover)
 F1_wide2 <- select(F1_wide2,-totalcover)
 
 #write cleaned document
-write.csv(F1_wide2, "F1_PVC021_Sppcomp.csv")
+#write.csv(F1_wide2, "F1_PVC021_Sppcomp.csv")
 
 
 ####Process and clean F1_PAB_Biomass
@@ -1537,7 +1281,7 @@ F2_mass4$measurement_scale_biomass<-0.1
 F2_mass4$measurement_scale_cover<-10
 
 #write cleaned document
-write.csv(F2_mass4, "F2_PAB_Biomass.csv")
+#write.csv(F2_mass4, "F2_PAB_Biomass.csv")
 
 
 
@@ -1644,6 +1388,13 @@ weather_df<-df_ppt_ave_year%>%
   left_join(df_ppt_ave_year_gs, by="year")%>%
   left_join(df_temp_ave_year, by="year")
 
+#average MAT and MAP from 1983-2023
+weather_avg<-weather_df%>%
+  filter(year!=1982)%>%
+  summarize(MAT=mean(temperature, na.rm=T),
+            MAP=mean(precipitation, na.rm=T))
+#MAT=12.8 MAP=844.6
+
 ```
 
 #combining all Konza data-Joshua
@@ -1668,7 +1419,7 @@ F1_wide2$plot<-as.factor(F1_wide2$plot)
 KNZ_specieslevel_abundance<-df_E1_KNZ_species_level%>%
   select(-DataCode,-RecType,-PlotID,-total_abundance,-Spnum,-Treatment)%>%
   bind_rows(K1_spp,df_C1_KNZ.cleanest,df_I1_KNZ.clean)%>%
-  select(-10:-17)%>%
+  select(-10:-16)%>%
   #bind_rows(df_J2_KNZ.clean.richness.evenness)%>% no species identity need to confirm before including
   #select(-10:-22)#%>%
   bind_rows(B1_sppcomp)%>%
@@ -1680,6 +1431,11 @@ KNZ_specieslevel_abundance<-df_E1_KNZ_species_level%>%
   
 #upload to google drive
 write.csv(KNZ_specieslevel_abundance,file.path(L1_dir,"/KNZ_specieslevel_abundance.csv"))
+
+#checking abundance duplicate
+species_check<-read.csv(file.path(L1_dir, "KNZ_specieslevel_abundance.csv")) %>%
+  group_by(uniqueid, year,plot, higher_order_organization,species,site)%>%
+  mutate(sum=n())
 
 #data mop up for plot biomass
 df_E1_E2_KNZ_clean_plot_metrics<-df_E1_E2_KNZ_clean_plot_metrics%>%

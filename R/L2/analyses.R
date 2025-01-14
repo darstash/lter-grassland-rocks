@@ -83,6 +83,11 @@ plot_ece_rm_na$year <- as.factor(plot_ece_rm_na$year)
 plot_ece_control <- plot_ece_rm_na %>%
   filter(treatment == "control")
 
+# Look if measurment scale cover matters
+plot_ece_control %>%
+  ggplot(aes(x = measurement_scale_cover, y = log(resilience))) +
+  geom_point()
+
 # Analysis 1: resistance ----
 ## Control plot only ----
 

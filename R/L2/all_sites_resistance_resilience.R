@@ -1,6 +1,6 @@
 # LTER Grassland Rock: Calculate resistance and resilience
 # AUTHORS: Rosalie Terry
-# COLLABORATORS: Matt Nieland  
+# COLLABORATORS: Matt Nieland, Joshua Ajowele  
 # DATA INPUT: .csv file of plot metrics imported from Google Drive L2 folder
 # DATA OUTPUT: .csv of updated plot metrics dataset that includes resistance and resilience  
 # PROJECT: LTER Grassland Rock
@@ -29,7 +29,7 @@ extreme_per_site <- plot_metrics %>%
 # Create dataframe that contains average normal biomass for each plot
 biomass_normal <- plot_metrics %>% 
   group_by(uniqueid) %>% # group by plot
-  summarize(average_normal_biomass = mean(plot_biomass))
+  summarize(average_normal_biomass = mean(plot_biomass, na.rm=T))#na.rm=T is required to avoid NAs when the plots are missing values for certain years
 
 # Create dataframe of metrics for plots during extreme climate events that includes resistance and resilience
 df <- data.frame(ex_year = integer(), site = factor(), uniqueid = character(), resistance = numeric(), resilience = numeric())

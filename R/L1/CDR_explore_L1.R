@@ -209,7 +209,9 @@ e054_anpp <- read.csv(paste(L0_dir, "CDR/e54_biomass_1221_ML.csv", sep = "/"))
 #  )
 
 
-e245_anpp <- read.delim(paste(L0_dir, "CDR/e245_Plant_aboveground_biomass_data.txt", sep = "/")) %>%
+e245_anpp <- read.delim(paste(L0_dir, "CDR/e245_Plant_aboveground_biomass_data.txt", sep = "/"))
+  
+e245_anpp <- e245_anpp %>%
   mutate(Year = as.integer(paste(Year)),
          Plot = as.integer(paste(Plot)),
          Treatment = factor(Treatment, 
@@ -814,6 +816,40 @@ e245_metadata <- e245_anpp %>%
 #        nitrogen_amount, disturbance, grazing, fire_frequency, time_since_fire,
 #        treatment_comment, diversity_manipulated)
 
+#checking for duplicate uniqueid e245 1/17/2025 mz####
+e245_anpp %>%
+  ungroup() %>%
+  filter(duplicated(select(., year, uniqueid, species, abundance))|
+           duplicated(select(., year, uniqueid, species, abundance), fromLast = TRUE))
+
+#working backwards, the duplicating occurs in the initial code where e245 data is loaded in (load data section)
+#going to that section to determine if it is cause or is error in source data.
+#at end of the day we could just remove duplicates here?
+
+#test df#
+e245_anpp.2 <- e245_anpp %>%
+  ungroup() %>%
+  distinct(year, uniqueid, species, abundance, .keep_all = TRUE)
+
+e245_anpp.2 %>%
+  ungroup() %>%
+  filter(duplicated(select(., year, uniqueid, species, abundance))|
+           duplicated(select(., year, uniqueid, species, abundance), fromLast = TRUE))
+
+#ok so we removed duplicates yay 
+
+#do the same to e245_anpp now
+e245_anpp <- e245_anpp %>%
+  ungroup() %>%
+  distinct(year, uniqueid, species, abundance, .keep_all = TRUE)
+
+#check metadata to be safe
+e245_metadata %>%
+  ungroup() %>%
+  filter(duplicated(select(., year, uniqueid))|
+           duplicated(select(., year, uniqueid), fromLast = TRUE))
+
+#we good#
 
 ##e061####
 e061_anpp  <- e061_anpp %>%

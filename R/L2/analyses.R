@@ -67,6 +67,8 @@ plot_ece$experiment <- sub("002c.*", "002c", plot_ece$experiment)
 plot_ece$experiment <- sub("e061.*", "e061", plot_ece$experiment)
 plot_ece$experiment <- sub("e247.*", "e247", plot_ece$experiment)
 plot_ece$experiment <- sub("e245.*", "e245", plot_ece$experiment)
+#potential issue that could be affecting model structure
+#Some experiments are not assigned correctly.
 
 # Merge with metadata
 plot_ece_meta <- left_join(plot_ece, meta)

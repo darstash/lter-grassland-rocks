@@ -22,7 +22,7 @@ species_abundance_SPEI_Metric <- species_abundance_SPEI %>%
   filter(relative_abundance > 0) %>% 
   group_by(year, site, dataset, plot, higher_order_organization, uniqueid,
            cover_method,
-           spei12, spei3, spei6, spei9, spei12_category) %>% 
+           spei12, spei3, spei6, spei9, spei6_category, spei12_category) %>% 
   summarize(Berger_Parker = max(relative_abundance),
             Richness = n())
 
@@ -32,7 +32,7 @@ ggplot(species_abundance_SPEI_Metric, aes(x = Berger_Parker, y = Richness))+
 
 plot_metrics_SPEI_diversity <- plot_metrics_SPEI %>% 
   right_join(., species_abundance_SPEI_Metric, by = c("year", "site",  "higher_order_organization", "plot", "uniqueid",
-                                                     "spei12", "spei3", "spei6", "spei9", "spei12_category"))
+                                                     "spei12", "spei3", "spei6", "spei9", "spei6_category", "spei12_category"))
 
 
 write.csv(plot_metrics_SPEI_diversity, file.path(L2_dir, "./plot_metrics_SPEI_diversity.csv"), row.names=F)

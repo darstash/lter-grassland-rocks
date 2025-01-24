@@ -29,7 +29,8 @@ extreme_per_site <- plot_metrics %>%
 # Create dataframe that contains average normal biomass for each plot
 biomass_normal <- plot_metrics %>% 
   group_by(uniqueid) %>% # group by plot
-  summarize(average_normal_biomass = mean(plot_biomass, na.rm=T))#na.rm=T is required to avoid NAs when the plots are missing values for certain years
+  filter(spei6_category == "Normal") %>% # calculate only for normal years
+  summarize(average_normal_biomass = mean(plot_biomass, na.rm=T)) #na.rm=T is required to avoid NAs when the plots are missing values for certain years
 
 # Create dataframe of metrics for plots during extreme climate events that includes resistance and resilience
 df <- data.frame(ex_year = integer(), site = factor(), uniqueid = character(), resistance = numeric(), resilience = numeric())

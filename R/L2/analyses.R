@@ -52,6 +52,9 @@ plot_ece <- plot_ece %>%
 # Standardize column names
 plot_ece <- clean_names(plot_ece)
 
+# Convert Inf values to NA for resilience for some KBS 2015 plots
+plot_ece$resilience[plot_ece$resilience == Inf] <- NA
+
 # Add experiment column
 plot_ece$experiment <- sub("nutnet.*", "nutnet", plot_ece$higher_order_organization)
 plot_ece$experiment <- sub("glbrc_scaleup.*", "glbrc_scaleup", plot_ece$experiment)

@@ -71,3 +71,49 @@ plot_metrics_SPEI_diversity <- plot_metrics_SPEI %>%
 
 write.csv(plot_metrics_SPEI_diversity, file.path(L2_dir, "./plot_metrics_SPEI_diversity.csv"), row.names=F)
 
+#investigating NAs in dominant species abundance
+plot_Na<-plot_metrics_SPEI_diversity%>%
+  select(year,uniqueid,site, dominant_relative_abund, dominant_species_code)%>%
+  filter(uniqueid=="KBS_microplots_T7_R4_N_undisturbed")
+species_na<-species_abundance_SPEI_evar%>%
+  select(year,uniqueid, species)%>%
+  filter(uniqueid=="KBS_microplots_T7_R4_N_undisturbed")%>%
+  filter(species=="Agropyron repens")
+#some species only occur in one year and were dominant that year. 
+#some were classified as dicot and monocot and were dominant in those years inflating
+#their dominance across year
+#Solution: calculate the dominant species for each plot in each year and rank the species based
+#on the number of years it was the dominant species in that plot.
+
+#determine the species with the average max relative abundance within each plot across all years
+dominant_species_year<-species_abundance_SPEI_evar%>%
+  group_by(uniqueid, year)%>%
+  mutate(relative_abundance_max=max(relative_abundance))%>%
+  filter(relative_abundance==relative_abundance_max)%>%#filter dominant species in each plot
+  group_by(uniqueid, species)%>%
+  mutate(count=n())%>%#frequency a species was the dominant species in each plot
+  group_by(uniqueid)%>%
+  mutate(count_max=max(count))%>%
+  filter(count==count_max)%>%#filter the species with the highest frequency as dominant species in each plot
+  mutate(dominant_species_code=paste(uniqueid, species,sep="_"))%>%
+  select(uniqueid, species, dominant_species_code)%>%
+  distinct()
+
+#checking species where the max frequency is low (1-5), which means multiple dominant speceis per plot
+domin_check<-dominant_species_year%>%
+  filter(uniqueid=="KBS_glbrc_G10_S3_R5_no_fertilizer_undisturbed")
+
+
+#create dataframe of relative abundance of dominant species
+rel_abund_dom_species_year<-species_abundance_SPEI_evar%>%
+  left_join(dominant_species_year, by=c("uniqueid","species"))%>%
+  filter(dominant_species_code!="NA")%>%#retains only the relative abundance of the dominant species
+  rename(dominant_relative_abund=relative_abundance)%>%
+  select(-species)
+
+plot_metrics_SPEI_diversity_year <- plot_metrics_SPEI %>% 
+  right_join(., species_abundance_SPEI_Metric, by = c("year", "site",  "higher_order_organization", "plot", "uniqueid",
+                                                      "spei12", "spei3", "spei6", "spei9", "spei6_category", "spei12_category"))%>%
+  left_join(Evenness_richness, by = c("year","uniqueid"))%>%
+  left_join(rel_abund_dom_species_year, by=c("year","uniqueid"))#need to find out why NA for some dominant species relative abundance
+

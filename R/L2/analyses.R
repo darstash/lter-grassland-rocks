@@ -59,6 +59,7 @@ plot_ece$experiment <- sub("mcse.*", "mcse", plot_ece$experiment)
 plot_ece$experiment <- sub("microplots.*", "microplots", plot_ece$experiment)
 plot_ece$experiment <- sub("Experiment 1.*", "Experiment 1", plot_ece$experiment)
 plot_ece$experiment <- sub("001d.*", "001d", plot_ece$experiment)
+plot_ece$experiment <- sub("004a.*", "004a", plot_ece$experiment)
 plot_ece$experiment <- sub("004b.*", "004b", plot_ece$experiment)
 plot_ece$experiment <- sub("002d.*", "002d", plot_ece$experiment)
 plot_ece$experiment <- sub("Experiment 54.*", "Experiment 54", plot_ece$experiment)
@@ -67,8 +68,12 @@ plot_ece$experiment <- sub("002c.*", "002c", plot_ece$experiment)
 plot_ece$experiment <- sub("e061.*", "e061", plot_ece$experiment)
 plot_ece$experiment <- sub("e247.*", "e247", plot_ece$experiment)
 plot_ece$experiment <- sub("e245.*", "e245", plot_ece$experiment)
-#potential issue that could be affecting model structure
-#Some experiments are not assigned correctly.
+plot_ece$experiment[plot_ece$experiment == "A"] <- "NGE"
+plot_ece$experiment[plot_ece$experiment == "B"] <- "NGE"
+plot_ece$experiment[plot_ece$experiment == "C"] <- "NGE"
+plot_ece$experiment[plot_ece$experiment == "D"] <- "NGE"
+plot_ece$experiment[plot_ece$experiment == "E"] <- "NGE"
+plot_ece$experiment[plot_ece$experiment == "F"] <- "NGE"
 
 # Merge with metadata
 plot_ece_meta <- left_join(plot_ece, meta)

@@ -18,6 +18,8 @@ library(DHARMa)
 library(bbmle)
 library(ggeffects)
 library(MuMIn)
+library(car)
+library(GGally)
 
 # Set working directory 
 L0_dir <- Sys.getenv("L0DIR")
@@ -158,13 +160,29 @@ summary(resist.control.hyp)
 simres <- simulateResiduals(resist.control.hyp)
 plot(simres) # Very bad!
 
+# Year as random effect (hypothesis)
+resist.control.hyp.y <- lmer(log10(resistance) ~ scale(richness)*spei6_category + scale(berger_parker)*scale(richness) + scale(berger_parker)*spei6_category + (1|year) + (1|site/experiment/uniqueid), data = plot_ece_control)
+summary(resist.control.hyp.y)
+simres <- simulateResiduals(resist.control.hyp.y)
+plot(simres) # Very bad!
+vif(resist.control.hyp.y) # berger parker is bad
+plot_ece_control %>%
+  select(richness, berger_parker, resistance, resilience, spei6_category) %>%
+  ggpairs()
+D <- cooks.distance(resist.control.hyp.y)
+which(D > 0.5) # no influential outliers
+
 AICctab(resist.control.int, resist.control, resist.control.rich, resist.control.rich.add, resist.control.rich.nc, resist.control.spei, resist.control.hyp, resist.control.rich.ny)
 
 # Plot best model
 ggpredict(model = resist.control.rich.ny, terms = c("richness", "spei6_category"), back_transform = F) %>%
   plot(show_data = TRUE)
 
-
+# Plot hypothesis model
+ggpredict(model = resist.control.hyp.y, terms = c("richness", "spei6_category"), back_transform = F) %>%
+  plot(show_data = TRUE)
+ggpredict(model = resist.control.hyp.y, terms = c("richness", "berger_parker", "spei6_category"), back_transform = F) %>%
+  plot(show_data = TRUE, facet = T)
 
 
 ## All plots ----

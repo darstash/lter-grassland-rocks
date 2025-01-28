@@ -26,9 +26,9 @@ extreme_per_site <- plot_metrics %>%
   filter(spei6_category == "Extreme wet" | spei6_category == "Extreme dry")
   
 
-# Create dataframe that contains average normal biomass for each plot
+# Create dataframe that contains average "normal" biomass for each plot
 biomass_normal <- plot_metrics %>% 
-  filter(spei6_category == "Normal") %>% # calculate only for normal years
+  filter(spei6_category == "Normal" | spei6_category == "Moderate wet" | spei6_category == "Moderate dry") %>% # not enough just normal years
   group_by(uniqueid) %>% # group by plot
   summarize(average_normal_biomass = mean(plot_biomass, na.rm=T)) #na.rm=T is required to avoid NAs when the plots are missing values for certain years
 

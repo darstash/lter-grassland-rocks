@@ -268,7 +268,7 @@ plot_ece_rm_na_wet = plot_ece_rm_na %>% filter(spei6_category=="Extreme wet")
 
 
 
-# dry yearss 
+# dry years
 resist.env.dw_dry = lmer(log10(resistance) ~ scale(richness)*nutrients_simple*fire_frequency_cat +
                             scale(berger_parker)*nutrients_simple*fire_frequency_cat +(1|site:plot) + (1|year), data = plot_ece_rm_na_dry, na.action = "na.fail")
 summary(resist.env.dw_dry)
@@ -300,7 +300,7 @@ summary(resist.env.dw_wet)
 # NOW ACTUALLY DO PSEM - this is not working
   # to do - meet iwth Maatt av
 library(piecewiseSEM)
-
+plot_ece_rm_na_wet
 str(scale(plot_ece_rm_na$berger_parker) )
 scale(plot_ece_rm_na$richness) 
 modelList_lm <- psem(
@@ -315,6 +315,43 @@ modelList_lm
 basisSet(modelList_lm)
 dSep(modelList_lm, .progressBar = FALSE)
 summary(modelList_lm )
+
+
+# model for wet 
+names( plot_ece_rm_na_wet)
+plot_ece_rm_na_wet_sel = plot_ece_rm_na_wet %>% select(c(richness,berger_parker,nutrients_simple,fire_frequency_cat,resistance))
+dim(plot_ece_rm_na_wet_sel)
+table(is.na(plot_ece_rm_na_wet_sel))
+
+modelList_lm_wet <- psem(
+  lm(log10(resistance) ~ scale(richness) + scale(berger_parker) + nutrients_simple + fire_frequency_cat , data=plot_ece_rm_na_wet_sel),
+  lm(richness ~ nutrients_simple*fire_frequency_cat, data=plot_ece_rm_na_wet_sel),
+  lm(berger_parker ~ nutrients_simple*fire_frequency_cat, data=plot_ece_rm_na_wet_sel),
+  data=plot_ece_rm_na_wet_sel
+)
+
+modelList_lm_wet
+summary(modelList_lm_wet) # ruh roh
+plot(modelList_lm_wet)
+
+
+
+# model for dry
+names( plot_ece_rm_na_dry)
+plot_ece_rm_na_dry_sel = plot_ece_rm_na_dry %>% select(c(richness,berger_parker,nutrients_simple,fire_frequency_cat,resistance))
+dim(plot_ece_rm_na_dry_sel)
+table(is.na(plot_ece_rm_na_dry_sel))
+
+modelList_lm_dry <- psem(
+  lm(log10(resistance) ~ scale(richness) + scale(berger_parker) + nutrients_simple + fire_frequency_cat , data=plot_ece_rm_na_dry_sel),
+  lm(richness ~ nutrients_simple*fire_frequency_cat, data=plot_ece_rm_na_dry_sel),
+  lm(berger_parker ~ nutrients_simple*fire_frequency_cat, data=plot_ece_rm_na_dry_sel),
+  data=plot_ece_rm_na_dry_sel
+)
+
+modelList_lm_dry
+summary(modelList_lm_dry) # ruh roh
+plot(modelList_lm_dry)
 
 
 

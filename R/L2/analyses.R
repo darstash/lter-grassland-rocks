@@ -100,6 +100,12 @@ plot_ece_control %>%
   ggplot(aes(x = measurement_scale_cover, y = log(resilience))) +
   geom_point()
 
+# Try to scale richness and BP by experiment for control plots only
+plot_ece_control <- plot_ece_control %>%
+  group_by(experiment) %>%
+  mutate(richness_scaled = c(scale(richness)),
+         berger_parker_scaled = c(scale(berger_parker)))
+
 # Analysis 1: resistance ----
 ## Control plot only ----
 
@@ -175,6 +181,13 @@ plot_ece_control %>%
 D <- cooks.distance(resist.control.hyp.y)
 which(D > 0.5) # no influential outliers
 
+# Use richness and BP scaled at the experiment level
+# Year as random effect (hypothesis)
+resist.control.hyp.scale <- lmer(log10(resistance) ~ richness_scaled*spei6_category + berger_parker_scaled*richness_scaled + berger_parker_scaled*spei6_category + (1|year) + (1|site/experiment/uniqueid), data = plot_ece_control)
+summary(resist.control.hyp.scale)
+simres <- simulateResiduals(resist.control.hyp.scale)
+plot(simres) # Very bad!
+
 AICctab(resist.control.int, resist.control, resist.control.rich, resist.control.rich.add, resist.control.rich.nc, resist.control.spei, resist.control.hyp, resist.control.rich.ny)
 
 # Plot best model
@@ -182,10 +195,15 @@ ggpredict(model = resist.control.rich.ny, terms = c("richness", "spei6_category"
   plot(show_data = TRUE)
 
 # Plot hypothesis model
-ggpredict(model = resist.control.hyp.y, terms = c("richness", "spei6_category"), back_transform = F) %>%
+ggpredict(model = resist.control.hyp.scale, terms = c("richness_scaled", "spei6_category"), back_transform = F) %>%
   plot(show_data = TRUE)
-ggpredict(model = resist.control.hyp.y, terms = c("richness", "berger_parker", "spei6_category"), back_transform = F) %>%
+ggpredict(model = resist.control.hyp.scale, terms = c("berger_parker_scaled", "spei6_category"), back_transform = F) %>%
+  plot(show_data = TRUE)
+ggpredict(model = resist.control.hyp.scale, terms = c("richness_scaled", "berger_parker_scaled"), back_transform = F) %>%
+  plot(show_data = TRUE)
+ggpredict(model = resist.control.hyp.scale, terms = c("richness_scaled", "berger_parker_scaled", "spei6_category"), back_transform = F) %>%
   plot(show_data = TRUE, facet = T)
+
 
 
 ## All plots ----

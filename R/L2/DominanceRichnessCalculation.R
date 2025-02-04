@@ -4,13 +4,13 @@
 # DATA INPUT: .csv file of plot metrics and species abundance imported from Google Drive L2 folder
 # DATA OUTPUT: .csv of updated plot metrics dataset that includes richness and dominance  
 # PROJECT: LTER Grassland Rock
-# DATE: October 2024: Last updated: Jan 25, 2025
+# DATE: October 2024: Last updated: Feb 4, 2025
 
 # Clear all existing data
 rm(list=ls())
 
 #a community metric package that provides options for various evenness metrics.
-install.packages("codyn")
+#install.packages("codyn")
 library(codyn)
 library(tidyverse)
 
@@ -73,7 +73,11 @@ plot_metrics_SPEI_diversity <- plot_metrics_SPEI %>%
   right_join(., species_abundance_SPEI_Metric, by = c("year", "site",  "higher_order_organization", "plot", "uniqueid",
                                                      "spei12", "spei3", "spei6", "spei9", "spei6_category", "spei12_category"))%>%
   left_join(Evenness_richness, by = c("year","uniqueid"))%>%
-  left_join(rel_abund_dom_species_year, by=c("year","uniqueid"))#need to find out why NA for some dominant species relative abundance
+  left_join(rel_abund_dom_species_year, by=c("year","uniqueid"))%>%
+  #create a new column of dominant abundance and convert NAs to zero
+  #as NAs are primarily due to the absence of the dominant species
+  mutate(dominant_relative_abund_zero=dominant_relative_abund)%>%
+  mutate(dominant_relative_abund_zero=ifelse(is.na(dominant_relative_abund_zero),0,dominant_relative_abund_zero))
 
 
 write.csv(plot_metrics_SPEI_diversity, file.path(L2_dir, "./plot_metrics_SPEI_diversity.csv"), row.names=F)

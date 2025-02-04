@@ -477,9 +477,7 @@ species_abundance <- species_abundance %>%
   merge(species_name_match_list %>%
           select(!species_precleaned),
         by.x = "species",
-        by.y = "species_raw") %>%
-  select(!species) %>%
-  rename("species" = "species_harmonized")
+        by.y = "species_raw") 
 
 write.csv(species_abundance, file.path(L2_dir, "./species_abundance.csv"), row.names=F)
 write.csv(species_name_match_list, file.path(L2_dir, "./species_name_list.csv"), row.names=F) 

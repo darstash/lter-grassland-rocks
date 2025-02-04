@@ -142,7 +142,7 @@ species_abundance <- species_abundance %>%
 #                         species %in% "Arrhenatherum elatius_ Beauv. ex j. & C. Presl" ~ "Arrhenatherum elatius",
 #                         species %in% "Artemi ludov"                   ~ "Artemesia ludoviciana",
 #                         species %in% "Artemisia (caudata) campestris" ~ "Artemisia campestris",
-#                         species %in% "Asclep sulli"                   ~ "Artemisia ludoviciana",
+#                         species %in% "Asclep sulli"                   ~ "Asclepias sullivantii", #corrected!
 #                         species %in% "Asclep syria"                   ~ "Asclepias syriaca",
 #                         species %in% "Asclep tuber"                   ~ "Asclepias tuberosa",
 #                         species %in% "Asclep verti"                   ~ "Asclepias verticillata",
@@ -151,7 +151,7 @@ species_abundance <- species_abundance %>%
 #                         species %in% "Asplenium platyneuron_ Oakes"   ~ "Asplenium platyneuron",
 #                         species %in% "Aster basal leaves"             ~ "Aster sp.",
 #                         species %in% "Astrag crass"                   ~ "Astragalus crassicarpus",
-#                         species %in% "Bothri bladh"                   ~ "Bothri bladh",                    # KNZ ?!
+#                         species %in% "Bothri bladh"                   ~ "Bothriochloa bladhii",                    # KNZ ?! corrected!
 #                         species %in% "Boutel curti"                   ~ "Bouteloua curtipendula",
 #                         species %in% "Boutel dacty"                   ~ "Bouteloua dactyloides",
 #                         species %in% "Boutel graci"                   ~ "Bouteloua gracilis",
@@ -162,8 +162,8 @@ species_abundance <- species_abundance %>%
 #                         species %in% "Ceanot herba"                   ~ "Ceanothus herbaceus",
 #                         species %in% "Celtis occid"                   ~ "Celtis occidentalis",
 #                         species %in% "Centaurea stoebe_ ssp. micranthos (gugler) hayek" ~ "Centaurea stoebe micranthos",
-#                         species %in% "Cercis canad"                   ~ "Cercis canadensis",               # KNZ, is that correct?
-#                         species %in% "Chamae fasci"                   ~ "Chamaecrista fasciculata",        # KNZ, is that correct?
+#                         species %in% "Cercis canad"                   ~ "Cercis canadensis",               # KNZ, is that correct? Yes!
+#                         species %in% "Chamae fasci"                   ~ "Chamaecrista fasciculata",        # KNZ, is that correct? Yes!
 #                         species %in% "Cirsiu altis"                   ~ "Cirsium altissimum",
 #                         species %in% "Cirsiu undul"                   ~ "Cirsium undulatum",
 #                         species %in% "Cirsium altissimum_ Spreng."    ~ "Cirsium altissimum",
@@ -176,7 +176,7 @@ species_abundance <- species_abundance %>%
 #                         species %in% "Croton monan"                   ~ "Croton monanthogynus",
 #                         species %in% "Cuscut glome"                   ~ "Cuscuta glomerata",
 #                         species %in% "Cuscuta"                        ~ "Cuscuta sp.",
-#                         species %in% "Cynanc laeve"                   ~ "Cynanchum laeve",                 # KNZ, is that correct?
+#                         species %in% "Cynanc laeve"                   ~ "Cynanchum laeve",                 # KNZ, is that correct? Yes
 #                         species %in% "Cyperu lupul"                   ~ "Cyperus lupulinus",
 #                         species %in% "Cyperus_spp"                    ~ "Cyperus spp.",
 #                         species %in% "Cyperus_spp."                   ~ "Cyperus spp.",
@@ -205,8 +205,8 @@ species_abundance <- species_abundance %>%
 #                         species %in% "Erigeron annuus_ Pers."         ~ "Erigeron annuus",
 #                         species %in% "Eupato altis"                   ~ "Eupatorium altissimum",
 #                         species %in% "Eupatorium"                     ~ "Eupatorium sp.",
-#                         species %in% "Eupatorium eupertorioides"      ~ "Eupatorium eupertorioides",     # KNZ?!
-#                         species %in% "Euphor cyath"                   ~ "Euphorbia cyathophora",         # KNZ, is that correct?
+#                         species %in% "Eupatorium eupertorioides"      ~ "Eupatorium eupertorioides",     # KNZ?! Don't think so. there is Eupatorium altissimum and Brickellia eupatorioidies
+#                         species %in% "Euphor cyath"                   ~ "Euphorbia cyathophora",         # KNZ, is that correct? Yes!
 #                         species %in% "Euphor denta"                   ~ "Euphorbia dentata",
 #                         species %in% "Euphor margi"                   ~ "Euphorbia marginata",
 #                         species %in% "Euphor nutan"                   ~ "Euphorbia nutans",
@@ -219,21 +219,21 @@ species_abundance <- species_abundance %>%
 #                         species %in% "Helian annuu"                   ~ "Helianthus annuus",
 #                         species %in% "Helian pauci"                   ~ "Helianthus pauciflorus",
 #                         species %in% "Heliopsis helianthoides_ Sweet" ~ "Heliopsis helianthoides",
-#                         species %in% "Kummer stipu"                   ~ "Kummer stipu",                  # KNZ?!
+#                         species %in% "Kummer stipu"                   ~ "kummerowia stipulacea",                  # KNZ?! fixed!
 #                         species %in% "Lactuc serri"                   ~ "Lactuca serriola",
 #                         species %in% "Lactuca serriola scariola"      ~ "Lactuca serriola (scariola)",
 #                         species %in% "Lepidi densi"                   ~ "Lepidium densiflorum",
 #                         species %in% "Lepidium campestre_ R.br."      ~ "Lepidium campestre",
 #                         species %in% "Lesped capit"                   ~ "Lespedeza capitata",
 #                         species %in% "Lesped viola"                   ~ "Lespedeza violacea",
-#                         species %in% "Leucos multi"                   ~ "Leucos multi",                  # KNZ?!
+#                         species %in% "Leucos multi"                   ~ "leucospora multifida",                  # KNZ?! fixed!
 #                         species %in% "Liatri punct"                   ~ "Liatris punctata",
 #                         species %in% "Lithos incis"                   ~ "Lithospermum incisum",
 #                         species %in% "Lychnis latifolia ssp. Alba"    ~ "Lychnis alba",
-#                         species %in% "Lycopu ameri"                   ~ "Lycopus americanus",            # KNZ, is that correct?
+#                         species %in% "Lycopu ameri"                   ~ "Lycopus americanus",            # KNZ, is that correct? Yes!
 #                         species %in% "Melilo offic"                   ~ "Melilotus officinalis",
 #                         species %in% "Melilotus officinalis_ Lam."    ~ "Melilotus officinalis",
-#                         species %in% "Mimosa (schrankii) quadrivavlis"~ "Mimosa quadrivalvis",           # KNZ, is that correct?
+#                         species %in% "Mimosa (schrankii) quadrivavlis"~ "Mimosa quadrivalvis",           # KNZ, is that correct? Yes!
 #                         species %in% "Mimosa quadr"                   ~ "Mimosa quadrivalvis",
 #                         species %in% "Mirabi albid"                   ~ "Mirabilis albida",
 #                         species %in% "Mirabi linea"                   ~ "Mirabilis linearis",
@@ -263,14 +263,14 @@ species_abundance <- species_abundance %>%
 #                         species %in% "Rudbeckia (hirta) serotina"     ~ "Rudbeckia hirta",
 #                         species %in% "Rudbeckia hirta_ var. pulcherrima farw." ~ "Rudbeckia hirta var. pulcherrima",
 #                         species %in% "Ruellia"                        ~ "Ruellia sp.",
-#                         species %in% "Rumex altis"                    ~ "Rumex altissimus",            # KNZ, is that correct?
+#                         species %in% "Rumex altis"                    ~ "Rumex altissimus",            # KNZ, is that correct? Yes!
 #                         species %in% "Rumex species"                  ~ "Rumex sp.",
 #                         species %in% "Schiza scopa"                   ~ "Schizachyrium scoparium",
-#                         species %in% "Scutel parvu"                   ~ "Scutellaria parvula",         # KNZ, is that correct?
-#                         species %in% "Senna maril"                    ~ "Senna marilandica",           # KNZ, is that correct?
-#                         species %in% "Setaria viridis_ Beauv."        ~ "Setaria viridi",
+#                         species %in% "Scutel parvu"                   ~ "Scutellaria parvula",         # KNZ, is that correct? Yes!
+#                         species %in% "Senna maril"                    ~ "Senna marilandica",           # KNZ, is that correct? Yes!
+#                         species %in% "Setaria viridis_ Beauv."        ~ "Setaria viridis",
 #                         species %in% "Silene antir"                   ~ "Silene antirrhina",
-#                         species %in% "Silphi integ"                   ~ "Silphium integrifolium",      # KNZ, is that correct?
+#                         species %in% "Silphi integ"                   ~ "Silphium integrifolium",      # KNZ, is that correct? Yes!
 #                         species %in% "Silphi lacin"                   ~ "Silphium laciniatum",
 #                         species %in% "Sisymbrium officinale_ Scop."   ~ "Sisymbrium officinale",
 #                         species %in% "Sisyri campe"                   ~ "Sisyrinchium campestre",
@@ -284,12 +284,12 @@ species_abundance <- species_abundance %>%
 #                         species %in% "Sporob crypt"                   ~ "Sporobolus cryptandrus",
 #                         species %in% "Sporobolus (compositus) asper"  ~ "Sporobolus compositus",
 #                         species %in% "Stellaria media_ Vill."         ~ "Stellaria media",
-#                         species %in% "Sympho orbic"                   ~ "Symphocarpus orbiculatus",
+#                         species %in% "Sympho orbic"                   ~ "Symphoricarpos orbiculatus",
 #                         species %in% "Symphy spp."                    ~ "Symphyotrichum ssp.",
-#                         species %in% "Symphy drumm"                   ~ "Symphyotrichum drummondii",   # KNZ, is that correct?
+#                         species %in% "Symphy drumm"                   ~ "Symphyotrichum drummondii",   # KNZ, is that correct? Yes!
 #                         species %in% "Symphy erico"                   ~ "Symphyotrichum ericoides",
 #                         species %in% "Symphy oblon"                   ~ "Symphyotrichum_oblongifolium",
-#                         species %in% "Symphyotrichym (aster) ericoides" ~ "Symphyotrichum oblongifolium",
+#                         species %in% "Symphyotrichym (aster) ericoides" ~ "Symphyotrichum ericoides",
 #                         species %in% "Symphyotrichym (aster) oblongifolium" ~ "Symphyotrichum oblongifolium",
 #                         species %in% "Taraxa offic"                   ~ "Taraxacum officinale",
 #                         species %in% "Toxico nutta"                   ~ "Toxicoscordion nuttallii",
@@ -301,10 +301,10 @@ species_abundance <- species_abundance %>%
 #                         species %in% "Tripsa dacty"                   ~ "Tripsacum dactyloides",
 #                         species %in% "Ulmus ameri"                    ~ "Ulmus americana",
 #                         species %in% "Velvet leaf"                    ~ "Abutilon theophrasti",
-#                         species %in% "Verbes alter"                   ~ "Verbes alter",                # KNZ?!
+#                         species %in% "Verbes alter"                   ~ "Verbesina alternifolia",                # KNZ?! fixed!
 #                         species %in% "Vernon baldw"                   ~ "Vernonia baldwinii",
 #                         species %in% "Viola nephr"                    ~ "Viola nephrophylla",
-#                         species %in% "Viola petidifida"               ~ "Viola pedatifida",            # KNZ, is that correct?
+#                         species %in% "Viola petidifida"               ~ "Viola pedatifida",            # KNZ, is that correct? Yes!
 #                         species %in% "Vitis sp. (kbs.us)"             ~ "Vitis sp.",
 #                         species %in% "Zantho ameri"                   ~ "Zanthoxylum americanum",
 #                         species %in% "Zigadenus"                      ~ "Zigadenus sp.",

@@ -577,7 +577,7 @@ e001e002_metadata <- e001e002_anpp %>%
         all.x = TRUE) %>%
   clean_names(.) %>%
   mutate(diversity_manipulated = "naturally_assembled",
-         treatment = ifelse(n_trt %in% 1, "control", paste("nitrogen", nitr_add+n_atm_n_add, sep = "_")),
+         treatment = ifelse(n_trt %in% 9, "control", paste("nitrogen", nitr_add+n_atm_n_add, sep = "_")),
          source = "https://doi.org/10.6073/pasta/2eba7aac6b347d27a92208e03fd3f8ea; https://doi.org/10.6073/pasta/66724d71711b80d520fa33a690f962b2",
          treatment_comment = "") %>%
   select(site, year, plot, uniqueid, higher_order_organization, temperature, precipitation, treatment, growtemp, growprecip,

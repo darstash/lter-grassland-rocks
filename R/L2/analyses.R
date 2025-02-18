@@ -20,6 +20,7 @@ library(ggeffects)
 library(MuMIn)
 library(car)
 library(GGally)
+library(performance)
 
 # Set working directory 
 L0_dir <- Sys.getenv("L0DIR")
@@ -120,7 +121,7 @@ plot_ece_control %>%
 rich_area<-lm(richness_scaled~measurement_scale_cover, data=plot_ece_control)
 summary(rich_area) 
 simres <- simulateResiduals(rich_area)
-plot(simres)#looks good 
+plot(simres)#looks good enough
 
 # Analysis 1: resistance ----
 ## Control plot only ----
@@ -129,23 +130,30 @@ plot(simres)#looks good
 #control only model with all possible main effects and interactions
 
 
-resis_random_model<-lmer(log(resistance) ~ richness_scaled+berger_parker_scaled+dominant_relative_abund_zero_scaled+evar_scaled+richness_scaled:spei6_category+
+resis_random_model<-lmer(resistance ~ richness_scaled+berger_parker_scaled+dominant_relative_abund_zero_scaled+evar_scaled+richness_scaled:spei6_category+
                            richness:berger_parker_scaled+richness:berger_parker_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled+
                            dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
                            evar_scaled:spei6_category+(1|year) + (1|site/experiment/uniqueid), data = plot_ece_control)
 summary(resis_random_model) #convergence caused by site
-simres <- simulateResiduals(resis_random_model)
-plot(simres)
 #remove site
-resis_random_model1<-lmer(log(resistance) ~ richness_scaled+berger_parker_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
+resis_random_model1<-lmer(resistance ~ richness_scaled+berger_parker_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
        richness:berger_parker_scaled+richness:berger_parker_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled+
        dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
        evar_scaled:spei6_category+(1|year) + (1|experiment/uniqueid), data = plot_ece_control)
 summary(resis_random_model1)
-simres <- simulateResiduals(resis_random_model1)
-plot(simres)
-check_model(resis_random_model1)
-AIC(resis_random_model1,resis_random_model)#model without site has a lower AIC, not that diff though
+
+#random slope and intercept model
+resis_random_model2<-lmer(resistance ~ richness_scaled+berger_parker_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
+                            richness:berger_parker_scaled+richness:berger_parker_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled+
+                            dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
+                            evar_scaled:spei6_category+ (1|experiment/uniqueid), data = plot_ece_control)
+summary(resis_random_model2)
+
+
+
+check_model(resis_random_model)
+
+AIC(resis_random_model2,resis_random_model1,resis_random_model)#model with random intercept and without site and  has the lowest AIC
 
 
 

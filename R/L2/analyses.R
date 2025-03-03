@@ -268,6 +268,7 @@ summary(fixed_dom_model5_update)
 check_model(fixed_dom_model5_update)
 simres <- simulateResiduals(fixed_dom_model5_update)
 plot(simres)#not that bad, but not the best either-thoughts?
+plotResiduals(simres, form = plot_ece_control$richness_scaled)
 
 
 

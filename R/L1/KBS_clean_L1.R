@@ -489,7 +489,7 @@ unique(glbrc_grassland$treatment)
 glbrc_grassland$nitrogen_amount <- NA # are subplots included???
 glbrc_grassland$disturbance <- "undisturbed"
 glbrc_grassland$grazing <- "ungrazed"
-glbrc_grassland$fire_frequency <- NA
+glbrc_grassland$fire_frequency <- 0
 glbrc_grassland$time_since_fire <- NA
 glbrc_grassland$experiment <- "glbrc"
 glbrc_grassland$cover_method <- "pseudo percent cover from mass"
@@ -532,8 +532,6 @@ glbrc_scaleup$source <- "GLBRC Scale-Up (Table 180)"
 glbrc_scaleup$date <- lubridate::mdy(glbrc_scaleup$date)
 
 glbrc_scaleup$nutrients_added <- "no_fertilizer"
-#this is a placeholder. check to make sure no fert. 
-
 glbrc_scaleup <- glbrc_scaleup %>%  # rename "site" column, need to use that for later.
   rename(  "glbrc_site" ="site")
 
@@ -552,11 +550,11 @@ unique(glbrc_scaleup_grassland$treatment)
 unique(glbrc_scaleup_grassland$year)
 unique(glbrc_scaleup_grassland$fraction)
 
-glbrc_scaleup_grassland$nitrogen_amount <- NA # has been fertilized twice, include?
+glbrc_scaleup_grassland$nitrogen_amount <- NA
 glbrc_scaleup_grassland$disturbance <- "undisturbed"
 glbrc_scaleup_grassland$grazing <- "ungrazed"
-glbrc_scaleup_grassland$fire_frequency <- NA
-glbrc_scaleup_grassland$time_since_fire <- NA
+glbrc_scaleup_grassland$fire_frequency <- 0
+glbrc_scaleup_grassland$time_since_fire <- NA # fire near plots in 2013, but doesn't sound like they were actually burned
 glbrc_scaleup_grassland$experiment <- "glbrc_scaleup"
 glbrc_scaleup_grassland$cover_method <- "pseudo percent cover from mass"
 

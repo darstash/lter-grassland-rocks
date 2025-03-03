@@ -4,7 +4,7 @@
 # DATA INPUT:   Data imported as csv files from shared Google drive L2 folder
 # DATA OUTPUT:  Core analyses
 # PROJECT:      LTER Grassland Rock
-# DATE:         October 2024 , Updated: Feburary 2025
+# DATE:         October 2024 , last updated: March 2025
 
 # Clear all existing data
 rm(list=ls())
@@ -128,33 +128,75 @@ plot(simres)#looks good enough
 
 #goal: determine an ideal random effect structure
 #control only model with all possible main effects and interactions
-
-
-resis_random_model<-lmer(resistance ~ richness_scaled+berger_parker_scaled+dominant_relative_abund_zero_scaled+evar_scaled+richness_scaled:spei6_category+
-                           richness:berger_parker_scaled+richness:berger_parker_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled+
-                           dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
+#using berger parker as dominance metric
+resis_random_model<-lmer(log(resistance) ~ richness_scaled+berger_parker_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
+                           richness:berger_parker_scaled+berger_parker_scaled:spei6_category+richness:berger_parker_scaled:spei6_category+
                            evar_scaled:spei6_category+(1|year) + (1|site/experiment/uniqueid), data = plot_ece_control)
-summary(resis_random_model) #convergence caused by site
+summary(resis_random_model) 
+res<-resid(resis_random_model)
+plot(resis_random_model, select=c(1))
+plot(res~richness_scaled, data=plot_ece_control)#not working
+check_model(resis_random_model)#diagnostic visuals
 #remove site
-resis_random_model1<-lmer(resistance ~ richness_scaled+berger_parker_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
-       richness:berger_parker_scaled+richness:berger_parker_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled+
-       dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
-       evar_scaled:spei6_category+(1|year) + (1|experiment/uniqueid), data = plot_ece_control)
+resis_random_model1<-lmer(log(resistance) ~ richness_scaled+berger_parker_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
+                            richness:berger_parker_scaled+berger_parker_scaled:spei6_category+richness:berger_parker_scaled:spei6_category+
+                            evar_scaled:spei6_category+(1|year) + (1|experiment/uniqueid), data = plot_ece_control)
 summary(resis_random_model1)
-
-#random slope and intercept model
-resis_random_model2<-lmer(resistance ~ richness_scaled+berger_parker_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
-                            richness:berger_parker_scaled+richness:berger_parker_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled+
-                            dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
-                            evar_scaled:spei6_category+ (1|experiment/uniqueid), data = plot_ece_control)
-summary(resis_random_model2)
+check_model(resis_random_model1)
 
 
+AIC(resis_random_model1,resis_random_model)#model without site and  has the lowest AIC
 
-check_model(resis_random_model)
+#selecting fixed effects but retaining hypothesis
+#refit model with "ML"
+resis_fixed_model<-lmer(log(resistance) ~ richness_scaled+berger_parker_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
+                          richness:berger_parker_scaled+berger_parker_scaled:spei6_category+richness:berger_parker_scaled:spei6_category+
+                          evar_scaled:spei6_category+(1|year) + (1|experiment/uniqueid), data = plot_ece_control, REML = F)
+anova(resis_fixed_model)
+fixed_model1<-update(resis_fixed_model, .~.-richness:berger_parker_scaled:spei6_category)
+#determine the significance of the dropped term
+anova(resis_fixed_model,fixed_model1)#okay to drop term
+#drop more terms
+fixed_model2<-update(fixed_model1, .~.-berger_parker_scaled:spei6_category)
+anova(fixed_model1, fixed_model2)#okay to drop term
+anova(fixed_model2)
 
-AIC(resis_random_model2,resis_random_model1,resis_random_model)#model with random intercept and without site and  has the lowest AIC
+#more terms to drop
+fixed_model3<-update(fixed_model2, .~.-richness_scaled:spei6_category)
+anova(fixed_model2, fixed_model3)
+anova(fixed_model3)
+check_model(fixed_model3)
 
+#model suggests dominance and richness interaction is not significant
+#dropping this interaction
+fixed_model4<-update(fixed_model3, .~.-berger_parker_scaled:richness)
+anova(fixed_model3,fixed_model4)#okay to drop
+anova(fixed_model4)
+check_model(fixed_model4)
+
+#left richness and dominance in the model since it relates to our hypothesis
+#Refit model with REML
+fixed_model5<-lmer(log(resistance)~richness_scaled+berger_parker_scaled+evar_scaled*spei6_category+
+                         (1|year)+(1|experiment/uniqueid), data=plot_ece_control)
+anova(fixed_model5)
+check_model(fixed_model5)#spread in variance and normality issue #need covariance structure?
+#can't set variance with lme4 so pivot to nlme
+library(nlme)
+fixed_model6<-lme(log(resistance)~richness_scaled+berger_parker_scaled+evar_scaled*spei6_category,
+                    random = ~1|experiment/uniqueid, method="REML", data=plot_ece_control, na.action = na.omit)
+#does anyone know hoe to set multiple random effect with lme?
+anova(fixed_model6)
+#check varinace with covariates
+resd<-resid(fixed_model6)
+
+vfix<-varFixed(~evar_scaled)
+fixed_model7<-lme(log(resistance)~richness_scaled+berger_parker_scaled+evar_scaled*spei6_category,
+                  random = ~1|experiment/uniqueid, method="REML", data=plot_ece_control, na.action = na.omit, weights =vfix)
+anova(fixed_model7)
+check_model(fixed_model7)
+anova(fixed_model6,fixed_model7)#work in progress!!!
+simres <- simulateResiduals(fixed_model7)
+plot(simres)
 
 
 # Model with all variables (need to add experiment)

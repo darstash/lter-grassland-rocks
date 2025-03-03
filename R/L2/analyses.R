@@ -107,7 +107,7 @@ plot_ece_control %>%
 
 # Try to scale richness and BP by experiment for control plots only
 plot_ece_control <- plot_ece_control %>%
-  group_by(experiment) %>%
+  group_by(experiment, year) %>%
   mutate(richness_scaled = c(scale(richness)),
          berger_parker_scaled = c(scale(berger_parker)),
          evar_scaled=c(scale(evar)),
@@ -121,39 +121,38 @@ plot_ece_control %>%
 rich_area<-lm(richness_scaled~measurement_scale_cover, data=plot_ece_control)
 summary(rich_area) 
 simres <- simulateResiduals(rich_area)
-plot(simres)#looks good enough
+plot(simres)#looks good
+
 
 # Analysis 1: resistance ----
 ## Control plot only ----
 
 #goal: determine an ideal random effect structure
 #control only model with all possible main effects and interactions
-#using berger parker as dominance metric
+#using berger parker as dominance metric####
 resis_random_model<-lmer(log(resistance) ~ richness_scaled+berger_parker_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
-                           richness:berger_parker_scaled+berger_parker_scaled:spei6_category+richness:berger_parker_scaled:spei6_category+
+                           richness_scaled:berger_parker_scaled+berger_parker_scaled:spei6_category+richness_scaled:berger_parker_scaled:spei6_category+
                            evar_scaled:spei6_category+(1|year) + (1|site/experiment/uniqueid), data = plot_ece_control)
 summary(resis_random_model) 
-res<-resid(resis_random_model)
-plot(resis_random_model, select=c(1))
-plot(res~richness_scaled, data=plot_ece_control)#not working
 check_model(resis_random_model)#diagnostic visuals
+anova(resis_random_model)
 #remove site
 resis_random_model1<-lmer(log(resistance) ~ richness_scaled+berger_parker_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
-                            richness:berger_parker_scaled+berger_parker_scaled:spei6_category+richness:berger_parker_scaled:spei6_category+
+                            richness_scaled:berger_parker_scaled+berger_parker_scaled:spei6_category+richness_scaled:berger_parker_scaled:spei6_category+
                             evar_scaled:spei6_category+(1|year) + (1|experiment/uniqueid), data = plot_ece_control)
 summary(resis_random_model1)
 check_model(resis_random_model1)
-
+anova(resis_random_model1)
 
 AIC(resis_random_model1,resis_random_model)#model without site and  has the lowest AIC
 
 #selecting fixed effects but retaining hypothesis
 #refit model with "ML"
 resis_fixed_model<-lmer(log(resistance) ~ richness_scaled+berger_parker_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
-                          richness:berger_parker_scaled+berger_parker_scaled:spei6_category+richness:berger_parker_scaled:spei6_category+
+                          richness_scaled:berger_parker_scaled+berger_parker_scaled:spei6_category+richness_scaled:berger_parker_scaled:spei6_category+
                           evar_scaled:spei6_category+(1|year) + (1|experiment/uniqueid), data = plot_ece_control, REML = F)
 anova(resis_fixed_model)
-fixed_model1<-update(resis_fixed_model, .~.-richness:berger_parker_scaled:spei6_category)
+fixed_model1<-update(resis_fixed_model, .~.-richness_scaled:berger_parker_scaled:spei6_category)
 #determine the significance of the dropped term
 anova(resis_fixed_model,fixed_model1)#okay to drop term
 #drop more terms
@@ -169,34 +168,107 @@ check_model(fixed_model3)
 
 #model suggests dominance and richness interaction is not significant
 #dropping this interaction
-fixed_model4<-update(fixed_model3, .~.-berger_parker_scaled:richness)
+fixed_model4<-update(fixed_model3, .~.-berger_parker_scaled:richness_scaled)
 anova(fixed_model3,fixed_model4)#okay to drop
 anova(fixed_model4)
 check_model(fixed_model4)
 
+fixed_model5<-update(fixed_model4, .~.-evar_scaled:spei6_category)
+anova(fixed_model4, fixed_model5)
+anova(fixed_model5)
+check_model(fixed_model5)
+
 #left richness and dominance in the model since it relates to our hypothesis
 #Refit model with REML
-fixed_model5<-lmer(log(resistance)~richness_scaled+berger_parker_scaled+evar_scaled*spei6_category+
+fixed_model6<-lmer(log(resistance)~richness_scaled+berger_parker_scaled+evar_scaled+spei6_category+
                          (1|year)+(1|experiment/uniqueid), data=plot_ece_control)
-anova(fixed_model5)
-check_model(fixed_model5)#spread in variance and normality issue #need covariance structure?
+anova(fixed_model6)
+simres <- simulateResiduals(fixed_model6)
+plot(simres)
+check_model(fixed_model6)#some spread in variance and normality issue #need covariance structure?
 #can't set variance with lme4 so pivot to nlme
 library(nlme)
-fixed_model6<-lme(log(resistance)~richness_scaled+berger_parker_scaled+evar_scaled*spei6_category,
+fixed_model7<-lme(log(resistance)~richness_scaled+berger_parker_scaled+evar_scaled+spei6_category,
                     random = ~1|experiment/uniqueid, method="REML", data=plot_ece_control, na.action = na.omit)
-#does anyone know hoe to set multiple random effect with lme?
-anova(fixed_model6)
-#check varinace with covariates
-resd<-resid(fixed_model6)
-
-vfix<-varFixed(~evar_scaled)
-fixed_model7<-lme(log(resistance)~richness_scaled+berger_parker_scaled+evar_scaled*spei6_category,
-                  random = ~1|experiment/uniqueid, method="REML", data=plot_ece_control, na.action = na.omit, weights =vfix)
+#does anyone know a way around setting multiple random effect with lme? can't set year as random effect with another random effect already stated
 anova(fixed_model7)
-check_model(fixed_model7)
-anova(fixed_model6,fixed_model7)#work in progress!!!
-simres <- simulateResiduals(fixed_model7)
-plot(simres)
+
+#setting a fixed variance_covariance structure
+vfix<-varFixed(~evar_scaled)
+fixed_model8<-lme(log(resistance)~richness_scaled+berger_parker_scaled+evar_scaled+spei6_category,
+                  random = ~1|experiment/uniqueid, method="REML", data=plot_ece_control, na.action = na.omit,weights= vfix, correlation = corCompSymm(form=~1|experiment/uniqueid))
+anova(fixed_model8)
+summary(fixed_model8)
+check_model(fixed_model8)#not better
+anova(fixed_model7,fixed_model8)
+
+AIC(fixed_model7, fixed_model8) #model with the original structure has lower AIC
+
+
+#runing the model with abundance of dominant species instead of berger parker####
+resis_rand_dom_model<-lmer(log(resistance) ~ richness_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
+                           richness_scaled:dominant_relative_abund_zero_scaled+dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
+                           evar_scaled:spei6_category+(1|year) + (1|site/experiment/uniqueid), data = plot_ece_control)
+summary(resis_rand_dom_model) 
+check_model(resis_rand_dom_model)#diagnostic visuals
+anova(resis_rand_dom_model)
+#remove site
+resis_rand_dom_model1<-lmer(log(resistance) ~ richness_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
+                            richness_scaled:dominant_relative_abund_zero_scaled+dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
+                            evar_scaled:spei6_category+(1|year) + (1|experiment/uniqueid), data = plot_ece_control)
+summary(resis_rand_dom_model1) 
+check_model(resis_rand_dom_model1)
+anova(resis_rand_dom_model1)
+#remove year
+resis_rand_dom_model2<-lmer(log(resistance) ~ richness_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
+                              richness_scaled:dominant_relative_abund_zero_scaled+dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
+                              evar_scaled:spei6_category+ (1|experiment/uniqueid), data = plot_ece_control)
+summary(resis_rand_dom_model2)  
+check_model(resis_rand_dom_model2)
+anova(resis_rand_dom_model2)
+
+AIC(resis_rand_dom_model,resis_rand_dom_model1,resis_rand_dom_model2)#model with year but without site and  has the lowest AIC
+
+#selecting fixed effects but retaining hypothesis
+#refit model with "ML", then proceed with stepwise selection
+resis_fixed_dom_model<-lmer(log(resistance) ~ richness_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
+                          richness_scaled:dominant_relative_abund_zero_scaled+dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
+                          evar_scaled:spei6_category+(1|year) + (1|experiment/uniqueid), data = plot_ece_control, REML = F)
+anova(resis_fixed_dom_model)
+fixed_dom_model1<-update(resis_fixed_dom_model, .~.-richness_scaled:dominant_relative_abund_zero_scaled:spei6_category)
+anova(fixed_dom_model1, resis_fixed_dom_model)#okay to proceed
+anova(fixed_dom_model1)
+
+fixed_dom_model2<-update(fixed_dom_model1, .~.-evar_scaled:spei6_category)
+anova(fixed_dom_model1, fixed_dom_model2)
+anova(fixed_dom_model2)
+
+
+
+fixed_dom_model3<-update(fixed_dom_model2, .~.-richness_scaled:dominant_relative_abund_zero_scaled)
+anova(fixed_dom_model3, fixed_dom_model2)
+anova(fixed_dom_model3)
+
+fixed_dom_model4<-update(fixed_dom_model3, .~.-dominant_relative_abund_zero_scaled:spei6_category)
+anova(fixed_dom_model3, fixed_dom_model4)
+anova(fixed_dom_model4)
+
+fixed_dom_model5<-update(fixed_dom_model4, .~.-richness_scaled:spei6_category)
+anova(fixed_dom_model5, fixed_dom_model4)
+anova(fixed_dom_model5)
+
+fixed_dom_model6<-update(fixed_dom_model5, .~.-dominant_relative_abund_zero_scaled)
+anova(fixed_dom_model5, fixed_dom_model6)#fixed_dom_model5 has lower AIC and dominance is part of our initial hypothesis
+anova(fixed_dom_model6)
+
+#refit model with REML
+fixed_dom_model5_update<-update(fixed_dom_model5, REML=T)
+anova(fixed_dom_model5_update)
+summary(fixed_dom_model5_update)
+check_model(fixed_dom_model5_update)
+simres <- simulateResiduals(fixed_dom_model5_update)
+plot(simres)#not that bad, but not the best either-thoughts?
+
 
 
 # Model with all variables (need to add experiment)

@@ -966,7 +966,7 @@ kbs_meta <- rename(kbs_meta, higher_order_organization = higher_level_organizati
 kbs_meta <- rename(kbs_meta, uniqueid = unique_id)
 
 # Convert experiment specific treatment values into control
-controls <- c("G9", "G10", "Control", "L3", "M2")
+controls <- c("G10", "Control", "L3", "M2")
 kbs_meta$treatment <- replace(kbs_meta$treatment, kbs_meta$treatment %in% controls, "control")
 
 kbs_meta %>%

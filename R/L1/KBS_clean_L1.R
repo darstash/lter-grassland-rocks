@@ -668,7 +668,7 @@ nutnet_bio$area_sampled_bio
 #micro$disturbance <- with(micro, ifelse(disturbed_microplot == "disturbed", "disturbed", "undisturbed"))
 nutnet_bio$grazing <- "ungrazed"
 nutnet_bio$disturbance <- "NA" # CHECK THIS!!!! what to do with fence !!!!!
-nutnet_bio$fire_frequency <- NA
+nutnet_bio$fire_frequency <- 0
 nutnet_bio$time_since_fire <- NA
 nutnet_bio$experiment <- "nutnet"
 
@@ -709,7 +709,7 @@ unique(nutnet_cover$nitrogen_amount) # only amount nitrogen # should we add colu
 #micro$disturbance <- with(micro, ifelse(disturbed_microplot == "disturbed", "disturbed", "undisturbed"))
 nutnet_cover$grazing <- "ungrazed"
 nutnet_cover$disturbance <- "NA" # CHECK THIS!!!! what to do with fence !!!!!
-nutnet_cover$fire_frequency <- NA
+nutnet_cover$fire_frequency <- 0
 nutnet_cover$time_since_fire <- NA
 nutnet_cover$experiment <- "nutnet"
 

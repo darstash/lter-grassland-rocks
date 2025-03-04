@@ -83,10 +83,14 @@ plot_ece$experiment[plot_ece$experiment == "F"] <- "NGE"
 
 # Merge with metadata
 plot_ece_meta <- left_join(plot_ece, meta)
+unique(plot_ece_meta$experiment)
 
 # Remove NAs for non-extreme years
 plot_ece_rm_na <- plot_ece_meta %>%
   drop_na(resistance)
+#checking each experiment/study
+plot_filter<-plot_ece_rm_na%>%
+  filter(experiment=="NGE")
 
 # Make year a factor
 str(plot_ece_rm_na)
@@ -95,6 +99,10 @@ plot_ece_rm_na$year <- as.factor(plot_ece_rm_na$year)
 # Subset to only have control plots
 plot_ece_control <- plot_ece_rm_na %>%
   filter(treatment == "control")
+
+#examine extreme event category
+plot_wet<-plot_ece_control%>%
+  filter(spei6_category=="Extreme wet")
 
 # Look if measurment scale cover matters for resilience
 plot_ece_control %>%
@@ -268,15 +276,99 @@ summary(fixed_dom_model5_update)
 check_model(fixed_dom_model5_update)
 simres <- simulateResiduals(fixed_dom_model5_update)
 plot(simres)#not that bad, but not the best either-thoughts?
-plotResiduals(simres, form = plot_ece_control$richness_scaled)
+
 
 
 #plot best model
-ggpredict(model = fixed_dom_model5_update, terms = c("evar_scaled", "spei6_category"), back_transform = F) %>%
-  plot(show_data = TRUE)
+ggpredict(model = fixed_dom_model5_update, terms = c("evar_scaled", "spei6_category"), back_transform = F ) %>%
+  plot(show_data = TRUE)+
+  labs(x="evenness")
 ggpredict(model = fixed_dom_model5_update, terms = "evar_scaled", back_transform = F) %>%
-  plot(show_data = TRUE)
+  plot(show_data = TRUE)+
+  labs(x="evenness")
 
+
+
+#####
+#runing resilience model using only control with abundance of dominant species instead of berger parker####
+resil_rand_dom_model<-lmer(log(resilience) ~ richness_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
+                             richness_scaled:dominant_relative_abund_zero_scaled+dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
+                             evar_scaled:spei6_category+(1|year) + (1|site/experiment/uniqueid), data = plot_ece_control)
+summary(resil_rand_dom_model) 
+check_model(resil_rand_dom_model)#diagnostic visuals
+simres <- simulateResiduals(resil_rand_dom_model)
+plot(simres)
+anova(resil_rand_dom_model)
+#remove site
+resil_rand_dom_model1<-lmer(log(resilience) ~ richness_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
+                              richness_scaled:dominant_relative_abund_zero_scaled+dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
+                              evar_scaled:spei6_category+(1|year) + (1|experiment), data = plot_ece_control)
+summary(resil_rand_dom_model1) 
+check_model(resil_rand_dom_model1)
+anova(resil_rand_dom_model1)
+#remove year
+resil_rand_dom_model2<-lmer(log(resilience) ~ richness_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
+                              richness_scaled:dominant_relative_abund_zero_scaled+dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
+                              evar_scaled:spei6_category+ (1|experiment), data = plot_ece_control)
+summary(resil_rand_dom_model2)  
+check_model(resil_rand_dom_model2)
+anova(resil_rand_dom_model2)
+
+AIC(resil_rand_dom_model2,resil_rand_dom_model1,resil_rand_dom_model)#model with year but without site and unique id  has the lowest AIC
+
+#selecting fixed effects but retaining hypothesis
+#refit model with "ML", then proceed with stepwise selection
+resil_fixed_dom_model<-lmer(log(resilience) ~ richness_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
+                                  richness_scaled:dominant_relative_abund_zero_scaled+dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
+                                  evar_scaled:spei6_category+(1|year) + (1|experiment), data = plot_ece_control)
+summary(resil_fixed_dom_model) 
+anova(resil_fixed_dom_model)
+resil_fixed_dom_model1<-update(resil_fixed_dom_model, .~.-dominant_relative_abund_zero_scaled:spei6_category)
+anova(resil_fixed_dom_model1, resil_fixed_dom_model)#okay to proceed
+anova(resil_fixed_dom_model1)
+
+resil_fixed_dom_model2<-update(resil_fixed_dom_model1, .~.-evar_scaled:spei6_category)
+anova(resil_fixed_dom_model1, resil_fixed_dom_model2)
+anova(resil_fixed_dom_model2)
+
+
+
+resil_fixed_dom_model3<-update(resil_fixed_dom_model2, .~.-richness_scaled:spei6_category)
+anova(resil_fixed_dom_model3, resil_fixed_dom_model2)
+anova(resil_fixed_dom_model3)
+
+resil_fixed_dom_model4<-update(resil_fixed_dom_model3, .~.-richness_scaled:dominant_relative_abund_zero_scaled)
+anova(resil_fixed_dom_model3, resil_fixed_dom_model4)
+anova(resil_fixed_dom_model4)
+
+resil_fixed_dom_model5<-update(resil_fixed_dom_model4, .~.-richness_scaled:dominant_relative_abund_zero_scaled:spei6_category)
+anova(resil_fixed_dom_model5, resil_fixed_dom_model4)
+anova(resil_fixed_dom_model5)
+
+resil_fixed_dom_model6<-update(resil_fixed_dom_model5, .~.-spei6_category)
+anova(resil_fixed_dom_model6, resil_fixed_dom_model5)#resil_fixed_dom_model6 has lower AIC and dominance is part of our initial hypothesis
+anova(resil_fixed_dom_model6)
+
+#refit model with REML
+resil_fixed_dom_model5_update<-update(resil_fixed_dom_model5, REML=T)
+anova(resil_fixed_dom_model5_update)
+summary(resil_fixed_dom_model5_update)
+check_model(resil_fixed_dom_model5_update)
+simres <- simulateResiduals(resil_fixed_dom_model5_update)
+plot(simres)#not that bad, but not the best either-thoughts?
+
+
+
+#plot best model
+ggpredict(model = resil_fixed_dom_model5_update, terms = c("evar_scaled", "spei6_category"), back_transform = F ) %>%
+  plot(show_data = TRUE)+
+  labs(x="evenness")
+ggpredict(model = resil_fixed_dom_model5_update, terms = "evar_scaled", back_transform = F) %>%
+  plot(show_data = TRUE)+
+  labs(x="evenness")
+ggpredict(model = resil_fixed_dom_model5_update, terms = c("richness_scaled", "spei6_category"), back_transform = F ) %>%
+  plot(show_data = TRUE)+
+  labs(x="richness")
 
 # Model with all variables (need to add experiment)
 resist.control.full <- lmer(log10(resistance) ~ scale(richness)*scale(berger_parker)*site*spei6_category + year + (1|site/uniqueid), data = plot_ece_control, na.action = na.fail) # failed to converge

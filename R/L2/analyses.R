@@ -263,13 +263,19 @@ anova(fixed_dom_model6)
 
 #refit model with REML
 fixed_dom_model5_update<-update(fixed_dom_model5, REML=T)
-anova(fixed_dom_model5_update)
+anova(fixed_dom_model5_update)#lower AIC than model using berger parker
 summary(fixed_dom_model5_update)
 check_model(fixed_dom_model5_update)
 simres <- simulateResiduals(fixed_dom_model5_update)
 plot(simres)#not that bad, but not the best either-thoughts?
 plotResiduals(simres, form = plot_ece_control$richness_scaled)
 
+
+#plot best model
+ggpredict(model = fixed_dom_model5_update, terms = c("evar_scaled", "spei6_category"), back_transform = F) %>%
+  plot(show_data = TRUE)
+ggpredict(model = fixed_dom_model5_update, terms = "evar_scaled", back_transform = F) %>%
+  plot(show_data = TRUE)
 
 
 # Model with all variables (need to add experiment)

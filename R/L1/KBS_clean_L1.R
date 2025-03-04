@@ -531,7 +531,7 @@ glbrc_scaleup$source <- "GLBRC Scale-Up (Table 180)"
 
 glbrc_scaleup$date <- lubridate::mdy(glbrc_scaleup$date)
 
-glbrc_scaleup$nutrients_added <- "no_fertilizer"
+glbrc_scaleup$nutrients_added <- "no_fertilizer" # confirmed no fertilizer during this time period for the plots we use
 glbrc_scaleup <- glbrc_scaleup %>%  # rename "site" column, need to use that for later.
   rename(  "glbrc_site" ="site")
 

@@ -467,8 +467,8 @@ glbrc$source <- "GLBRC (Table 269)"
 glbrc$date <- lubridate::mdy(glbrc$date)
 
 glbrc$nutrients_added <- "no_fertilizer"
+glbrc$nutrients_added[glbrc$treatment == "G9"] <- "N" # G9 has fertilizer, G10 does not. Only main plots used
 
-#this is a placeholder. check to make sure no fert. 
 glbrc <- glbrc %>% 
   rename("area_sampled_bio" = "area_sampled_m2")
 glbrc$area_sampled_cover <- glbrc$area_sampled_bio
@@ -486,7 +486,8 @@ glbrc_grassland <- glbrc %>%
             year <2018) # 2018 on is not sorted yet
 unique(glbrc_grassland$treatment)
 
-glbrc_grassland$nitrogen_amount <- NA # are subplots included???
+glbrc_grassland$nitrogen_amount <- NA
+glbrc_grassland$nitrogen_amount[glbrc_grassland$treatment == "G9"] <- 5.6 # 50 lbs/A = 5.6 g/m^2
 glbrc_grassland$disturbance <- "undisturbed"
 glbrc_grassland$grazing <- "ungrazed"
 glbrc_grassland$fire_frequency <- 0

@@ -467,8 +467,8 @@ glbrc$source <- "GLBRC (Table 269)"
 glbrc$date <- lubridate::mdy(glbrc$date)
 
 glbrc$nutrients_added <- "no_fertilizer"
+glbrc$nutrients_added[glbrc$treatment == "G9"] <- "N" # G9 has fertilizer, G10 does not. Only main plots used
 
-#this is a placeholder. check to make sure no fert. 
 glbrc <- glbrc %>% 
   rename("area_sampled_bio" = "area_sampled_m2")
 glbrc$area_sampled_cover <- glbrc$area_sampled_bio
@@ -486,7 +486,8 @@ glbrc_grassland <- glbrc %>%
             year <2018) # 2018 on is not sorted yet
 unique(glbrc_grassland$treatment)
 
-glbrc_grassland$nitrogen_amount <- NA # are subplots included???
+glbrc_grassland$nitrogen_amount <- NA
+glbrc_grassland$nitrogen_amount[glbrc_grassland$treatment == "G9"] <- 5.6 # 50 lbs/A = 5.6 g/m^2
 glbrc_grassland$disturbance <- "undisturbed"
 glbrc_grassland$grazing <- "ungrazed"
 glbrc_grassland$fire_frequency <- 0
@@ -531,7 +532,7 @@ glbrc_scaleup$source <- "GLBRC Scale-Up (Table 180)"
 
 glbrc_scaleup$date <- lubridate::mdy(glbrc_scaleup$date)
 
-glbrc_scaleup$nutrients_added <- "no_fertilizer"
+glbrc_scaleup$nutrients_added <- "no_fertilizer" # confirmed no fertilizer during this time period for the plots we use
 glbrc_scaleup <- glbrc_scaleup %>%  # rename "site" column, need to use that for later.
   rename(  "glbrc_site" ="site")
 
@@ -668,7 +669,7 @@ nutnet_bio$area_sampled_bio
 #micro$disturbance <- with(micro, ifelse(disturbed_microplot == "disturbed", "disturbed", "undisturbed"))
 nutnet_bio$grazing <- "ungrazed"
 nutnet_bio$disturbance <- "NA" # CHECK THIS!!!! what to do with fence !!!!!
-nutnet_bio$fire_frequency <- NA
+nutnet_bio$fire_frequency <- 0
 nutnet_bio$time_since_fire <- NA
 nutnet_bio$experiment <- "nutnet"
 
@@ -709,7 +710,7 @@ unique(nutnet_cover$nitrogen_amount) # only amount nitrogen # should we add colu
 #micro$disturbance <- with(micro, ifelse(disturbed_microplot == "disturbed", "disturbed", "undisturbed"))
 nutnet_cover$grazing <- "ungrazed"
 nutnet_cover$disturbance <- "NA" # CHECK THIS!!!! what to do with fence !!!!!
-nutnet_cover$fire_frequency <- NA
+nutnet_cover$fire_frequency <- 0
 nutnet_cover$time_since_fire <- NA
 nutnet_cover$experiment <- "nutnet"
 
@@ -965,8 +966,9 @@ kbs_meta <- rename(kbs_meta, higher_order_organization = higher_level_organizati
 kbs_meta <- rename(kbs_meta, uniqueid = unique_id)
 
 # Convert experiment specific treatment values into control
-controls <- c("G9", "G10", "Control", "L3", "M2")
+controls <- c("G10", "Control", "L3", "M2")
 kbs_meta$treatment <- replace(kbs_meta$treatment, kbs_meta$treatment %in% controls, "control")
+kbs_meta$treatment[kbs_meta$treatment == "G9"] <- "N"
 
 kbs_meta %>%
   filter(treatment == "T7" & disturbance == "disturbed")
@@ -974,7 +976,7 @@ kbs_meta %>%
 kbs_meta$treatment[kbs_meta$treatment == "T7" & kbs_meta$nutrients_added == "N" & kbs_meta$disturbance == "undisturbed"] <- "N"
 kbs_meta$treatment[kbs_meta$treatment == "T7" & kbs_meta$nutrients_added == "N" & kbs_meta$disturbance == "disturbed"] <- "N + tilled"
 kbs_meta$treatment[kbs_meta$treatment == "T7" & kbs_meta$nutrients_added != "N" & kbs_meta$disturbance == "disturbed"] <- "tilled"
-
+kbs_meta$treatment[kbs_meta$treatment == "T7" & kbs_meta$nutrients_added != "N" & kbs_meta$disturbance != "disturbed"] <- "control"
 
 write.csv(kbs_meta, file.path(L1_dir, "./KBS_metadata.csv"), row.names=F)
 

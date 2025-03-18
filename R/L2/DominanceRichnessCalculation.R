@@ -37,7 +37,7 @@ ggplot(species_abundance_SPEI_Metric, aes(x = Berger_Parker, y = Richness))+
 #calculate evenness using EVar; Evar is independent of species richness and recommended by Smith and Wilson (1996)
 species_abundance_SPEI_evar<-species_abundance_SPEI%>%
   filter(relative_abundance > 0)%>%
-  select(year, uniqueid, species, relative_abundance)%>%
+  select(year, uniqueid, species, species_harmonized,relative_abundance)%>%
   distinct()
 #calculates evenness and richness
 Evenness_richness<-community_structure(species_abundance_SPEI_evar, time.var="year",
@@ -52,21 +52,21 @@ dominant_species_year<-species_abundance_SPEI_evar%>%
   group_by(uniqueid, year)%>%
   mutate(relative_abundance_max=max(relative_abundance))%>%
   filter(relative_abundance==relative_abundance_max)%>%#filter dominant species in each plot
-  group_by(uniqueid, species)%>%
+  group_by(uniqueid, species, species_harmonized)%>%
   mutate(count=n())%>%#frequency a species was the dominant species in each plot
   group_by(uniqueid)%>%
   mutate(count_max=max(count))%>%
   filter(count==count_max)%>%#filter the species with the highest frequency as dominant species in each plot
-  mutate(dominant_species_code=paste(uniqueid, species,sep="_"))%>%
-  select(uniqueid, species, dominant_species_code)%>%
+  mutate(dominant_species_code=paste(uniqueid, species_harmonized,sep="_"))%>%
+  select(uniqueid, species,species_harmonized, dominant_species_code)%>%
   distinct()
 
 #create dataframe of relative abundance of dominant species
 rel_abund_dom_species_year<-species_abundance_SPEI_evar%>%
-  left_join(dominant_species_year, by=c("uniqueid","species"))%>%
+  left_join(dominant_species_year, by=c("uniqueid","species","species_harmonized"))%>%
   filter(dominant_species_code!="NA")%>%#retains only the relative abundance of the dominant species
   rename(dominant_relative_abund=relative_abundance)%>%
-  select(-species)
+  select(-species,-species_harmonized)
 
 
 plot_metrics_SPEI_diversity <- plot_metrics_SPEI %>% 

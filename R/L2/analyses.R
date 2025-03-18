@@ -111,11 +111,12 @@ plot_ece_rm_na <- plot_ece_meta %>%
   drop_na(resistance)
 #checking each experiment/study
 plot_filter<-plot_ece_rm_na%>%
-  filter(experiment=="NGE")
+  filter(experiment=="004b_fl")
 
 # Make year a factor
 str(plot_ece_rm_na)
 plot_ece_rm_na$year <- as.factor(plot_ece_rm_na$year)
+plot_ece_rm_na$measurement_scale_cover <- as.factor(plot_ece_rm_na$measurement_scale_cover)
 
 # Subset to only have control plots
 plot_ece_control <- plot_ece_rm_na %>%
@@ -152,13 +153,93 @@ summary(rich_area)
 simres <- simulateResiduals(rich_area)
 plot(simres)#looks good
 
-
 # Analysis 1: resistance ----
 ## Control plot only ----
+#using predictors without scaling####
+
+#without interaction of main predictors
+resis_unscaled_model<-lmer(log(resistance)~richness+evar+dominant_relative_abund_zero+
+                              measurement_scale_cover+richness:spei6_category+dominant_relative_abund_zero:spei6_category+
+                             evar:spei6_category+spei6_category+(1|site/experiment/uniqueid)
+                            +(1|year), data=plot_ece_control, REML=F)
+summary(resis_unscaled_model)
+anova(resis_unscaled_model)
+simres <- simulateResiduals(resis_unscaled_model)
+plot(simres)
+check_model(resis_unscaled_model)
+
+
+#interaction based on hypothesis
+resis_unscaled_model1<-lmer(log(resistance)~richness*dominant_relative_abund_zero+evar+
+                             measurement_scale_cover+richness:spei6_category+dominant_relative_abund_zero:spei6_category+
+                           evar:spei6_category+spei6_category+(1|site/experiment/uniqueid)
+                           +(1|year), data=plot_ece_control, REML=F)
+summary(resis_unscaled_model1)
+anova(resis_unscaled_model1)
+simres <- simulateResiduals(resis_unscaled_model1)
+plot(simres)
+check_model(resis_unscaled_model)
+anova(resis_unscaled_model1,resis_unscaled_model) # model without interaction of main predictor better
+
+#model selection without interaction of main predictors
+#remove non-significant interaction
+resis_unscaled_model2<-lmer(log(resistance)~richness+evar+dominant_relative_abund_zero+
+                             measurement_scale_cover+richness:spei6_category+
+                             evar:spei6_category+spei6_category+(1|site/experiment/uniqueid)
+                           +(1|year), data=plot_ece_control, REML=F)
+anova(resis_unscaled_model2)
+#compare models
+anova(resis_unscaled_model2,resis_unscaled_model)#new model better
+
+#remove other non-significant interactions
+resis_unscaled_model3<-lmer(log(resistance)~richness+evar+dominant_relative_abund_zero+
+                              measurement_scale_cover+richness:spei6_category+spei6_category+(1|site/experiment/uniqueid)
+                            +(1|year), data=plot_ece_control, REML=F)
+anova(resis_unscaled_model3)
+anova(resis_unscaled_model3,resis_unscaled_model2)#dropped interaction does not sig impact model
+
+#refit additive model with REML
+resis_unscaled_model4<-lmer(log(resistance)~richness+evar+dominant_relative_abund_zero+
+                              measurement_scale_cover+richness:spei6_category+spei6_category+(1|site/experiment/uniqueid)
+                            +(1|year), data=plot_ece_control)
+summary(resis_unscaled_model4)
+anova(resis_unscaled_model4)
+simres <- simulateResiduals(resis_unscaled_model4)
+plot(simres)
+check_model(resis_unscaled_model4)
+#log transforming evenness does not help deal with the low sample at high evenness
+#might consider running a model without the high evenness values.
+
+
+#plot best model
+ggpredict(model = resis_unscaled_model4, terms = c("richness", "spei6_category"), back_transform = F ) %>%
+  plot(show_data = TRUE)+
+  labs(x="richness")
+ggpredict(model = resis_unscaled_model4, terms = "evar", back_transform = F) %>%
+  plot(show_data = TRUE)+
+  labs(x="evenness")
+ggpredict(model = resis_unscaled_model4, terms = "richness", back_transform = F) %>%
+  plot(show_data = TRUE)+
+  labs(x="richness")
+ggpredict(model = resis_unscaled_model4, terms = "dominant_relative_abund_zero", back_transform = F) %>%
+  plot(show_data = TRUE)+
+  labs(x="Relative abundance of dominant species")
+
+ggplot(plot_ece_control, aes(richness, log(resistance)))+
+  geom_point()+
+  geom_smooth(method = "lm")
+ggplot(plot_ece_control, aes(dominant_relative_abund_zero, log(resistance)))+
+  geom_point()+
+  geom_smooth(method = "lm")
+ggplot(plot_ece_control, aes(evar, log(resistance)))+
+  geom_point()+
+  geom_smooth(method = "lm")
+
 
 #goal: determine an ideal random effect structure
 #control only model with all possible main effects and interactions
 #using berger parker as dominance metric####
+#using scaled predictors
 resis_random_model<-lmer(log(resistance) ~ richness_scaled+berger_parker_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
                            richness_scaled:berger_parker_scaled+berger_parker_scaled:spei6_category+richness_scaled:berger_parker_scaled:spei6_category+
                            evar_scaled:spei6_category+(1|year) + (1|site/experiment/uniqueid), data = plot_ece_control)

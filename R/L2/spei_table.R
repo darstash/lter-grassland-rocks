@@ -505,6 +505,40 @@ plot_model(
 )
 
 # Log response of SPEI ----
+# Using SPEI3
+plot_control_lrr3 <- plot_control %>%
+  group_by(uniqueid) %>%
+  arrange(uniqueid, year) %>%
+  mutate(next_year_biomass = lead(plot_biomass),
+         next_year_type = lead(spei3_category)) %>%
+  ungroup()
+normal_biomass3 <- plot_control_lrr3  %>%
+  group_by(uniqueid) %>%
+  filter(spei3_category == "Normal" | spei3_category == "Moderate wet" | spei3_category == "Moderate dry") %>%
+  summarize(average_normal_biomass = mean(plot_biomass, na.rm=T))
+plot_control_lrr3 <- left_join(plot_control_lrr3, normal_biomass3)
+
+lrr3 <- plot_control_lrr3 %>%
+  filter(spei3_category == "Extreme wet" & next_year_type == "Normal" | spei3_category == "Extreme wet" & next_year_type == "Moderate wet" | spei3_category == "Extreme wet" & next_year_type == "Moderate dry" | spei3_category == "Extreme dry" & next_year_type == "Normal" | spei3_category == "Extreme dry" & next_year_type == "Moderate wet" | spei3_category == "Extreme dry" & next_year_type == "Moderate dry") %>%
+  mutate(LRR = log(plot_biomass / average_normal_biomass))  # Calculate the log response ratio
+
+# Take absolute value of SPEI9
+lrr3 <- lrr3 %>%
+  mutate(abs_spei3 = abs(spei3))
+
+lrr.lm3 <- lmer(LRR ~ abs_spei3*spei3_category + (1|site/experiment/uniqueid) + (1|year), data = lrr3)
+summary(lrr.lm3)
+simres <- simulateResiduals(lrr.lm3)
+plot(simres) # Weird
+
+# Plot the LRR model
+plot_model(
+  lrr.lm3,
+  type = "pred",
+  terms= c("abs_spei3", "spei3_category"),
+  show.data = TRUE
+)
+
 # Using SPEI6
 plot_control_lrr <- plot_control %>%
   group_by(uniqueid) %>%
@@ -536,6 +570,40 @@ plot_model(
   lrr.lm,
   type = "pred",
   terms= c("abs_spei6", "spei6_category"),
+  show.data = TRUE
+)
+
+# Using SPEI9
+plot_control_lrr9 <- plot_control %>%
+  group_by(uniqueid) %>%
+  arrange(uniqueid, year) %>%
+  mutate(next_year_biomass = lead(plot_biomass),
+         next_year_type = lead(spei9_category)) %>%
+  ungroup()
+normal_biomass9 <- plot_control_lrr9  %>%
+  group_by(uniqueid) %>%
+  filter(spei9_category == "Normal" | spei9_category == "Moderate wet" | spei9_category == "Moderate dry") %>%
+  summarize(average_normal_biomass = mean(plot_biomass, na.rm=T))
+plot_control_lrr9 <- left_join(plot_control_lrr9, normal_biomass9)
+
+lrr9 <- plot_control_lrr9 %>%
+  filter(spei9_category == "Extreme wet" & next_year_type == "Normal" | spei9_category == "Extreme wet" & next_year_type == "Moderate wet" | spei9_category == "Extreme wet" & next_year_type == "Moderate dry" | spei9_category == "Extreme dry" & next_year_type == "Normal" | spei9_category == "Extreme dry" & next_year_type == "Moderate wet" | spei9_category == "Extreme dry" & next_year_type == "Moderate dry") %>%
+  mutate(LRR = log(plot_biomass / average_normal_biomass))  # Calculate the log response ratio
+
+# Take absolute value of SPEI9
+lrr9 <- lrr9 %>%
+  mutate(abs_spei9 = abs(spei9))
+
+lrr.lm9 <- lmer(LRR ~ abs_spei9*spei9_category + (1|site/experiment/uniqueid) + (1|year), data = lrr9)
+summary(lrr.lm9)
+simres <- simulateResiduals(lrr.lm9)
+plot(simres) # Weird
+
+# Plot the LRR model
+plot_model(
+  lrr.lm9,
+  type = "pred",
+  terms= c("abs_spei9", "spei9_category"),
   show.data = TRUE
 )
 

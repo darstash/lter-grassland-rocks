@@ -143,6 +143,33 @@ quantile(kbs.aug$spei12, c(0.1, 0.25, 0.75, 0.9))
 quantile(knz.aug$spei12, c(0.1, 0.25, 0.75, 0.9))
 quantile(cdr.aug$spei12, c(0.1, 0.25, 0.75, 0.9))
 
+# add column for classifying spei3 years based on isbell's categories
+
+kbs.aug <-kbs.aug   %>% mutate(spei3_category = case_when(
+  kbs.aug$spei3 <= -1.28 ~ "Extreme dry", 
+  kbs.aug$spei3 > -1.28 & kbs.aug$spei3 <= -0.67 ~ "Moderate dry", 
+  kbs.aug$spei3 > -0.67 & kbs.aug$spei3 < 0.67 ~ "Normal", 
+  kbs.aug$spei3 >= 0.67 & kbs.aug$spei3 < 1.28 ~ "Moderate wet", 
+  kbs.aug$spei3 >= 1.28 ~ "Extreme wet"
+))
+
+
+knz.aug <-knz.aug   %>% mutate(spei3_category = case_when(
+  knz.aug$spei3 <= -1.28 ~ "Extreme dry", 
+  knz.aug$spei3 > -1.28 & knz.aug$spei3 <= -0.67 ~ "Moderate dry", 
+  knz.aug$spei3 > -0.67 & knz.aug$spei3 < 0.67 ~ "Normal", 
+  knz.aug$spei3 >= 0.67 & knz.aug$spei3 < 1.28 ~ "Moderate wet", 
+  knz.aug$spei3 >= 1.28 ~ "Extreme wet"
+))
+
+
+cdr.aug <-cdr.aug   %>% mutate(spei3_category = case_when(
+  cdr.aug$spei3 <= -1.28 ~ "Extreme dry", 
+  cdr.aug$spei3 > -1.28 & cdr.aug$spei3 <= -0.67 ~ "Moderate dry", 
+  cdr.aug$spei3 > -0.67 & cdr.aug$spei3 < 0.67 ~ "Normal", 
+  cdr.aug$spei3 >= 0.67 & cdr.aug$spei3 < 1.28 ~ "Moderate wet", 
+  cdr.aug$spei3 >= 1.28 ~ "Extreme wet"
+))
 
 # add column for classifying spei6 years based on isbell's categories
 
@@ -172,6 +199,33 @@ cdr.aug <-cdr.aug   %>% mutate(spei6_category = case_when(
   cdr.aug$spei6 >= 1.28 ~ "Extreme wet"
 ))
 
+# add column for classifying spei9 years based on isbell's categories
+
+kbs.aug <-kbs.aug   %>% mutate(spei9_category = case_when(
+  kbs.aug$spei9 <= -1.28 ~ "Extreme dry", 
+  kbs.aug$spei9 > -1.28 & kbs.aug$spei9 <= -0.67 ~ "Moderate dry", 
+  kbs.aug$spei9 > -0.67 & kbs.aug$spei9 < 0.67 ~ "Normal", 
+  kbs.aug$spei9 >= 0.67 & kbs.aug$spei9 < 1.28 ~ "Moderate wet", 
+  kbs.aug$spei9 >= 1.28 ~ "Extreme wet"
+))
+
+
+knz.aug <-knz.aug   %>% mutate(spei9_category = case_when(
+  knz.aug$spei9 <= -1.28 ~ "Extreme dry", 
+  knz.aug$spei9 > -1.28 & knz.aug$spei9 <= -0.67 ~ "Moderate dry", 
+  knz.aug$spei9 > -0.67 & knz.aug$spei9 < 0.67 ~ "Normal", 
+  knz.aug$spei9 >= 0.67 & knz.aug$spei9 < 1.28 ~ "Moderate wet", 
+  knz.aug$spei9 >= 1.28 ~ "Extreme wet"
+))
+
+
+cdr.aug <-cdr.aug   %>% mutate(spei9_category = case_when(
+  cdr.aug$spei9 <= -1.28 ~ "Extreme dry", 
+  cdr.aug$spei9 > -1.28 & cdr.aug$spei9 <= -0.67 ~ "Moderate dry", 
+  cdr.aug$spei9 > -0.67 & cdr.aug$spei9 < 0.67 ~ "Normal", 
+  cdr.aug$spei9 >= 0.67 & cdr.aug$spei9 < 1.28 ~ "Moderate wet", 
+  cdr.aug$spei9 >= 1.28 ~ "Extreme wet"
+))
 
 # add column for classifying spei12 years based on isbell's categories
 
@@ -201,11 +255,19 @@ cdr.aug <-cdr.aug   %>% mutate(spei12_category = case_when(
   cdr.aug$spei12 >= 1.28 ~ "Extreme wet"
 ))
 
+
 # order factor
+kbs.aug$spei3_category <- factor(kbs.aug$spei3_category, levels = c("Extreme dry", "Moderate dry", "Normal", "Moderate wet", "Extreme wet"))
+knz.aug$spei3_category <- factor(knz.aug$spei3_category, levels = c("Extreme dry", "Moderate dry", "Normal", "Moderate wet", "Extreme wet"))
+cdr.aug$spei3_category <- factor(cdr.aug$spei3_category, levels = c("Extreme dry", "Moderate dry", "Normal", "Moderate wet", "Extreme wet"))
 
 kbs.aug$spei6_category <- factor(kbs.aug$spei6_category, levels = c("Extreme dry", "Moderate dry", "Normal", "Moderate wet", "Extreme wet"))
 knz.aug$spei6_category <- factor(knz.aug$spei6_category, levels = c("Extreme dry", "Moderate dry", "Normal", "Moderate wet", "Extreme wet"))
 cdr.aug$spei6_category <- factor(cdr.aug$spei6_category, levels = c("Extreme dry", "Moderate dry", "Normal", "Moderate wet", "Extreme wet"))
+
+kbs.aug$spei9_category <- factor(kbs.aug$spei9_category, levels = c("Extreme dry", "Moderate dry", "Normal", "Moderate wet", "Extreme wet"))
+knz.aug$spei9_category <- factor(knz.aug$spei9_category, levels = c("Extreme dry", "Moderate dry", "Normal", "Moderate wet", "Extreme wet"))
+cdr.aug$spei9_category <- factor(cdr.aug$spei9_category, levels = c("Extreme dry", "Moderate dry", "Normal", "Moderate wet", "Extreme wet"))
 
 kbs.aug$spei12_category <- factor(kbs.aug$spei12_category, levels = c("Extreme dry", "Moderate dry", "Normal", "Moderate wet", "Extreme wet"))
 knz.aug$spei12_category <- factor(knz.aug$spei12_category, levels = c("Extreme dry", "Moderate dry", "Normal", "Moderate wet", "Extreme wet"))

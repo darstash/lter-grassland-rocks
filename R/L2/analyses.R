@@ -236,6 +236,64 @@ ggplot(plot_ece_control, aes(evar, log(resistance)))+
   geom_smooth(method = "lm")
 
 
+#resilience model based on hypotheis
+#interaction based on hypothesis
+resil_unscaled_model<-lmer(log(resilience)~richness*dominant_relative_abund_zero+evar+
+                              measurement_scale_cover+richness:spei6_category+dominant_relative_abund_zero:spei6_category+
+                              evar:spei6_category+spei6_category+(1|site/experiment/uniqueid)
+                            +(1|year), data=plot_ece_control, REML=F)
+summary(resil_unscaled_model)
+anova(resil_unscaled_model)
+simres <- simulateResiduals(resil_unscaled_model)
+plot(simres)
+check_model(resil_unscaled_model)
+
+
+#removing non-significant interactions
+resil_unscaled_model1<-lmer(log(resilience)~richness+dominant_relative_abund_zero+evar+
+                             measurement_scale_cover+richness:spei6_category+dominant_relative_abund_zero:spei6_category+
+                             evar:spei6_category+spei6_category+(1|site/experiment/uniqueid)
+                           +(1|year), data=plot_ece_control, REML=F)
+summary(resil_unscaled_model1)
+anova(resil_unscaled_model,resil_unscaled_model1) #checking if removing interaction was important
+
+#removing non-significant interactions
+resil_unscaled_model2<-lmer(log(resilience)~richness+dominant_relative_abund_zero+evar+
+                              measurement_scale_cover+richness:spei6_category+
+                              evar:spei6_category+spei6_category+(1|site/experiment/uniqueid)
+                            +(1|year), data=plot_ece_control, REML=F)
+summary(resil_unscaled_model2)
+anova(resil_unscaled_model2,resil_unscaled_model1)
+
+#Refit model with REML
+resil_unscaled_model3<-lmer(log(resilience)~richness+dominant_relative_abund_zero+evar+
+                              measurement_scale_cover+richness:spei6_category+
+                              evar:spei6_category+spei6_category+(1|site/experiment/uniqueid)
+                            +(1|year), data=plot_ece_control)
+
+summary(resil_unscaled_model3)
+anova(resil_unscaled_model3)
+simres <- simulateResiduals(resil_unscaled_model3)
+plot(simres)
+check_model(resil_unscaled_model3)
+
+#plot best model
+ggpredict(model = resil_unscaled_model3, terms = c("richness", "spei6_category"), back_transform = F ) %>%
+  plot(show_data = TRUE)+
+  labs(x="richness")
+ggpredict(model = resil_unscaled_model3, terms = c("evar", "spei6_category"), back_transform = F) %>%
+  plot(show_data = TRUE)+
+  labs(x="evenness")
+ggpredict(model = resil_unscaled_model3, terms = "richness", back_transform = F) %>%
+  plot(show_data = TRUE)+
+  labs(x="richness")
+ggpredict(model = resil_unscaled_model3, terms = "evar", back_transform = F) %>%
+  plot(show_data = TRUE)+
+  labs(x="evenness")
+
+
+
+
 #goal: determine an ideal random effect structure
 #control only model with all possible main effects and interactions
 #using berger parker as dominance metric####

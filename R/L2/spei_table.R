@@ -488,7 +488,7 @@ AICctab(control_spei3.lm2.ln, control_spei3.lm.ln, control_spei6.lm2.ln, control
 
 # Compare model R2 like Robinson
 r.squaredGLMM(control_spei3.lm2.ln)
-r.squaredGLMM(control_spei3.lm,ln)
+r.squaredGLMM(control_spei3.lm.ln)
 r.squaredGLMM(control_spei6.lm2.ln)
 r.squaredGLMM(control_spei6.lm.ln)
 r.squaredGLMM(control_spei9.lm2.ln) # best R2m

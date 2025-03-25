@@ -364,6 +364,8 @@ plot_control %>%
 control_spei3.lm2 <- lmer(plot_biomass ~ spei3 + I(spei3^2) + (1|site) + (1|site:plot), data = plot_control)
 summary(control_spei3.lm2) # Quadratic term significant
 control_spei3.lm <- lmer(plot_biomass ~ spei3 + (1|site) + (1|site:plot), data = plot_control)
+simres <- simulateResiduals(control_spei3.lm2)
+plot(simres)
 
 control_spei6.lm2 <- lmer(plot_biomass ~ spei6 + I(spei6^2) + (1|site) + (1|site:plot), data = plot_control)
 summary(control_spei6.lm2) # Quadratic term significant
@@ -399,19 +401,106 @@ plot_model(
   show.data = TRUE
 )
 
-# Try logging biomass
-plot_control <- plot_control %>%
-  mutate(plot_biomass_log = log1p(plot_biomass))
-control_spei6.lm2.ln <- lmer(plot_biomass_log ~ spei6 + I(spei6^2) + (1|site) + (1|site:plot), data = plot_control)
-control_spei6.lm.ln <- lmer(plot_biomass_log ~ spei6 + (1|site) + (1|site:plot), data = plot_control)
+# Add experiment column
+# Add experiment column
+plot_control$experiment <- sub("nutnet.*", "nutnet", plot_control$higher_order_organization)
+plot_control$experiment <- sub("glbrc_scaleup.*", "glbrc_scaleup", plot_control$experiment)
+plot_control$experiment <- sub("glbrc_G10.*", "glbrc", plot_control$experiment)
+plot_control$experiment <- sub("glbrc_G9.*", "glbrc", plot_control$experiment)
+plot_control$experiment <- sub("mcse.*", "mcse", plot_control$experiment)
+plot_control$experiment <- sub("microplots.*", "microplots", plot_control$experiment)
+plot_control$experiment <- sub("Experiment 1.*", "Experiment 1", plot_control$experiment)
+plot_control$experiment <- sub("001d_A_fl", "001d_fl", plot_control$experiment)
+plot_control$experiment <- sub("001d_B_fl", "001d_fl", plot_control$experiment)
+plot_control$experiment <- sub("001d_C_fl", "001d_fl", plot_control$experiment)
+plot_control$experiment <- sub("001d_D_fl", "001d_fl", plot_control$experiment)
+plot_control$experiment <- sub("001d_A_tu", "001d_tu", plot_control$experiment)
+plot_control$experiment <- sub("001d_B_tu", "001d_tu", plot_control$experiment)
+plot_control$experiment <- sub("001d_C_tu", "001d_tu", plot_control$experiment)
+plot_control$experiment <- sub("001d_D_tu", "001d_tu", plot_control$experiment)
+plot_control$experiment <- sub("004a_A_fl", "004a_fl", plot_control$experiment)
+plot_control$experiment <- sub("004a_B_fl", "004a_fl", plot_control$experiment)
+plot_control$experiment <- sub("004a_C_fl", "004a_fl", plot_control$experiment)
+plot_control$experiment <- sub("004a_D_fl", "004a_fl", plot_control$experiment)
+plot_control$experiment <- sub("004a_A_tu", "004a_tu", plot_control$experiment)
+plot_control$experiment <- sub("004a_B_tu", "004a_tu", plot_control$experiment)
+plot_control$experiment <- sub("004a_C_tu", "004a_tu", plot_control$experiment)
+plot_control$experiment <- sub("004a_D_tu", "004a_tu", plot_control$experiment)
+plot_control$experiment <- sub("004b_A_fl", "004b_fl", plot_control$experiment)
+plot_control$experiment <- sub("004b_B_fl", "004b_fl", plot_control$experiment)
+plot_control$experiment <- sub("004b_C_fl", "004b_fl", plot_control$experiment)
+plot_control$experiment <- sub("004b_D_fl", "004b_fl", plot_control$experiment)
+plot_control$experiment <- sub("004b_A_tu", "004b_tu", plot_control$experiment)
+plot_control$experiment <- sub("004b_B_tu", "004b_tu", plot_control$experiment)
+plot_control$experiment <- sub("004b_C_tu", "004b_tu", plot_control$experiment)
+plot_control$experiment <- sub("004b_D_tu", "004b_tu", plot_control$experiment)
+plot_control$experiment <- sub("002d.*", "002d", plot_control$experiment)
+plot_control$experiment <- sub("Experiment 54.*", "Experiment 54", plot_control$experiment)
+plot_control$experiment <- sub("KNZ_WAT01.*", "KNZ_WAT01", plot_control$experiment)
+plot_control$experiment <- sub("002c.*", "002c", plot_control$experiment)
+plot_control$experiment <- sub("e061.*", "e061", plot_control$experiment)
+plot_control$experiment <- sub("e247.*", "e247", plot_control$experiment)
+plot_control$experiment <- sub("e245.*", "e245", plot_control$experiment)
+plot_control$experiment[plot_control$experiment == "A"] <- "NGE"
+plot_control$experiment[plot_control$experiment == "B"] <- "NGE"
+plot_control$experiment[plot_control$experiment == "C"] <- "NGE"
+plot_control$experiment[plot_control$experiment == "D"] <- "NGE"
+plot_control$experiment[plot_control$experiment == "E"] <- "NGE"
+plot_control$experiment[plot_control$experiment == "F"] <- "NGE"
 
-AICctab(control_spei6.lm2.ln, control_spei6.lm.ln)
+# Make year factor for random effect
+plot_control$year <- as.factor(plot_control$year)
 
-# Plot the quadratic SPEI6 model
+# Try logging biomass and adding more random effects
+# Model comparison with spei12, 9, 6, 3 for ONLY control plots
+control_spei3.lm2.ln <- lmer(log1p(plot_biomass) ~ spei3 + I(spei3^2) + (1|site/experiment/uniqueid) + (1|year), data = plot_control)
+summary(control_spei3.lm2.ln) # Quadratic term significant
+control_spei3.lm.ln <- lmer(log1p(plot_biomass) ~ spei3 + (1|site/experiment/uniqueid) + (1|year), data = plot_control)
+simres <- simulateResiduals(control_spei3.lm2.ln)
+plot(simres) # Better 
+
+control_spei6.lm2.ln <- lmer(log1p(plot_biomass) ~ spei6 + I(spei6^2) + (1|site/experiment/uniqueid)
+                             + (1|year), data = plot_control)
+summary(control_spei6.lm2.ln) # Quadratic term not significant
+control_spei6.lm.ln <- lmer(log1p(plot_biomass) ~ spei6 + (1|site/experiment/uniqueid)
+                            + (1|year), data = plot_control)
+simres <- simulateResiduals(control_spei6.lm2.ln)
+plot(simres) # Better 
+
+control_spei9.lm2.ln <- lmer(log1p(plot_biomass) ~ spei9 + I(spei9^2) + (1|site/experiment/uniqueid) + (1|year), data = plot_control)
+summary(control_spei9.lm2.ln) # Quadratic term marginally significant
+control_spei9.lm.ln <- lmer(log1p(plot_biomass) ~ spei9 + (1|site/experiment/uniqueid) + (1|year), data = plot_control)
+summary(control_spei9.lm.ln)
+simres <- simulateResiduals(control_spei9.lm2.ln)
+plot(simres) # Better 
+simres <- simulateResiduals(control_spei9.lm.ln)
+plot(simres) # Okay 
+
+control_spei12.lm2.ln <- lmer(log1p(plot_biomass) ~ spei12 + I(spei12^2) + (1|site/experiment/uniqueid)
+                              + (1|year), data = plot_control) # Failed to converge
+summary(control_spei12.lm2.ln)
+control_spei12.lm.ln <- lmer(log1p(plot_biomass) ~ spei12 + (1|site/experiment/uniqueid)
+                             + (1|year), data = plot_control) # Failed to converge
+simres <- simulateResiduals(control_spei12.lm2.ln)
+plot(simres) # Better 
+
+AICctab(control_spei3.lm2.ln, control_spei3.lm.ln, control_spei6.lm2.ln, control_spei6.lm.ln, control_spei9.lm2.ln, control_spei9.lm.ln, control_spei12.lm2.ln, control_spei12.lm.ln)
+
+# Compare model R2 like Robinson
+r.squaredGLMM(control_spei3.lm2.ln)
+r.squaredGLMM(control_spei3.lm,ln)
+r.squaredGLMM(control_spei6.lm2.ln)
+r.squaredGLMM(control_spei6.lm.ln)
+r.squaredGLMM(control_spei9.lm2.ln) # best R2m
+r.squaredGLMM(control_spei9.lm.ln)  # second best R2m
+r.squaredGLMM(control_spei12.lm2.ln)
+r.squaredGLMM(control_spei12.lm.ln)
+
+# Plot the quadratic SPEI9 model
 plot_model(
-  control_spei6.lm2.ln,
+  control_spei9.lm.ln,
   type = "pred",
-  terms="spei6[all]",
+  terms="spei9",
   show.data = TRUE
 )
 

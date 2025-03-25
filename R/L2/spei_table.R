@@ -496,11 +496,80 @@ r.squaredGLMM(control_spei9.lm.ln)  # second best R2m
 r.squaredGLMM(control_spei12.lm2.ln)
 r.squaredGLMM(control_spei12.lm.ln)
 
-# Plot the quadratic SPEI9 model
+# Plot the SPEI9 model
 plot_model(
   control_spei9.lm.ln,
   type = "pred",
   terms="spei9",
+  show.data = TRUE
+)
+
+# Log response of SPEI ----
+# Using SPEI6
+plot_control_lrr <- plot_control %>%
+  group_by(uniqueid) %>%
+  arrange(uniqueid, year) %>%
+  mutate(next_year_biomass = lead(plot_biomass),  # Biomass of the next year
+    next_year_type = lead(spei6_category)) %>%     # Year type of the next year (wet/dry)
+  ungroup()
+normal_biomass <- plot_control_lrr  %>%
+  group_by(uniqueid) %>%
+  filter(spei6_category == "Normal" | spei6_category == "Moderate wet" | spei6_category == "Moderate dry") %>%
+  summarize(average_normal_biomass = mean(plot_biomass, na.rm=T))
+plot_control_lrr <- left_join(plot_control_lrr, normal_biomass)
+
+lrr <- plot_control_lrr %>%
+  filter(spei6_category == "Extreme wet" & next_year_type == "Normal" | spei6_category == "Extreme wet" & next_year_type == "Moderate wet" | spei6_category == "Extreme wet" & next_year_type == "Moderate dry" | spei6_category == "Extreme dry" & next_year_type == "Normal" | spei6_category == "Extreme dry" & next_year_type == "Moderate wet" | spei6_category == "Extreme dry" & next_year_type == "Moderate dry") %>%
+  mutate(LRR = log(plot_biomass / average_normal_biomass))  # Calculate the log response ratio
+
+# Take absolute value of SPEI6
+lrr <- lrr %>%
+  mutate(abs_spei6 = abs(spei6))
+
+lrr.lm <- lmer(LRR ~ abs_spei6*spei6_category + (1|site/experiment/uniqueid) + (1|year), data = lrr)
+summary(lrr.lm)
+simres <- simulateResiduals(lrr.lm)
+plot(simres) # Weird
+
+# Plot the LRR model
+plot_model(
+  lrr.lm,
+  type = "pred",
+  terms= c("abs_spei6", "spei6_category"),
+  show.data = TRUE
+)
+
+# Using SPEI12
+plot_control_lrr12 <- plot_control %>%
+  group_by(uniqueid) %>%
+  arrange(uniqueid, year) %>%
+  mutate(next_year_biomass = lead(plot_biomass),
+         next_year_type = lead(spei12_category)) %>%
+  ungroup()
+normal_biomass12 <- plot_control_lrr12  %>%
+  group_by(uniqueid) %>%
+  filter(spei12_category == "Normal" | spei12_category == "Moderate wet" | spei12_category == "Moderate dry") %>%
+  summarize(average_normal_biomass = mean(plot_biomass, na.rm=T))
+plot_control_lrr12 <- left_join(plot_control_lrr12, normal_biomass12)
+
+lrr12 <- plot_control_lrr12 %>%
+  filter(spei12_category == "Extreme wet" & next_year_type == "Normal" | spei12_category == "Extreme wet" & next_year_type == "Moderate wet" | spei12_category == "Extreme wet" & next_year_type == "Moderate dry" | spei12_category == "Extreme dry" & next_year_type == "Normal" | spei12_category == "Extreme dry" & next_year_type == "Moderate wet" | spei12_category == "Extreme dry" & next_year_type == "Moderate dry") %>%
+  mutate(LRR = log(plot_biomass / average_normal_biomass))  # Calculate the log response ratio
+
+# Take absolute value of SPEI6
+lrr12 <- lrr12 %>%
+  mutate(abs_spei12 = abs(spei12))
+
+lrr.lm12 <- lmer(LRR ~ abs_spei12*spei12_category + (1|site/experiment/uniqueid) + (1|year), data = lrr12)
+summary(lrr.lm12)
+simres <- simulateResiduals(lrr.lm12)
+plot(simres) # Weird
+
+# Plot the LRR model
+plot_model(
+  lrr.lm12,
+  type = "pred",
+  terms= c("abs_spei12", "spei12_category"),
   show.data = TRUE
 )
 

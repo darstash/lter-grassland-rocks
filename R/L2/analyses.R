@@ -292,6 +292,169 @@ ggpredict(model = resil_unscaled_model3, terms = "evar", back_transform = F) %>%
   labs(x="evenness")
 
 
+#investigating predictors at each site
+#select Cedar Creek
+plot_ece_control_cdr<-plot_ece_control%>%
+  filter(site=="CDR")
+#checking measurement scale categories
+unique(plot_ece_control_cdr$measurement_scale_cover)
+#resisitance
+resis_cdr<-lmer(log(resistance)~richness*dominant_relative_abund_zero+evar+
+                  measurement_scale_cover+richness:spei6_category+dominant_relative_abund_zero:spei6_category+
+                  evar:spei6_category+spei6_category+(1|experiment/uniqueid)
+                +(1|year), data=plot_ece_control_cdr, REML=F)
+summary(resis_cdr)
+
+#remove non-significant interactions
+resis_cdr1<-lmer(log(resistance)~richness+dominant_relative_abund_zero+evar+
+                  measurement_scale_cover+richness:spei6_category+dominant_relative_abund_zero:spei6_category+
+                  evar:spei6_category+spei6_category+(1|experiment/uniqueid)
+                +(1|year), data=plot_ece_control_cdr, REML=F)
+summary(resis_cdr1)
+anova(resis_cdr,resis_cdr1)
+
+resis_cdr2<-lmer(log(resistance)~richness+dominant_relative_abund_zero+evar+
+                   measurement_scale_cover+richness:spei6_category+
+                   evar:spei6_category+spei6_category+(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_cdr, REML=F)
+summary(resis_cdr2)
+
+
+resis_cdr3<-lmer(log(resistance)~richness+dominant_relative_abund_zero+evar+
+                   measurement_scale_cover+richness:spei6_category+
+                  +spei6_category+(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_cdr, REML=F)
+summary(resis_cdr3)
+anova(resis_cdr3,resis_cdr2,resis_cdr1,resis_cdr)#model selection
+
+#Refit best model with REML
+resis_cdr4<-lmer(log(resistance)~richness+dominant_relative_abund_zero+evar+
+                   measurement_scale_cover+richness:spei6_category+
+                   +spei6_category+(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_cdr)
+summary(resis_cdr1)
+anova(resis_cdr4)
+simres <- simulateResiduals(resis_cdr4)
+plot(simres)#might not look good enough
+check_model(resis_cdr4)
+
+#plot best model
+ggpredict(model = resis_cdr4, terms = c("richness", "spei6_category"), back_transform = F ) %>%
+  plot(show_data = TRUE)+
+  labs(x="richness")
+ggpredict(model = resis_cdr4, terms = "dominant_relative_abund_zero", back_transform = F) %>%
+  plot(show_data = TRUE)+
+  labs(x="relative abundance of dominant species")
+ggpredict(model = resis_cdr4, terms = "spei6_category", back_transform = F) %>%
+  plot(show_data = TRUE)+
+  labs(x="spei6_category")
+
+
+#select KBS
+plot_ece_control_kbs<-plot_ece_control%>%
+  filter(site=="KBS")
+#checking categories
+unique(plot_ece_control_kbs$measurement_scale_cover)#???
+
+#resisitance
+resis_kbs<-lmer(log(resistance)~richness*dominant_relative_abund_zero+evar+measurement_scale_cover+
+                  richness:spei6_category+dominant_relative_abund_zero:spei6_category+
+                  evar:spei6_category+spei6_category+(1|experiment/uniqueid)
+                +(1|year), data=plot_ece_control_kbs, REML=F)#it seems there is only one measurement scale cover
+summary(resis_kbs)
+
+#remove non-significant interactions
+resis_kbs1<-lmer(log(resistance)~richness+dominant_relative_abund_zero+evar+
+                   richness:spei6_category+dominant_relative_abund_zero:spei6_category+
+                   evar:spei6_category+spei6_category+(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_kbs, REML=F)
+summary(resis_kbs1)
+
+
+resis_kbs2<-lmer(log(resistance)~richness+dominant_relative_abund_zero+evar+
+                   richness:spei6_category+
+                   evar:spei6_category+spei6_category+(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_kbs, REML=F)
+summary(resis_kbs2)
+
+
+resis_kbs3<-lmer(log(resistance)~richness+dominant_relative_abund_zero+evar+
+                   richness:spei6_category+
+                   +spei6_category+(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_kbs, REML=F)
+summary(resis_kbs3)
+anova(resis_kbs3)#model selection
+check_model(resis_kbs3)
+
+
+resis_kbs4<-lmer(log(resistance)~richness+dominant_relative_abund_zero+evar+
+                   +spei6_category+(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_kbs, REML=F)
+summary(resis_kbs4)
+
+resis_kbs5<-lmer(log(resistance)~richness+dominant_relative_abund_zero+
+                   +spei6_category+(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_kbs, REML=F)
+summary(resis_kbs5)
+
+resis_kbs6<-lmer(log(resistance)~richness+dominant_relative_abund_zero+
+                   +(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_kbs, REML=F)
+summary(resis_kbs6)#none of the predictors were significant
+check_model(resis_kbs6)
+
+#Konza 
+plot_ece_control_knz<-plot_ece_control%>%
+  filter(site=="KNZ")
+#checking measurement scale categories
+unique(plot_ece_control_knz$measurement_scale_cover)
+#resisitance
+resis_knz<-lmer(log(resistance)~richness*dominant_relative_abund_zero+evar+
+                  measurement_scale_cover+richness:spei6_category+dominant_relative_abund_zero:spei6_category+
+                  evar:spei6_category+spei6_category+(1|experiment/uniqueid)
+                +(1|year), data=plot_ece_control_knz, REML=F)
+summary(resis_knz)
+
+#remove non-significant interactions
+resis_knz1<-lmer(log(resistance)~richness+dominant_relative_abund_zero+evar+
+                   measurement_scale_cover+richness:spei6_category+dominant_relative_abund_zero:spei6_category+
+                   evar:spei6_category+spei6_category+(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_knz, REML=F)
+summary(resis_knz1)
+
+
+resis_knz2<-lmer(log(resistance)~richness+dominant_relative_abund_zero+evar+
+                   measurement_scale_cover+richness:spei6_category+
+                   evar:spei6_category+spei6_category+(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_knz, REML=F)
+summary(resis_knz2)
+
+
+resis_knz3<-lmer(log(resistance)~richness+dominant_relative_abund_zero+evar+
+                   measurement_scale_cover+richness:spei6_category+
+                   +spei6_category+(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_knz, REML=F)
+summary(resis_knz3)
+
+resis_knz4<-lmer(log(resistance)~richness+dominant_relative_abund_zero+evar+
+                   measurement_scale_cover+
+                   +spei6_category+(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_knz, REML=F)
+summary(resis_knz4)
+
+resis_knz5<-lmer(log(resistance)~richness+dominant_relative_abund_zero+
+                   measurement_scale_cover+
+                   +(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_knz, REML=F)
+summary(resis_knz5)#no predictor significant
+check_model(resis_knz5)
+anova(resis_knz5,resis_knz4,resis_knz3,resis_knz2,resis_knz1,resis_knz)
+
+
+
+
+
+
 
 
 #goal: determine an ideal random effect structure

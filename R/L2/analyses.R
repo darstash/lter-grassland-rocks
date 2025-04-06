@@ -4,7 +4,7 @@
 # DATA INPUT:   Data imported as csv files from shared Google drive L2 folder
 # DATA OUTPUT:  Core analyses
 # PROJECT:      LTER Grassland Rock
-# DATE:         October 2024 , last updated: March 2025
+# DATE:         October 2024 , last updated: April 2025
 
 # Clear all existing data
 rm(list=ls())
@@ -30,18 +30,23 @@ list.files(L2_dir)
 
 # Read in CSV files
 plot <- read.csv(file.path(L2_dir, "plot_metrics_SPEI_diversity.csv"))
-ece <- read.csv(file.path(L2_dir, "ece_resist_resil.csv"))
+ece <- read.csv(file.path(L2_dir, "ece_resist_resil.csv"))#based on SPEI6
 meta <- read.csv(file.path(L2_dir, "metadata.csv"))
+ece_9<-read.csv(file.path(L2_dir, "ece_resist_resil_spei9.csv"))#calculated based on SPEI9
 
 # Only keep distinct rows in ece
 ece <- distinct(ece)
+ece_9<-distinct(ece_9)
 
 # Change ex_year to year
 ece <- ece %>%
   rename(year = ex_year)
+ece_9<-ece_9%>%
+  rename(year = ex_year)
 
 # Merge plot with resistance and resilience
 plot_ece <- left_join(plot, ece)
+plot_ece_9<-left_join(plot, ece_9)
 
 # Make column with categories for high and low dominance
 plot_ece <- plot_ece %>%
@@ -52,9 +57,12 @@ plot_ece <- plot_ece %>%
 
 # Standardize column names
 plot_ece <- clean_names(plot_ece)
+plot_ece_9 <- clean_names(plot_ece_9)
+
 
 # Convert Inf values to NA for resilience for some KBS 2015 plots
 plot_ece$resilience[plot_ece$resilience == Inf] <- NA
+plot_ece_9$resilience[plot_ece_9$resilience == Inf] <- NA
 
 # Add experiment column
 plot_ece$experiment <- sub("nutnet.*", "nutnet", plot_ece$higher_order_organization)
@@ -102,12 +110,63 @@ plot_ece$experiment[plot_ece$experiment == "D"] <- "NGE"
 plot_ece$experiment[plot_ece$experiment == "E"] <- "NGE"
 plot_ece$experiment[plot_ece$experiment == "F"] <- "NGE"
 
+#define experiment column
+plot_ece_9$experiment <- sub("nutnet.*", "nutnet", plot_ece_9$higher_order_organization)
+plot_ece_9$experiment <- sub("glbrc_scaleup.*", "glbrc_scaleup", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("glbrc_G10.*", "glbrc", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("glbrc_G9.*", "glbrc", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("mcse.*", "mcse", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("microplots.*", "microplots", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("Experiment 1.*", "Experiment 1", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("001d_A_fl", "001d_fl", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("001d_B_fl", "001d_fl", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("001d_C_fl", "001d_fl", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("001d_D_fl", "001d_fl", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("001d_A_tu", "001d_tu", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("001d_B_tu", "001d_tu", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("001d_C_tu", "001d_tu", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("001d_D_tu", "001d_tu", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("004a_A_fl", "004a_fl", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("004a_B_fl", "004a_fl", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("004a_C_fl", "004a_fl", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("004a_D_fl", "004a_fl", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("004a_A_tu", "004a_tu", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("004a_B_tu", "004a_tu", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("004a_C_tu", "004a_tu", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("004a_D_tu", "004a_tu", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("004b_A_fl", "004b_fl", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("004b_B_fl", "004b_fl", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("004b_C_fl", "004b_fl", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("004b_D_fl", "004b_fl", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("004b_A_tu", "004b_tu", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("004b_B_tu", "004b_tu", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("004b_C_tu", "004b_tu", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("004b_D_tu", "004b_tu", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("002d.*", "002d", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("Experiment 54.*", "Experiment 54", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("KNZ_WAT01.*", "KNZ_WAT01", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("002c.*", "002c", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("e061.*", "e061", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("e247.*", "e247", plot_ece_9$experiment)
+plot_ece_9$experiment <- sub("e245.*", "e245", plot_ece_9$experiment)
+plot_ece_9$experiment[plot_ece_9$experiment == "A"] <- "NGE"
+plot_ece_9$experiment[plot_ece_9$experiment == "B"] <- "NGE"
+plot_ece_9$experiment[plot_ece_9$experiment == "C"] <- "NGE"
+plot_ece_9$experiment[plot_ece_9$experiment == "D"] <- "NGE"
+plot_ece_9$experiment[plot_ece_9$experiment == "E"] <- "NGE"
+plot_ece_9$experiment[plot_ece_9$experiment == "F"] <- "NGE"
+
 # Merge with metadata
 plot_ece_meta <- left_join(plot_ece, meta)
 unique(plot_ece_meta$experiment)
+plot_ece_9_meta <- left_join(plot_ece_9, meta)
+unique(plot_ece_9_meta$experiment)
+
 
 # Remove NAs for non-extreme years
 plot_ece_rm_na <- plot_ece_meta %>%
+  drop_na(resistance)
+plot_ece_9_rm_na <- plot_ece_9_meta %>%
   drop_na(resistance)
 #checking each experiment/study
 plot_filter<-plot_ece_rm_na%>%
@@ -115,11 +174,16 @@ plot_filter<-plot_ece_rm_na%>%
 
 # Make year a factor
 str(plot_ece_rm_na)
+str(plot_ece_9_rm_na)
 plot_ece_rm_na$year <- as.factor(plot_ece_rm_na$year)
 plot_ece_rm_na$measurement_scale_cover <- as.factor(plot_ece_rm_na$measurement_scale_cover)
+plot_ece_9_rm_na$year <- as.factor(plot_ece_9_rm_na$year)
+plot_ece_9_rm_na$measurement_scale_cover <- as.factor(plot_ece_9_rm_na$measurement_scale_cover)
 
 # Subset to only have control plots
 plot_ece_control <- plot_ece_rm_na %>%
+  filter(treatment == "control")
+plot_ece_9_control <- plot_ece_9_rm_na %>%
   filter(treatment == "control")
 
 #examine extreme event category
@@ -271,9 +335,10 @@ resil_unscaled_model3<-lmer(log(resilience)~richness+dominant_relative_abund_zer
                               evar:spei6_category+spei6_category+(1|site/experiment/uniqueid)
                             +(1|year), data=plot_ece_control)
 
+
 summary(resil_unscaled_model3)
 anova(resil_unscaled_model3)
-simres <- simulateResiduals(resil_unscaled_model3)
+mres <- simulateResiduals(resil_unscaled_model3)
 plot(simres)
 check_model(resil_unscaled_model3)
 
@@ -349,18 +414,64 @@ ggpredict(model = resis_cdr4, terms = "spei6_category", back_transform = F) %>%
   plot(show_data = TRUE)+
   labs(x="spei6_category")
 
+#Cedar creek resilience
+resil_cdr<-lmer(log(resilience)~richness*dominant_relative_abund_zero+evar+
+                  measurement_scale_cover+richness:spei6_category+dominant_relative_abund_zero:spei6_category+
+                  evar:spei6_category+spei6_category+(1|experiment/uniqueid)
+                +(1|year), data=plot_ece_control_cdr, REML=F)
+summary(resil_cdr)
+
+#remove non-significant interactions
+resil_cdr1<-lmer(log(resilience)~richness+dominant_relative_abund_zero+evar+
+                   measurement_scale_cover+richness:spei6_category+dominant_relative_abund_zero:spei6_category+
+                   evar:spei6_category+spei6_category+(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_cdr, REML=F)
+summary(resil_cdr1)
+
+resil_cdr2<-lmer(log(resilience)~richness+dominant_relative_abund_zero+evar+
+                   measurement_scale_cover+richness:spei6_category+
+                   evar:spei6_category+spei6_category+(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_cdr, REML=F)
+summary(resil_cdr2)
+
+
+resil_cdr3<-lmer(log(resilience)~richness+dominant_relative_abund_zero+evar+
+                   measurement_scale_cover+richness:spei6_category+
+                   +spei6_category+(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_cdr, REML=F)
+summary(resil_cdr3)
+anova(resil_cdr3,resil_cdr2,resil_cdr1,resil_cdr)#model selection
+
+#Refit best model with REML
+resil_cdr4<-lmer(log(resilience)~richness+dominant_relative_abund_zero+evar+
+                   measurement_scale_cover+richness:spei6_category+
+                   +spei6_category+(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_cdr)
+summary(resil_cdr1)
+anova(resil_cdr4)
+simres <- simulateResiduals(resil_cdr4)
+plot(simres)#look good enough
+check_model(resil_cdr4)
+
+ggpredict(model = resil_cdr4, terms = c("richness", "spei6_category"), back_transform = F ) %>%
+  plot(show_data = TRUE)+
+  labs(x="richness")
+ggpredict(model = resil_cdr4, terms = "dominant_relative_abund_zero", back_transform = F) %>%
+  plot(show_data = TRUE)+
+  labs(x="relative abundance of dominant species")
+
 
 #select KBS
 plot_ece_control_kbs<-plot_ece_control%>%
   filter(site=="KBS")
 #checking categories
-unique(plot_ece_control_kbs$measurement_scale_cover)#???
+
 
 #resisitance
 resis_kbs<-lmer(log(resistance)~richness*dominant_relative_abund_zero+evar+measurement_scale_cover+
                   richness:spei6_category+dominant_relative_abund_zero:spei6_category+
                   evar:spei6_category+spei6_category+(1|experiment/uniqueid)
-                +(1|year), data=plot_ece_control_kbs, REML=F)#it seems there is only one measurement scale cover
+                +(1|year), data=plot_ece_control_kbs, REML=F)#it seems there is not enough replicate for each measurement scale cover
 summary(resis_kbs)
 
 #remove non-significant interactions
@@ -402,6 +513,49 @@ resis_kbs6<-lmer(log(resistance)~richness+dominant_relative_abund_zero+
                  +(1|year), data=plot_ece_control_kbs, REML=F)
 summary(resis_kbs6)#none of the predictors were significant
 check_model(resis_kbs6)
+
+#resilience
+resil_kbs<-lmer(log(resilience)~richness*dominant_relative_abund_zero+evar+measurement_scale_cover+
+                  richness:spei6_category+dominant_relative_abund_zero:spei6_category+
+                  evar:spei6_category+spei6_category+(1|experiment/uniqueid)
+                +(1|year), data=plot_ece_control_kbs, REML=F)#it seems there is not enough replicate for each measurement scale cover
+summary(resil_kbs)
+
+#remove non-significant interactions
+resil_kbs1<-lmer(log(resilience)~richness+dominant_relative_abund_zero+evar+
+                   richness:spei6_category+dominant_relative_abund_zero:spei6_category+
+                   evar:spei6_category+spei6_category+(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_kbs, REML=F)
+summary(resil_kbs1)
+
+
+resil_kbs2<-lmer(log(resilience)~richness+dominant_relative_abund_zero+evar+
+                   richness:spei6_category+
+                   evar:spei6_category+spei6_category+(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_kbs, REML=F)
+summary(resil_kbs2)
+
+
+resil_kbs3<-lmer(log(resilience)~richness+dominant_relative_abund_zero+evar+
+                   evar:spei6_category
+                   +spei6_category+(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_kbs, REML=F)
+summary(resil_kbs3)
+anova(resil_kbs3)#model selection
+check_model(resil_kbs3)
+
+#refit with REML
+resil_kbs4<-lmer(log(resilience)~richness+dominant_relative_abund_zero+evar+
+                   evar:spei6_category
+                 +spei6_category+(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_kbs)
+summary(resil_kbs4)
+anova(resil_kbs4)
+check_model(resil_kbs4)
+
+ggpredict(model = resil_kbs4, terms = c("evar", "spei6_category"), back_transform = F ) %>%
+  plot(show_data = TRUE)+
+  labs(x="richness")
 
 #Konza 
 plot_ece_control_knz<-plot_ece_control%>%
@@ -451,8 +605,55 @@ check_model(resis_knz5)
 anova(resis_knz5,resis_knz4,resis_knz3,resis_knz2,resis_knz1,resis_knz)
 
 
+#resilience
+resil_knz<-lmer(log(resilience)~richness*dominant_relative_abund_zero+evar+
+                  measurement_scale_cover+richness:spei6_category+dominant_relative_abund_zero:spei6_category+
+                  evar:spei6_category+spei6_category+(1|experiment/uniqueid)
+                +(1|year), data=plot_ece_control_knz, REML=F)
+summary(resil_knz)
+
+#remove non-significant interactions
+resil_knz1<-lmer(log(resilience)~richness+dominant_relative_abund_zero+evar+
+                   measurement_scale_cover+richness:spei6_category+dominant_relative_abund_zero:spei6_category+
+                   evar:spei6_category+spei6_category+(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_knz, REML=F)
+summary(resil_knz1)
 
 
+resil_knz2<-lmer(log(resilience)~richness+dominant_relative_abund_zero+evar+
+                   measurement_scale_cover+richness:spei6_category+
+                   evar:spei6_category+spei6_category+(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_knz, REML=F)
+summary(resil_knz2)
+
+
+resil_knz3<-lmer(log(resilience)~richness+dominant_relative_abund_zero+evar+
+                   measurement_scale_cover+richness:spei6_category+
+                   +spei6_category+(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_knz, REML=F)
+summary(resil_knz3)
+
+resil_knz4<-lmer(log(resilience)~richness+dominant_relative_abund_zero+evar+
+                   measurement_scale_cover+
+                   +spei6_category+(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_knz, REML=F)
+summary(resil_knz4)
+anova(resil_knz4,resil_knz3,resil_knz2,resil_knz1,resil_knz)#model selection
+#refit with REML
+resil_knz5<-lmer(log(resilience)~richness+dominant_relative_abund_zero+evar+
+                   measurement_scale_cover+
+                   +spei6_category+(1|experiment/uniqueid)
+                 +(1|year), data=plot_ece_control_knz)
+summary(resil_knz5)
+anova(resil_knz5)
+check_model(resil_knz5)
+
+ggpredict(model = resil_knz5, terms = "richness", back_transform = F ) %>%
+  plot(show_data = TRUE)+
+  labs(x="richness")
+ggpredict(model = resil_knz5, terms = "evar", back_transform = F ) %>%
+  plot(show_data = TRUE)+
+  labs(x="evenness")
 
 
 

@@ -217,6 +217,107 @@ summary(rich_area)
 simres <- simulateResiduals(rich_area)
 plot(simres)#looks good
 
+#analysis using SPEI9####
+#Resistance
+#interaction based on hypothesis
+resis_spei9<-lmer(log(resistance)~richness*dominant_relative_abund_zero+evar+
+                              measurement_scale_cover+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                              evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
+                            +(1|year), data=plot_ece_9_control, REML=F)
+summary(resis_spei9)
+anova(resis_spei9)
+#without interaction of main predictors
+resis_spei9_m1<-lmer(log(resistance)~richness+evar+dominant_relative_abund_zero+
+                             measurement_scale_cover+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                             evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
+                           +(1|year), data=plot_ece_9_control, REML=F)
+summary(resis_spei9_m1)
+anova(resis_spei9_m1)
+
+#remove non-significant interaction
+resis_spei9_m2<-lmer(log(resistance)~richness+evar+dominant_relative_abund_zero+
+                              measurement_scale_cover+richness:spei9_category+
+                              evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
+                            +(1|year), data=plot_ece_9_control, REML=F)
+anova(resis_spei9_m2)
+summary(resis_spei9_m2)
+
+#remove other non-significant interactions
+resis_spei9_m3<-lmer(log(resistance)~richness+evar+dominant_relative_abund_zero+
+                              measurement_scale_cover+richness:spei9_category+spei9_category+(1|site/experiment/uniqueid)
+                            +(1|year), data=plot_ece_9_control, REML=F)
+anova(resis_spei9_m3)
+anova(resis_spei9_m3, resis_spei9_m2,resis_spei9_m1,resis_spei9)#model selection
+#refit additive model with REML
+resis_spei9_m4<-lmer(log(resistance)~richness+evar+dominant_relative_abund_zero+
+                              measurement_scale_cover+richness:spei9_category+spei9_category+(1|site/experiment/uniqueid)
+                            +(1|year), data=plot_ece_9_control)
+summary(resis_spei9_m4)
+anova(resis_spei9_m4)
+simres <- simulateResiduals(resis_spei9_m4)
+plot(simres)
+check_model(resis_spei9_m4)
+
+#plot best model
+ggpredict(model = resis_spei9_m4, terms = c("richness", "spei9_category"), back_transform = F ) %>%
+  plot(show_data = TRUE)+
+  labs(x="richness")
+ggpredict(model = resis_spei9_m4, terms = "richness", back_transform = F) %>%
+  plot(show_data = TRUE)+
+  labs(x="richness")
+ggpredict(model = resis_spei9_m4, terms = "dominant_relative_abund_zero", back_transform = F) %>%
+  plot(show_data = TRUE)+
+  labs(x="Relative abundance of dominant species")
+
+
+#Resilience
+#interaction based on hypothesis
+resil_spei9<-lmer(log(resilience)~richness*dominant_relative_abund_zero+evar+
+                    measurement_scale_cover+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                    evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
+                  +(1|year), data=plot_ece_9_control, REML=F)
+summary(resil_spei9)
+anova(resil_spei9)
+#without interaction of main predictors
+resil_spei9_m1<-lmer(log(resilience)~richness+evar+dominant_relative_abund_zero+
+                       measurement_scale_cover+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                       evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
+                     +(1|year), data=plot_ece_9_control, REML=F)
+summary(resil_spei9_m1)
+anova(resil_spei9_m1)
+
+#remove non-significant interaction
+resil_spei9_m2<-lmer(log(resilience)~richness+evar+dominant_relative_abund_zero+
+                       measurement_scale_cover+richness:spei9_category+
+                       evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
+                     +(1|year), data=plot_ece_9_control, REML=F)
+anova(resil_spei9_m2)
+summary(resil_spei9_m2)
+
+anova(resil_spei9_m2, resil_spei9_m1,resil_spei9)#model selection
+#refit additive model with REML
+resil_spei9_m3<-lmer(log(resilience)~richness+evar+dominant_relative_abund_zero+
+                       measurement_scale_cover+richness:spei9_category+
+                       evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
+                     +(1|year), data=plot_ece_9_control)
+summary(resil_spei9_m3)
+anova(resil_spei9_m3)
+simres <- simulateResiduals(resil_spei9_m3)
+plot(simres)
+check_model(resil_spei9_m3)
+
+#plot best model
+ggpredict(model = resil_spei9_m3, terms = c("richness", "spei9_category"), back_transform = F ) %>%
+  plot(show_data = TRUE)+
+  labs(x="richness")
+ggpredict(model = resil_spei9_m3, terms = c("evar", "spei9_category"), back_transform = F) %>%
+  plot(show_data = TRUE)+
+  labs(x="evenness")
+ggpredict(model = resil_spei9_m3, terms = "dominant_relative_abund_zero", back_transform = F) %>%
+  plot(show_data = TRUE)+
+  labs(x="Relative abundance of dominant species")
+
+#analysis using SPEI6####
 # Analysis 1: resistance ----
 ## Control plot only ----
 #using predictors without scaling####

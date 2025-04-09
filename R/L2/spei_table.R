@@ -62,8 +62,10 @@ spei_summary %>%
   geom_point( aes(color = spei12_category), size = 1.25) + theme_bw() +
   scale_x_continuous(breaks = seq(1980, 2025, by = 10)) +
   annotate( "text", label = "CDR",
-            x = 2000, y = 2, size = 5, colour = "black") + 
-  scale_color_manual(values = c("#F5191CFF", "#E78200FF", "#EAC728FF", "#81BB95FF", "#3B99B1FF"))
+            x = 2000, y = 2, size = 6, colour = "black") + 
+  scale_color_manual(values = c("#F5191CFF", "#E78200FF", "#EAC728FF", "#81BB95FF", "#3B99B1FF")) +
+  geom_hline(yintercept = -1.28, col = "#F5191CFF", linetype = "dashed")+
+  geom_hline(yintercept = 1.28, col = "#3B99B1FF", linetype = "dashed")
 
 spei_summary %>%
   filter(site == "KBS") %>%

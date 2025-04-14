@@ -599,6 +599,7 @@ lrr9 <- lrr9 %>%
 
 lrr.lm9 <- lmer(LRR ~ abs_spei9*spei9_category + (1|site/experiment/uniqueid) + (1|year), data = lrr9)
 summary(lrr.lm9)
+Anova(lrr.lm9, type = "III")
 simres <- simulateResiduals(lrr.lm9)
 plot(simres)
 
@@ -645,7 +646,7 @@ plot_model(
   show.data = TRUE
 )
 
-# LRR Nitrigen plots
+# LRR Nitrigen plots ----
 # Add experiment column (sloppy)
 # Add experiment column
 plot_trt$experiment <- sub("nutnet.*", "nutnet", plot_trt$higher_order_organization)
@@ -853,7 +854,7 @@ plot_nc <- plot_trt %>%
 
 # Add column with nitrogen yes/no
 plot_nc <- plot_nc %>%
-  mutate(nitrogen = recode(nutrients_added, "NPK+" = "N", "NP" = "N", "NPK" = "N", "NK" = "N", "NPK+Fence" = "N", "none" = "no_fertilizer"))
+  mutate(nitrogen = dplyr::recode(nutrients_added, "NPK+" = "N", "NP" = "N", "NPK" = "N", "NK" = "N", "NPK+Fence" = "N", "none" = "no_fertilizer"))
 
 # Using SPEI3
 plot_nc_lrr3 <- plot_nc %>%
@@ -1003,6 +1004,162 @@ plot(simres)
 # Plot the LRR model
 plot_model(
   lrr.lm12nc,
+  type = "pred",
+  terms= c("abs_spei12", "spei12_category", "nitrogen"),
+  show.data = TRUE
+)
+
+
+# LRR control, N, NPK ----
+plot_npk <- plot_trt %>%
+  filter(nutrients_added == "NPK+" | nutrients_added == "N" | nutrients_added == "NPK" | nutrients_added == "none" | nutrients_added == "no_fertilizer")
+
+plot_npk %>% group_by(nutrients_added) %>% summarize(n = n())
+
+# Add column with nitrogen, NPK, or N
+plot_npk <- plot_npk %>%
+  mutate(nitrogen = dplyr::recode(nutrients_added, "NPK+" = "NPK", "none" = "no_fertilizer")) %>%
+  mutate(nitrogen = factor(nitrogen, levels = c("NPK","N","Oceania","no_fertilizer")))
+
+# Using SPEI3
+plot_npk_lrr3 <- plot_npk %>%
+  group_by(uniqueid) %>%
+  arrange(uniqueid, year) %>%
+  mutate(prior_year_biomass = lag(plot_biomass),
+         prior_year_type = lag(spei3_category)) %>%
+  ungroup()
+normal_biomass3npk <- plot_npk_lrr3  %>%
+  group_by(uniqueid) %>%
+  filter(spei3_category == "Normal" | spei3_category == "Moderate wet" | spei3_category == "Moderate dry") %>%
+  summarize(average_normal_biomass = mean(plot_biomass, na.rm=T))
+plot_npk_lrr3 <- left_join(plot_npk_lrr3, normal_biomass3npk)
+
+lrr3npk <- plot_npk_lrr3 %>%
+  filter(prior_year_type != "Extreme wet" | prior_year_type != "Extreme dry") %>%
+  filter(spei3_category == "Extreme wet" | spei3_category == "Extreme dry") %>%
+  mutate(LRR = log(plot_biomass / average_normal_biomass))  # Calculate the log response ratio
+
+# Take absolute value of SPEI3
+lrr3npk <- lrr3npk %>%
+  mutate(abs_spei3 = abs(spei3))
+
+lrr.lm3npk <- lmer(LRR ~ abs_spei3*spei3_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr3npk)
+summary(lrr.lm3npk)
+Anova(lrr.lm3npk, type = "III")
+simres <- simulateResiduals(lrr.lm3npk)
+plot(simres)
+
+# Plot the LRR model
+plot_model(
+  lrr.lm3npk,
+  type = "pred",
+  terms= c("abs_spei3", "spei3_category", "nitrogen"),
+  show.data = TRUE
+)
+
+# Using SPEI6
+plot_npk_lrr6 <- plot_npk %>%
+  group_by(uniqueid) %>%
+  arrange(uniqueid, year) %>%
+  mutate(prior_year_biomass = lag(plot_biomass),
+         prior_year_type = lag(spei6_category)) %>%
+  ungroup()
+normal_biomass6npk <- plot_npk_lrr6  %>%
+  group_by(uniqueid) %>%
+  filter(spei6_category == "Normal" | spei6_category == "Moderate wet" | spei6_category == "Moderate dry") %>%
+  summarize(average_normal_biomass = mean(plot_biomass, na.rm=T))
+plot_npk_lrr6 <- left_join(plot_npk_lrr6, normal_biomass6npk)
+
+lrr6npk <- plot_npk_lrr6 %>%
+  filter(prior_year_type != "Extreme wet" | prior_year_type != "Extreme dry") %>%
+  filter(spei6_category == "Extreme wet" | spei6_category == "Extreme dry") %>%
+  mutate(LRR = log(plot_biomass / average_normal_biomass))  # Calculate the log response ratio
+
+# Take absolute value of SPEI6
+lrr6npk <- lrr6npk %>%
+  mutate(abs_spei6 = abs(spei6))
+
+lrr.lm6npk <- lmer(LRR ~ abs_spei6*spei6_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr6npk)
+summary(lrr.lm6npk)
+Anova(lrr.lm6npk, type = "III")
+simres <- simulateResiduals(lrr.lm6npk)
+plot(simres)
+
+# Plot the LRR model
+plot_model(
+  lrr.lm6npk,
+  type = "pred",
+  terms= c("abs_spei6", "spei6_category", "nitrogen"),
+  show.data = TRUE
+)
+
+# Using SPEI9
+plot_npk_lrr9 <- plot_npk %>%
+  group_by(uniqueid) %>%
+  arrange(uniqueid, year) %>%
+  mutate(prior_year_biomass = lag(plot_biomass),
+         prior_year_type = lag(spei9_category)) %>%
+  ungroup()
+normal_biomass9npk <- plot_npk_lrr9  %>%
+  group_by(uniqueid) %>%
+  filter(spei9_category == "Normal" | spei9_category == "Moderate wet" | spei9_category == "Moderate dry") %>%
+  summarize(average_normal_biomass = mean(plot_biomass, na.rm=T))
+plot_npk_lrr9 <- left_join(plot_npk_lrr9, normal_biomass9npk)
+
+lrr9npk <- plot_npk_lrr9 %>%
+  filter(prior_year_type != "Extreme wet" | prior_year_type != "Extreme dry") %>%
+  filter(spei9_category == "Extreme wet" | spei9_category == "Extreme dry") %>%
+  mutate(LRR = log(plot_biomass / average_normal_biomass))  # Calculate the log response ratio
+
+# Take absolute value of SPEI9
+lrr9npk <- lrr9npk %>%
+  mutate(abs_spei9 = abs(spei9))
+
+lrr.lm9npk <- lmer(LRR ~ abs_spei9*spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr9npk)
+summary(lrr.lm9npk)
+Anova(lrr.lm9npk, type = "III")
+simres <- simulateResiduals(lrr.lm9npk)
+plot(simres)
+
+# Plot the LRR model
+plot_model(
+  lrr.lm9npk,
+  type = "pred",
+  terms= c("abs_spei9", "spei9_category", "nitrogen"),
+  show.data = TRUE
+)
+
+# Using SPEI12
+plot_npk_lrr12 <- plot_npk %>%
+  group_by(uniqueid) %>%
+  arrange(uniqueid, year) %>%
+  mutate(prior_year_biomass = lag(plot_biomass),
+         prior_year_type = lag(spei12_category)) %>%
+  ungroup()
+normal_biomass12npk <- plot_npk_lrr12  %>%
+  group_by(uniqueid) %>%
+  filter(spei12_category == "Normal" | spei12_category == "Moderate wet" | spei12_category == "Moderate dry") %>%
+  summarize(average_normal_biomass = mean(plot_biomass, na.rm=T))
+plot_npk_lrr12 <- left_join(plot_npk_lrr12, normal_biomass12npk)
+
+lrr12npk <- plot_npk_lrr12 %>%
+  filter(prior_year_type != "Extreme wet" | prior_year_type != "Extreme dry") %>%
+  filter(spei12_category == "Extreme wet" | spei12_category == "Extreme dry") %>%
+  mutate(LRR = log(plot_biomass / average_normal_biomass))  # Calculate the log response ratio
+
+# Take absolute value of SPEI12
+lrr12npk <- lrr12npk %>%
+  mutate(abs_spei12 = abs(spei12))
+
+lrr.lm12npk <- lmer(LRR ~ abs_spei12*spei12_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr12npk)
+summary(lrr.lm12npk)
+Anova(lrr.lm12npk, type = "III")
+simres <- simulateResiduals(lrr.lm12npk)
+plot(simres)
+
+# Plot the LRR model
+plot_model(
+  lrr.lm12npk,
   type = "pred",
   terms= c("abs_spei12", "spei12_category", "nitrogen"),
   show.data = TRUE

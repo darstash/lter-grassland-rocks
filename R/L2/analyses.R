@@ -397,6 +397,69 @@ plot_model(resil_spei9_m3,
            ci.lvl = 0.95
 ) + ylim(-0.05, 0.05) + theme_bw()
 
+
+# Serainas version
+# I think sjPlot does average across factor levels of other variables. I am not sure how to correctly do that manually
+# note: this is only relevant for richness, as there is the reichness times SPEI interaction
+resil_spei9_m3_std <- update(resil_spei9_m3, 
+                             data = plot_ece_9_control %>% 
+                               mutate(richness = scale(richness),
+                                      evar = scale(evar),
+                                      dominant_relative_abund_zero = scale(dominant_relative_abund_zero),
+                               ))
+
+coef(summary(resil_spei9_m3_std)) %>%
+  data.frame() %>%
+  rownames_to_column("Variable") %>%
+  rename("SE" = "Std..Error",
+         "p" = "Pr...t..") %>%
+  # order things neatly
+  mutate(Variable = factor(Variable,
+                           levels = c("(Intercept)",
+                                      "richness",
+                                      "evar",
+                                      "dominant_relative_abund_zero",
+                                      "measurement_scale_cover0.3",
+                                      "measurement_scale_cover0.4",
+                                      "measurement_scale_cover1",          
+                                      "measurement_scale_cover10",
+                                      "measurement_scale_cover",
+                                      "spei9_categoryExtreme wet",
+                                      "richness:spei9_categoryExtreme wet",
+                                      "evar:spei9_categoryExtreme wet")),
+         # cosmetics in the names
+         Variable_labels = factor(case_when(Variable %in% "(Intercept)" ~ "intercept",
+                                            Variable %in% "dominant_relative_abund_zero" ~ "dominant abundance",
+                                            Variable %in% "measurement_scale_cover0.3" ~ "measurement scale: 0.3 m^2",
+                                            Variable %in% "measurement_scale_cover0.4" ~ "measurement scale: 0.4 m^2",
+                                            Variable %in% "measurement_scale_cover1" ~ "measurement scale: 1 m^2",
+                                            Variable %in% "measurement_scale_cover10" ~ "measurement scale: 10 m^2",
+                                            Variable %in% "spei9_categoryExtreme wet" ~ "SPEI9: extreme wet",
+                                            Variable %in% "richness:spei9_categoryExtreme wet" ~ "richness x SPEI9: extreme wet",
+                                            Variable %in% "evar:spei9_categoryExtreme wet" ~ "evar x SPEI9: extreme wet",
+                                            .default = Variable)),
+         Variable_labels = fct_reorder(Variable_labels, as.numeric(Variable)),
+         # get significances and their plotting location (perhaps necessary to play with the +/- offset)
+         stars = case_when(p < 0.001 ~ "***",
+                           p > 0.001 & p <0.01 ~ "**",
+                           p > 0.01  & p < 0.05 ~ "*",
+                           p > 0.05 & p <0.1 ~ ".",
+                           .default = ""),
+         stars_location = case_when(Estimate < 0 ~ Estimate - SE - 0.1,
+                                    Estimate > 0 ~ Estimate + SE + 0.1)
+  ) %>%
+  
+  ggplot(aes(y = Variable_labels, x = Estimate)) +
+  theme_bw() +
+  theme(axis.title.y = element_blank()) +
+  labs(title = "log(resilience)",
+       x = "estimate \u00B1 se") +
+  scale_y_discrete(limits = rev) +
+  geom_vline(xintercept = 0) +
+  geom_col()+
+  geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2) +
+  geom_text(aes(x = stars_location, label = stars))
+
 #analysis using SPEI6####
 # Analysis 1: resistance ----
 ## Control plot only ----

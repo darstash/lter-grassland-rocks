@@ -310,6 +310,7 @@ coef(summary(resis_spei9_m4_std)) %>%
                                       "richness:spei9_categoryExtreme wet")),
          # cosmetics in the names
          Variable_labels = factor(case_when(Variable %in% "(Intercept)" ~ "intercept",
+                                            Variable %in% "evar" ~ "evenness",
                                             Variable %in% "dominant_relative_abund_zero" ~ "dominant abundance",
                                             Variable %in% "measurement_scale_cover0.3" ~ "measurement scale: 0.3 m^2",
                                             Variable %in% "measurement_scale_cover0.4" ~ "measurement scale: 0.4 m^2",
@@ -429,6 +430,7 @@ coef(summary(resil_spei9_m3_std)) %>%
                                       "evar:spei9_categoryExtreme wet")),
          # cosmetics in the names
          Variable_labels = factor(case_when(Variable %in% "(Intercept)" ~ "intercept",
+                                            Variable %in% "evar" ~ "evenness",
                                             Variable %in% "dominant_relative_abund_zero" ~ "dominant abundance",
                                             Variable %in% "measurement_scale_cover0.3" ~ "measurement scale: 0.3 m^2",
                                             Variable %in% "measurement_scale_cover0.4" ~ "measurement scale: 0.4 m^2",
@@ -436,7 +438,7 @@ coef(summary(resil_spei9_m3_std)) %>%
                                             Variable %in% "measurement_scale_cover10" ~ "measurement scale: 10 m^2",
                                             Variable %in% "spei9_categoryExtreme wet" ~ "SPEI9: extreme wet",
                                             Variable %in% "richness:spei9_categoryExtreme wet" ~ "richness x SPEI9: extreme wet",
-                                            Variable %in% "evar:spei9_categoryExtreme wet" ~ "evar x SPEI9: extreme wet",
+                                            Variable %in% "evar:spei9_categoryExtreme wet" ~ "evenness x SPEI9: extreme wet",
                                             .default = Variable)),
          Variable_labels = fct_reorder(Variable_labels, as.numeric(Variable)),
          # get significances and their plotting location (perhaps necessary to play with the +/- offset)

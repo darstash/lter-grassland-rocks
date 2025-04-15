@@ -21,6 +21,7 @@ library(MuMIn)
 library(car)
 library(GGally)
 library(performance)
+library(sjPlot)
 
 # Set working directory 
 L0_dir <- Sys.getenv("L0DIR")
@@ -269,6 +270,14 @@ ggpredict(model = resis_spei9_m4, terms = "dominant_relative_abund_zero", back_t
   plot(show_data = TRUE)+
   labs(x="Relative abundance of dominant species")
 
+# Plot standardized effect sizes # This seems weird...
+plot_model(resis_spei9_m4,
+           type = "std",
+           rm.terms = "measurement_scale_cover [0.3,0.4,1,10]",
+           vline.color = "black",
+           sort.est = TRUE,
+           ci.lvl = 0.95
+) + ylim(-0.05, 0.05) + theme_bw()
 
 #Resilience
 #interaction based on hypothesis
@@ -316,6 +325,15 @@ ggpredict(model = resil_spei9_m3, terms = c("evar", "spei9_category"), back_tran
 ggpredict(model = resil_spei9_m3, terms = "dominant_relative_abund_zero", back_transform = F) %>%
   plot(show_data = TRUE)+
   labs(x="Relative abundance of dominant species")
+
+# Plot standardized effect sizes
+plot_model(resil_spei9_m3,
+           type = "std",
+           rm.terms = "measurement_scale_cover [0.3,0.4,1,10]",
+           vline.color = "black",
+           sort.est = TRUE,
+           ci.lvl = 0.95
+) + ylim(-0.05, 0.05) + theme_bw()
 
 #analysis using SPEI6####
 # Analysis 1: resistance ----
@@ -400,6 +418,15 @@ ggplot(plot_ece_control, aes(evar, log(resistance)))+
   geom_point()+
   geom_smooth(method = "lm")
 
+# Plot standardized effect sizes
+plot_model(resis_unscaled_model4,
+           type = "std",
+           rm.terms = "measurement_scale_cover [0.3,0.4,1,10]",
+           vline.color = "black",
+           sort.est = TRUE,
+           ci.lvl = 0.95
+) + ylim(-0.05, 0.05) + theme_bw()
+
 
 #resilience model based on hypotheis
 #interaction based on hypothesis
@@ -456,6 +483,15 @@ ggpredict(model = resil_unscaled_model3, terms = "richness", back_transform = F)
 ggpredict(model = resil_unscaled_model3, terms = "evar", back_transform = F) %>%
   plot(show_data = TRUE)+
   labs(x="evenness")
+
+# Plot standardized effect sizes
+plot_model(resil_unscaled_model3,
+           type = "std",
+           rm.terms = "measurement_scale_cover [0.3,0.4,1,10]",
+           vline.color = "black",
+           sort.est = TRUE,
+           ci.lvl = 0.95
+) + ylim(-0.05, 0.05) + theme_bw()
 
 
 #investigating predictors at each site

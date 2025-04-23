@@ -698,6 +698,19 @@ plot_trt$experiment[plot_trt$experiment == "F"] <- "NGE"
 plot_n <- plot_trt %>%
   filter(nutrients_added == "NPK+" | nutrients_added == "N" | nutrients_added == "NP" | nutrients_added == "NPK" | nutrients_added == "NK" | nutrients_added == "NPK+Fence")
 
+# Make histogram of nitrogen amounts (total observations)
+plot_n %>%
+  ggplot(aes(nitrogen_amount)) +
+  geom_histogram(color = "#000000", fill = "darkgreen") +
+  theme_bw()
+
+# Make histogram of nitrogen amounts (plot level)
+plot_n %>%
+  distinct(uniqueid, .keep_all = TRUE) %>%
+  ggplot(aes(nitrogen_amount)) +
+  geom_histogram(color = "#000000", fill = "darkgreen") +
+  theme_bw()
+
 # Using SPEI3
 plot_n_lrr3 <- plot_n %>%
   group_by(uniqueid) %>%

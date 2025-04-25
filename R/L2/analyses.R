@@ -65,7 +65,7 @@ plot_ece_9 <- clean_names(plot_ece_9)
 plot_ece$resilience[plot_ece$resilience == Inf] <- NA
 plot_ece_9$resilience[plot_ece_9$resilience == Inf] <- NA
 
-# Add experiment column
+# Add experiment column_SPEI6####
 plot_ece$experiment <- sub("nutnet.*", "nutnet", plot_ece$higher_order_organization)
 plot_ece$experiment <- sub("glbrc_scaleup.*", "glbrc_scaleup", plot_ece$experiment)
 plot_ece$experiment <- sub("glbrc_G10.*", "glbrc", plot_ece$experiment)
@@ -111,7 +111,7 @@ plot_ece$experiment[plot_ece$experiment == "D"] <- "NGE"
 plot_ece$experiment[plot_ece$experiment == "E"] <- "NGE"
 plot_ece$experiment[plot_ece$experiment == "F"] <- "NGE"
 
-#define experiment column
+#define experiment column-SPEI9####
 plot_ece_9$experiment <- sub("nutnet.*", "nutnet", plot_ece_9$higher_order_organization)
 plot_ece_9$experiment <- sub("glbrc_scaleup.*", "glbrc_scaleup", plot_ece_9$experiment)
 plot_ece_9$experiment <- sub("glbrc_G10.*", "glbrc", plot_ece_9$experiment)
@@ -180,6 +180,102 @@ plot_ece_rm_na$year <- as.factor(plot_ece_rm_na$year)
 plot_ece_rm_na$measurement_scale_cover <- as.factor(plot_ece_rm_na$measurement_scale_cover)
 plot_ece_9_rm_na$year <- as.factor(plot_ece_9_rm_na$year)
 plot_ece_9_rm_na$measurement_scale_cover <- as.factor(plot_ece_9_rm_na$measurement_scale_cover)
+
+
+#subset to have control and nitrogen treated plots
+plot_ece_9_cn <- plot_ece_9_rm_na %>%
+  filter(nutrients_added == "NPK+" | nutrients_added == "N" | nutrients_added == "NP" | nutrients_added == "NPK" | nutrients_added == "NK" | nutrients_added == "NPK+Fence" | nutrients_added == "none" | nutrients_added == "no_fertilizer")%>%
+  filter(disturbance!="disturbed")%>%
+  filter(treatment != "irrigated")%>%
+  filter(treatment != "altered")%>%
+  filter(grazing!="grazed")%>%
+  filter(treatment!="insecticide")%>%#remove plots with additional treatment
+  #add column with recoded nitrogen treatment
+  mutate(nitrogen = dplyr::recode(nutrients_added, "NPK+" = "N", "NP" = "N", "NPK" = "N", "NK" = "N", "NPK+Fence" = "N", "none" = "no_fertilizer"))
+
+#check treatment groups
+unique(plot_ece_9_cn$treatment)
+unique(plot_ece_9_cn$nitrogen)
+
+#Analysis of resistance with control and nitrogen####
+resis_cn<-lmer(log(resistance)~richness*dominant_relative_abund_zero+nitrogen+richness:nitrogen+evar+
+                 dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                    evar:nitrogen+evar:spei9_category+spei9_category+nitrogen:spei9_category+(1|site/experiment/uniqueid)
+                  +(1|year), data=plot_ece_9_cn, REML=F)
+summary(resis_cn)
+anova(resis_cn)
+#model update
+resis_cn1<-lmer(log(resistance)~richness*dominant_relative_abund_zero+nitrogen+richness:nitrogen+evar+
+                  dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                  evar:nitrogen+evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn, REML=F)
+anova(resis_cn1)
+#model update
+resis_cn2<-lmer(log(resistance)~richness*dominant_relative_abund_zero+nitrogen+richness:nitrogen+evar+
+                  dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                  evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn, REML=F)
+anova(resis_cn2)
+#model update
+resis_cn3<-lmer(log(resistance)~richness*dominant_relative_abund_zero+nitrogen+richness:nitrogen+evar+
+                  dominant_relative_abund_zero:nitrogen+richness:spei9_category+
+                  evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn, REML=F)
+anova(resis_cn3)
+#model update
+resis_cn4<-lmer(log(resistance)~richness*dominant_relative_abund_zero+nitrogen+richness:nitrogen+evar+
+                  richness:spei9_category+
+                  evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn, REML=F)
+anova(resis_cn4)
+#model update
+resis_cn5<-lmer(log(resistance)~richness*dominant_relative_abund_zero+nitrogen+evar+
+                  richness:spei9_category+
+                  evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn, REML=F)
+anova(resis_cn5)
+#model update
+resis_cn6<-lmer(log(resistance)~richness+dominant_relative_abund_zero+evar+nitrogen+
+                  richness:spei9_category+
+                  evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn, REML=F)
+anova(resis_cn6)
+#model update
+resis_cn7<-lmer(log(resistance)~richness+dominant_relative_abund_zero+evar+nitrogen+
+                  richness:spei9_category+
+                  spei9_category+(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn, REML=F)
+anova(resis_cn7)
+
+#model selection with likelihood ratio
+anova(resis_cn,resis_cn1,resis_cn2,resis_cn3,resis_cn4,resis_cn5,resis_cn6,resis_cn7)
+#resis_cn7 is the best model
+#refit best model with REML
+resis_cn8<-lmer(log(resistance)~richness+dominant_relative_abund_zero+evar+nitrogen+
+                  richness:spei9_category+
+                  spei9_category+(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn)
+anova(resis_cn8)
+summary(resis_cn8)
+simres <- simulateResiduals(resis_cn8)
+plot(simres)
+
+#plot best model
+ggpredict(model = resis_cn8, terms = c("richness", "spei9_category", "nitrogen"), back_transform = F ) %>%
+  plot(show_data = TRUE)+
+  labs(x="richness")
+ggpredict(model = resis_cn8, terms = "evar", back_transform = F) %>%
+  plot(show_data = TRUE)+
+  labs(x="evenness")
+ggpredict(model = resis_cn8, terms = "nitrogen", back_transform = F) %>%
+  plot(show_data = TRUE)+
+  labs(x="richness")
+ggpredict(model = resis_cn8, terms = "dominant_relative_abund_zero", back_transform = F) %>%
+  plot(show_data = TRUE)+
+  labs(x="Relative abundance of dominant species")
+
+
+
 
 # Subset to only have control plots
 plot_ece_control <- plot_ece_rm_na %>%

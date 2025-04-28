@@ -341,7 +341,7 @@ AICctab(biomass_knz_spei12.lm, biomass_knz_spei9.lm, biomass_knz_spei6.lm, bioma
 
 
 
-# Only look at control biomass ----
+# Control biomass ----
 plot_control <- plot_trt %>%
   filter(treatment == "control")
 
@@ -504,6 +504,123 @@ plot_model(
   show.data = TRUE
 )
 
+## Nitrogen biomass to choose SPEI ----
+# Add experiment column
+plot_trt$experiment <- sub("nutnet.*", "nutnet", plot_trt$higher_order_organization)
+plot_trt$experiment <- sub("glbrc_scaleup.*", "glbrc_scaleup", plot_trt$experiment)
+plot_trt$experiment <- sub("glbrc_G10.*", "glbrc", plot_trt$experiment)
+plot_trt$experiment <- sub("glbrc_G9.*", "glbrc", plot_trt$experiment)
+plot_trt$experiment <- sub("mcse.*", "mcse", plot_trt$experiment)
+plot_trt$experiment <- sub("microplots.*", "microplots", plot_trt$experiment)
+plot_trt$experiment <- sub("Experiment 1.*", "Experiment 1", plot_trt$experiment)
+plot_trt$experiment <- sub("001d_A_fl", "001d_fl", plot_trt$experiment)
+plot_trt$experiment <- sub("001d_B_fl", "001d_fl", plot_trt$experiment)
+plot_trt$experiment <- sub("001d_C_fl", "001d_fl", plot_trt$experiment)
+plot_trt$experiment <- sub("001d_D_fl", "001d_fl", plot_trt$experiment)
+plot_trt$experiment <- sub("001d_A_tu", "001d_tu", plot_trt$experiment)
+plot_trt$experiment <- sub("001d_B_tu", "001d_tu", plot_trt$experiment)
+plot_trt$experiment <- sub("001d_C_tu", "001d_tu", plot_trt$experiment)
+plot_trt$experiment <- sub("001d_D_tu", "001d_tu", plot_trt$experiment)
+plot_trt$experiment <- sub("004a_A_fl", "004a_fl", plot_trt$experiment)
+plot_trt$experiment <- sub("004a_B_fl", "004a_fl", plot_trt$experiment)
+plot_trt$experiment <- sub("004a_C_fl", "004a_fl", plot_trt$experiment)
+plot_trt$experiment <- sub("004a_D_fl", "004a_fl", plot_trt$experiment)
+plot_trt$experiment <- sub("004a_A_tu", "004a_tu", plot_trt$experiment)
+plot_trt$experiment <- sub("004a_B_tu", "004a_tu", plot_trt$experiment)
+plot_trt$experiment <- sub("004a_C_tu", "004a_tu", plot_trt$experiment)
+plot_trt$experiment <- sub("004a_D_tu", "004a_tu", plot_trt$experiment)
+plot_trt$experiment <- sub("004b_A_fl", "004b_fl", plot_trt$experiment)
+plot_trt$experiment <- sub("004b_B_fl", "004b_fl", plot_trt$experiment)
+plot_trt$experiment <- sub("004b_C_fl", "004b_fl", plot_trt$experiment)
+plot_trt$experiment <- sub("004b_D_fl", "004b_fl", plot_trt$experiment)
+plot_trt$experiment <- sub("004b_A_tu", "004b_tu", plot_trt$experiment)
+plot_trt$experiment <- sub("004b_B_tu", "004b_tu", plot_trt$experiment)
+plot_trt$experiment <- sub("004b_C_tu", "004b_tu", plot_trt$experiment)
+plot_trt$experiment <- sub("004b_D_tu", "004b_tu", plot_trt$experiment)
+plot_trt$experiment <- sub("002d.*", "002d", plot_trt$experiment)
+plot_trt$experiment <- sub("Experiment 54.*", "Experiment 54", plot_trt$experiment)
+plot_trt$experiment <- sub("KNZ_WAT01.*", "KNZ_WAT01", plot_trt$experiment)
+plot_trt$experiment <- sub("002c.*", "002c", plot_trt$experiment)
+plot_trt$experiment <- sub("e061.*", "e061", plot_trt$experiment)
+plot_trt$experiment <- sub("e247.*", "e247", plot_trt$experiment)
+plot_trt$experiment <- sub("e245.*", "e245", plot_trt$experiment)
+plot_trt$experiment[plot_trt$experiment == "A"] <- "NGE"
+plot_trt$experiment[plot_trt$experiment == "B"] <- "NGE"
+plot_trt$experiment[plot_trt$experiment == "C"] <- "NGE"
+plot_trt$experiment[plot_trt$experiment == "D"] <- "NGE"
+plot_trt$experiment[plot_trt$experiment == "E"] <- "NGE"
+plot_trt$experiment[plot_trt$experiment == "F"] <- "NGE"
+
+plot_n_sub <- plot_trt %>%
+  filter(nutrients_added == "NPK+" | nutrients_added == "N" | nutrients_added == "NP" | nutrients_added == "NPK" | nutrients_added == "NK" | nutrients_added == "NPK+Fence" | nutrients_added == "none" | nutrients_added == "no_fertilizer")
+
+# Add column with nitrogen yes/no
+plot_n_sub <- plot_n_sub %>%
+  mutate(nitrogen = dplyr::recode(nutrients_added, "NPK+" = "N", "NP" = "N", "NPK" = "N", "NK" = "N", "NPK+Fence" = "N", "none" = "no_fertilizer"))
+
+# Filter out treatments
+plot_n_sub <- plot_n_sub %>%
+  filter(disturbance != "disturbed") %>%
+  filter(treatment != "irrigated") %>%
+  filter(treatment != "altered") %>%
+  filter(treatment != "birds_excluded") %>%
+  filter(treatment != "nutnet_Fence") %>%
+  filter(treatment != "ConsumerExclusion_Fenced") %>%
+  filter(grazing != "grazed") %>%
+  filter(treatment != "insecticide") #remove plots with additional treatment
+
+# Make year factor for random effect
+plot_n_sub$year <- as.factor(plot_n_sub$year)
+
+# Try logging biomass and adding more random effects
+# Model comparison with spei12, 9, 6, 3 for ONLY control plots
+nc_spei3.lm2.ln <- lmer(log1p(plot_biomass) ~ spei3 + nitrogen + I(spei3^2) + (1|site/experiment/uniqueid) + (1|year), data = plot_n_sub)
+summary(nc_spei3.lm2.ln) # Quadratic term significant
+nc_spei3.lm.ln <- lmer(log1p(plot_biomass) ~ spei3 + nitrogen + (1|site/experiment/uniqueid) + (1|year), data = plot_n_sub)
+simres <- simulateResiduals(nc_spei3.lm.ln)
+plot(simres) # Better 
+
+nc_spei6.lm2.ln <- lmer(log1p(plot_biomass) ~ spei6 + I(spei6^2) + nitrogen + (1|site/experiment/uniqueid) + (1|year), data = plot_n_sub, control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000))) # Failed to converge with defaults
+summary(nc_spei6.lm2.ln) # Quadratic term not significant
+nc_spei6.lm.ln <- lmer(log1p(plot_biomass) ~ spei6 + nitrogen + (1|site/experiment/uniqueid) + (1|year), data = plot_n_sub)
+simres <- simulateResiduals(nc_spei6.lm2.ln)
+plot(simres) # Better 
+
+nc_spei9.lm2.ln <- lmer(log1p(plot_biomass) ~ spei9 + I(spei9^2) + nitrogen + (1|site/experiment/uniqueid) + (1|year), data = plot_n_sub)
+summary(nc_spei9.lm2.ln) # Quadratic term marginally significant
+nc_spei9.lm.ln <- lmer(log1p(plot_biomass) ~ spei9 + nitrogen + (1|site/experiment/uniqueid) + (1|year), data = plot_n_sub)
+summary(nc_spei9.lm.ln)
+simres <- simulateResiduals(nc_spei9.lm2.ln)
+plot(simres) # Better 
+simres <- simulateResiduals(nc_spei9.lm.ln)
+plot(simres) # Okay 
+
+nc_spei12.lm2.ln <- lmer(log1p(plot_biomass) ~ spei12 + I(spei12^2) + nitrogen + (1|site/experiment/uniqueid) + (1|year), data = plot_n_sub)
+summary(nc_spei12.lm2.ln)
+nc_spei12.lm.ln <- lmer(log1p(plot_biomass) ~ spei12 + nitrogen + (1|site/experiment/uniqueid) + (1|year), data = plot_n_sub) 
+simres <- simulateResiduals(nc_spei12.lm2.ln)
+plot(simres) # Better 
+
+AICctab(nc_spei3.lm2.ln, nc_spei3.lm.ln, nc_spei6.lm2.ln, nc_spei6.lm.ln, nc_spei9.lm2.ln, nc_spei9.lm.ln, nc_spei12.lm2.ln, nc_spei12.lm.ln)
+
+# Compare model R2 like Robinson
+r.squaredGLMM(nc_spei3.lm2.ln)
+r.squaredGLMM(nc_spei3.lm.ln)
+r.squaredGLMM(nc_spei6.lm2.ln)
+r.squaredGLMM(nc_spei6.lm.ln)
+r.squaredGLMM(nc_spei9.lm2.ln)
+r.squaredGLMM(nc_spei9.lm.ln)
+r.squaredGLMM(nc_spei12.lm2.ln) # best R2m
+r.squaredGLMM(nc_spei12.lm.ln)  # second best R2m
+
+# Plot the SPEI9 model
+plot_model(
+  nc_spei9.lm.ln,
+  type = "pred",
+  terms= c("spei9", "nitrogen"),
+  show.data = TRUE
+)
+
 # Log response of SPEI ----
 # Using SPEI3
 plot_control_lrr3 <- plot_control %>%
@@ -646,53 +763,7 @@ plot_model(
   show.data = TRUE
 )
 
-# LRR Nitrigen plots ----
-# Add experiment column (sloppy)
-# Add experiment column
-plot_trt$experiment <- sub("nutnet.*", "nutnet", plot_trt$higher_order_organization)
-plot_trt$experiment <- sub("glbrc_scaleup.*", "glbrc_scaleup", plot_trt$experiment)
-plot_trt$experiment <- sub("glbrc_G10.*", "glbrc", plot_trt$experiment)
-plot_trt$experiment <- sub("glbrc_G9.*", "glbrc", plot_trt$experiment)
-plot_trt$experiment <- sub("mcse.*", "mcse", plot_trt$experiment)
-plot_trt$experiment <- sub("microplots.*", "microplots", plot_trt$experiment)
-plot_trt$experiment <- sub("Experiment 1.*", "Experiment 1", plot_trt$experiment)
-plot_trt$experiment <- sub("001d_A_fl", "001d_fl", plot_trt$experiment)
-plot_trt$experiment <- sub("001d_B_fl", "001d_fl", plot_trt$experiment)
-plot_trt$experiment <- sub("001d_C_fl", "001d_fl", plot_trt$experiment)
-plot_trt$experiment <- sub("001d_D_fl", "001d_fl", plot_trt$experiment)
-plot_trt$experiment <- sub("001d_A_tu", "001d_tu", plot_trt$experiment)
-plot_trt$experiment <- sub("001d_B_tu", "001d_tu", plot_trt$experiment)
-plot_trt$experiment <- sub("001d_C_tu", "001d_tu", plot_trt$experiment)
-plot_trt$experiment <- sub("001d_D_tu", "001d_tu", plot_trt$experiment)
-plot_trt$experiment <- sub("004a_A_fl", "004a_fl", plot_trt$experiment)
-plot_trt$experiment <- sub("004a_B_fl", "004a_fl", plot_trt$experiment)
-plot_trt$experiment <- sub("004a_C_fl", "004a_fl", plot_trt$experiment)
-plot_trt$experiment <- sub("004a_D_fl", "004a_fl", plot_trt$experiment)
-plot_trt$experiment <- sub("004a_A_tu", "004a_tu", plot_trt$experiment)
-plot_trt$experiment <- sub("004a_B_tu", "004a_tu", plot_trt$experiment)
-plot_trt$experiment <- sub("004a_C_tu", "004a_tu", plot_trt$experiment)
-plot_trt$experiment <- sub("004a_D_tu", "004a_tu", plot_trt$experiment)
-plot_trt$experiment <- sub("004b_A_fl", "004b_fl", plot_trt$experiment)
-plot_trt$experiment <- sub("004b_B_fl", "004b_fl", plot_trt$experiment)
-plot_trt$experiment <- sub("004b_C_fl", "004b_fl", plot_trt$experiment)
-plot_trt$experiment <- sub("004b_D_fl", "004b_fl", plot_trt$experiment)
-plot_trt$experiment <- sub("004b_A_tu", "004b_tu", plot_trt$experiment)
-plot_trt$experiment <- sub("004b_B_tu", "004b_tu", plot_trt$experiment)
-plot_trt$experiment <- sub("004b_C_tu", "004b_tu", plot_trt$experiment)
-plot_trt$experiment <- sub("004b_D_tu", "004b_tu", plot_trt$experiment)
-plot_trt$experiment <- sub("002d.*", "002d", plot_trt$experiment)
-plot_trt$experiment <- sub("Experiment 54.*", "Experiment 54", plot_trt$experiment)
-plot_trt$experiment <- sub("KNZ_WAT01.*", "KNZ_WAT01", plot_trt$experiment)
-plot_trt$experiment <- sub("002c.*", "002c", plot_trt$experiment)
-plot_trt$experiment <- sub("e061.*", "e061", plot_trt$experiment)
-plot_trt$experiment <- sub("e247.*", "e247", plot_trt$experiment)
-plot_trt$experiment <- sub("e245.*", "e245", plot_trt$experiment)
-plot_trt$experiment[plot_trt$experiment == "A"] <- "NGE"
-plot_trt$experiment[plot_trt$experiment == "B"] <- "NGE"
-plot_trt$experiment[plot_trt$experiment == "C"] <- "NGE"
-plot_trt$experiment[plot_trt$experiment == "D"] <- "NGE"
-plot_trt$experiment[plot_trt$experiment == "E"] <- "NGE"
-plot_trt$experiment[plot_trt$experiment == "F"] <- "NGE"
+# LRR Nitrogen plots ----
 
 # Subset nitrogen only
 plot_n <- plot_trt %>%
@@ -1021,6 +1092,152 @@ plot_model(
   terms= c("abs_spei12", "spei12_category", "nitrogen"),
   show.data = TRUE
 )
+
+# LRR Nitrogen subset (no treatments) ----
+# Using SPEI3
+plot_sub_lrr3 <- plot_n_sub %>%
+  group_by(uniqueid) %>%
+  arrange(uniqueid, year) %>%
+  mutate(prior_year_biomass = lag(plot_biomass),
+         prior_year_type = lag(spei3_category)) %>%
+  ungroup()
+normal_biomass3sub <- plot_sub_lrr3  %>%
+  group_by(uniqueid) %>%
+  filter(spei3_category == "Normal" | spei3_category == "Moderate wet" | spei3_category == "Moderate dry") %>%
+  summarize(average_normal_biomass = mean(plot_biomass, na.rm=T))
+plot_sub_lrr3 <- left_join(plot_sub_lrr3, normal_biomass3sub)
+
+lrr3sub <- plot_sub_lrr3 %>%
+  filter(prior_year_type != "Extreme wet" | prior_year_type != "Extreme dry") %>%
+  filter(spei3_category == "Extreme wet" | spei3_category == "Extreme dry") %>%
+  mutate(LRR = log(plot_biomass / average_normal_biomass))  # Calculate the log response ratio
+
+# Take absolute value of SPEI3
+lrr3sub <- lrr3sub %>%
+  mutate(abs_spei3 = abs(spei3))
+
+lrr.lm3sub <- lmer(LRR ~ abs_spei3*spei3_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr3sub)
+summary(lrr.lm3sub)
+Anova(lrr.lm3sub, type = "III")
+simres <- simulateResiduals(lrr.lm3sub)
+plot(simres)
+
+# Plot the LRR model
+plot_model(
+  lrr.lm3sub,
+  type = "pred",
+  terms= c("abs_spei3", "spei3_category", "nitrogen"),
+  show.data = TRUE
+)
+
+# Using SPEI6
+plot_sub_lrr6 <- plot_n_sub %>%
+  group_by(uniqueid) %>%
+  arrange(uniqueid, year) %>%
+  mutate(prior_year_biomass = lag(plot_biomass),
+         prior_year_type = lag(spei6_category)) %>%
+  ungroup()
+normal_biomass6sub <- plot_sub_lrr6  %>%
+  group_by(uniqueid) %>%
+  filter(spei6_category == "Normal" | spei6_category == "Moderate wet" | spei6_category == "Moderate dry") %>%
+  summarize(average_normal_biomass = mean(plot_biomass, na.rm=T))
+plot_sub_lrr6 <- left_join(plot_sub_lrr6, normal_biomass6sub)
+
+lrr6sub <- plot_sub_lrr6 %>%
+  filter(prior_year_type != "Extreme wet" | prior_year_type != "Extreme dry") %>%
+  filter(spei6_category == "Extreme wet" | spei6_category == "Extreme dry") %>%
+  mutate(LRR = log(plot_biomass / average_normal_biomass))  # Calculate the log response ratio
+
+# Take absolute value of SPEI6
+lrr6sub <- lrr6sub %>%
+  mutate(abs_spei6 = abs(spei6))
+
+lrr.lm6sub <- lmer(LRR ~ abs_spei6*spei6_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr6sub, control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000))) # Failed to converge with defaults)
+summary(lrr.lm6sub)
+Anova(lrr.lm6sub, type = "III")
+simres <- simulateResiduals(lrr.lm6sub)
+plot(simres)
+
+# Plot the LRR model
+plot_model(
+  lrr.lm6sub,
+  type = "pred",
+  terms= c("abs_spei6", "spei6_category", "nitrogen"),
+  show.data = TRUE
+)
+
+# Using SPEI9
+plot_sub_lrr9 <- plot_n_sub %>%
+  group_by(uniqueid) %>%
+  arrange(uniqueid, year) %>%
+  mutate(prior_year_biomass = lag(plot_biomass),
+         prior_year_type = lag(spei9_category)) %>%
+  ungroup()
+normal_biomass9sub <- plot_sub_lrr9  %>%
+  group_by(uniqueid) %>%
+  filter(spei9_category == "Normal" | spei9_category == "Moderate wet" | spei9_category == "Moderate dry") %>%
+  summarize(average_normal_biomass = mean(plot_biomass, na.rm=T))
+plot_sub_lrr9 <- left_join(plot_sub_lrr9, normal_biomass9sub)
+
+lrr9sub <- plot_sub_lrr9 %>%
+  filter(prior_year_type != "Extreme wet" | prior_year_type != "Extreme dry") %>%
+  filter(spei9_category == "Extreme wet" | spei9_category == "Extreme dry") %>%
+  mutate(LRR = log(plot_biomass / average_normal_biomass))  # Calculate the log response ratio
+
+# Take absolute value of SPEI9
+lrr9sub <- lrr9sub %>%
+  mutate(abs_spei9 = abs(spei9))
+
+lrr.lm9sub <- lmer(LRR ~ abs_spei9*spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr9sub)
+summary(lrr.lm9sub)
+Anova(lrr.lm9sub, type = "III")
+simres <- simulateResiduals(lrr.lm9sub)
+plot(simres)
+
+# Plot the LRR model
+plot_model(
+  lrr.lm9sub,
+  type = "pred",
+  terms= c("abs_spei9", "spei9_category", "nitrogen"),
+  show.data = TRUE
+)
+
+# Using SPEI12
+plot_sub_lrr12 <- plot_n_sub %>%
+  group_by(uniqueid) %>%
+  arrange(uniqueid, year) %>%
+  mutate(prior_year_biomass = lag(plot_biomass),
+         prior_year_type = lag(spei12_category)) %>%
+  ungroup()
+normal_biomass12sub <- plot_sub_lrr12  %>%
+  group_by(uniqueid) %>%
+  filter(spei12_category == "Normal" | spei12_category == "Moderate wet" | spei12_category == "Moderate dry") %>%
+  summarize(average_normal_biomass = mean(plot_biomass, na.rm=T))
+plot_sub_lrr12 <- left_join(plot_sub_lrr12, normal_biomass12sub)
+
+lrr12sub <- plot_sub_lrr12 %>%
+  filter(prior_year_type != "Extreme wet" | prior_year_type != "Extreme dry") %>%
+  filter(spei12_category == "Extreme wet" | spei12_category == "Extreme dry") %>%
+  mutate(LRR = log(plot_biomass / average_normal_biomass))  # Calculate the log response ratio
+
+# Take absolute value of SPEI12
+lrr12sub <- lrr12sub %>%
+  mutate(abs_spei12 = abs(spei12))
+
+lrr.lm12sub <- lmer(LRR ~ abs_spei12*spei12_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr12sub)
+summary(lrr.lm12sub)
+Anova(lrr.lm12sub, type = "III")
+simres <- simulateResiduals(lrr.lm12sub)
+plot(simres)
+
+# Plot the LRR model
+plot_model(
+  lrr.lm12sub,
+  type = "pred",
+  terms= c("abs_spei12", "spei12_category", "nitrogen"),
+  show.data = TRUE
+)
+
 
 
 # LRR control, N, NPK ----

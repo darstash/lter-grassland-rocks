@@ -255,6 +255,7 @@ resis_cn8<-lmer(log(resistance)~richness+dominant_relative_abund_zero+evar+nitro
                   richness:spei9_category+
                   spei9_category+(1|site/experiment/uniqueid)
                 +(1|year), data=plot_ece_9_cn)
+
 anova(resis_cn8)
 summary(resis_cn8)
 simres <- simulateResiduals(resis_cn8)
@@ -391,12 +392,17 @@ anova(resil_cn7, resil_cn6)
 resil_cn8<-lmer(log(resilience)~richness*dominant_relative_abund_zero*spei9_category+nitrogen+evar+
                   (1|site/experiment/uniqueid)
                 +(1|year), data=plot_ece_9_cn)
+
 anova(resil_cn8)
 summary(resil_cn8)
 #model diagnostics
 simres <- simulateResiduals(resil_cn8)
 plot(simres)
-
+#include resistance as a covariate in the model to test if things change
+resil_cn_test<-lmer(log(resilience)~richness*dominant_relative_abund_zero*spei9_category+nitrogen+evar+
+                  resistance+(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn)
+anova(resil_cn_test)#similar with or without resistance
 
 #plot best model
 ggpredict(model = resil_cn8, terms = c("richness", "dominant_relative_abund_zero","spei9_category"), back_transform = F ) %>%
@@ -473,8 +479,8 @@ coef(summary(resil_cn8_std)) %>%
 # Subset to only have control plots
 plot_ece_control <- plot_ece_rm_na %>%
   filter(treatment == "control")
-plot_ece_9_control <- plot_ece_9_rm_na %>%
-  filter(treatment == "control")
+plot_ece_9_control <- plot_ece_9_cn %>%
+  filter(nitrogen == "no_fertilizer")
 
 #examine extreme event category
 plot_wet<-plot_ece_control%>%
@@ -511,14 +517,14 @@ plot(simres)#looks good
 #Resistance
 #interaction based on hypothesis
 resis_spei9<-lmer(log(resistance)~richness*dominant_relative_abund_zero+evar+
-                              measurement_scale_cover+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                              richness:spei9_category+dominant_relative_abund_zero:spei9_category+
                               evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
                             +(1|year), data=plot_ece_9_control, REML=F)
 summary(resis_spei9)
 anova(resis_spei9)
 #without interaction of main predictors
 resis_spei9_m1<-lmer(log(resistance)~richness+evar+dominant_relative_abund_zero+
-                             measurement_scale_cover+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                             richness:spei9_category+dominant_relative_abund_zero:spei9_category+
                              evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
                            +(1|year), data=plot_ece_9_control, REML=F)
 summary(resis_spei9_m1)
@@ -526,7 +532,7 @@ anova(resis_spei9_m1)
 
 #remove non-significant interaction
 resis_spei9_m2<-lmer(log(resistance)~richness+evar+dominant_relative_abund_zero+
-                              measurement_scale_cover+richness:spei9_category+
+                              richness:spei9_category+
                               evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
                             +(1|year), data=plot_ece_9_control, REML=F)
 anova(resis_spei9_m2)
@@ -534,13 +540,13 @@ summary(resis_spei9_m2)
 
 #remove other non-significant interactions
 resis_spei9_m3<-lmer(log(resistance)~richness+evar+dominant_relative_abund_zero+
-                              measurement_scale_cover+richness:spei9_category+spei9_category+(1|site/experiment/uniqueid)
+                              richness:spei9_category+spei9_category+(1|site/experiment/uniqueid)
                             +(1|year), data=plot_ece_9_control, REML=F)
 anova(resis_spei9_m3)
 anova(resis_spei9_m3, resis_spei9_m2,resis_spei9_m1,resis_spei9)#model selection
 #refit additive model with REML
 resis_spei9_m4<-lmer(log(resistance)~richness+evar+dominant_relative_abund_zero+
-                              measurement_scale_cover+richness:spei9_category+spei9_category+(1|site/experiment/uniqueid)
+                              richness:spei9_category+spei9_category+(1|site/experiment/uniqueid)
                             +(1|year), data=plot_ece_9_control)
 summary(resis_spei9_m4)
 anova(resis_spei9_m4)
@@ -590,21 +596,12 @@ coef(summary(resis_spei9_m4_std)) %>%
                                       "richness",
                                       "evar",
                                       "dominant_relative_abund_zero",
-                                      "measurement_scale_cover0.3",
-                                      "measurement_scale_cover0.4",
-                                      "measurement_scale_cover1",          
-                                      "measurement_scale_cover10",
-                                      "measurement_scale_cover",
                                       "spei9_categoryExtreme wet",
                                       "richness:spei9_categoryExtreme wet")),
          # cosmetics in the names
          Variable_labels = factor(case_when(Variable %in% "(Intercept)" ~ "intercept",
                                             Variable %in% "evar" ~ "evenness",
                                             Variable %in% "dominant_relative_abund_zero" ~ "dominant abundance",
-                                            Variable %in% "measurement_scale_cover0.3" ~ "measurement scale: 0.3 m^2",
-                                            Variable %in% "measurement_scale_cover0.4" ~ "measurement scale: 0.4 m^2",
-                                            Variable %in% "measurement_scale_cover1" ~ "measurement scale: 1 m^2",
-                                            Variable %in% "measurement_scale_cover10" ~ "measurement scale: 10 m^2",
                                             Variable %in% "spei9_categoryExtreme wet" ~ "SPEI9: extreme wet",
                                             Variable %in% "richness:spei9_categoryExtreme wet" ~ "richness x SPEI9: extreme wet",
                                             .default = Variable)),
@@ -617,7 +614,7 @@ coef(summary(resis_spei9_m4_std)) %>%
                            .default = ""),
          stars_location = case_when(Estimate < 0 ~ Estimate - SE - 0.1,
                                     Estimate > 0 ~ Estimate + SE + 0.1)
-  ) %>%
+  ) %>%filter(Variable_labels!="intercept")%>%
   
   ggplot(aes(y = Variable_labels, x = Estimate)) +
   theme_bw() +
@@ -634,14 +631,14 @@ coef(summary(resis_spei9_m4_std)) %>%
 #Resilience
 #interaction based on hypothesis
 resil_spei9<-lmer(log(resilience)~richness*dominant_relative_abund_zero+evar+
-                    measurement_scale_cover+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                    richness:spei9_category+dominant_relative_abund_zero:spei9_category+
                     evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
                   +(1|year), data=plot_ece_9_control, REML=F)
 summary(resil_spei9)
 anova(resil_spei9)
 #without interaction of main predictors
 resil_spei9_m1<-lmer(log(resilience)~richness+evar+dominant_relative_abund_zero+
-                       measurement_scale_cover+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                       richness:spei9_category+dominant_relative_abund_zero:spei9_category+
                        evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
                      +(1|year), data=plot_ece_9_control, REML=F)
 summary(resil_spei9_m1)
@@ -649,7 +646,7 @@ anova(resil_spei9_m1)
 
 #remove non-significant interaction
 resil_spei9_m2<-lmer(log(resilience)~richness+evar+dominant_relative_abund_zero+
-                       measurement_scale_cover+richness:spei9_category+
+                       richness:spei9_category+
                        evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
                      +(1|year), data=plot_ece_9_control, REML=F)
 anova(resil_spei9_m2)
@@ -658,7 +655,7 @@ summary(resil_spei9_m2)
 anova(resil_spei9_m2, resil_spei9_m1,resil_spei9)#model selection
 #refit additive model with REML
 resil_spei9_m3<-lmer(log(resilience)~richness+evar+dominant_relative_abund_zero+
-                       measurement_scale_cover+richness:spei9_category+
+                       richness:spei9_category+
                        evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
                      +(1|year), data=plot_ece_9_control)
 summary(resil_spei9_m3)
@@ -709,11 +706,6 @@ coef(summary(resil_spei9_m3_std)) %>%
                                       "richness",
                                       "evar",
                                       "dominant_relative_abund_zero",
-                                      "measurement_scale_cover0.3",
-                                      "measurement_scale_cover0.4",
-                                      "measurement_scale_cover1",          
-                                      "measurement_scale_cover10",
-                                      "measurement_scale_cover",
                                       "spei9_categoryExtreme wet",
                                       "richness:spei9_categoryExtreme wet",
                                       "evar:spei9_categoryExtreme wet")),
@@ -721,10 +713,6 @@ coef(summary(resil_spei9_m3_std)) %>%
          Variable_labels = factor(case_when(Variable %in% "(Intercept)" ~ "intercept",
                                             Variable %in% "evar" ~ "evenness",
                                             Variable %in% "dominant_relative_abund_zero" ~ "dominant abundance",
-                                            Variable %in% "measurement_scale_cover0.3" ~ "measurement scale: 0.3 m^2",
-                                            Variable %in% "measurement_scale_cover0.4" ~ "measurement scale: 0.4 m^2",
-                                            Variable %in% "measurement_scale_cover1" ~ "measurement scale: 1 m^2",
-                                            Variable %in% "measurement_scale_cover10" ~ "measurement scale: 10 m^2",
                                             Variable %in% "spei9_categoryExtreme wet" ~ "SPEI9: extreme wet",
                                             Variable %in% "richness:spei9_categoryExtreme wet" ~ "richness x SPEI9: extreme wet",
                                             Variable %in% "evar:spei9_categoryExtreme wet" ~ "evenness x SPEI9: extreme wet",
@@ -738,7 +726,7 @@ coef(summary(resil_spei9_m3_std)) %>%
                            .default = ""),
          stars_location = case_when(Estimate < 0 ~ Estimate - SE - 0.1,
                                     Estimate > 0 ~ Estimate + SE + 0.1)
-  ) %>%
+  ) %>%filter(Variable_labels!="intercept")%>%
   
   ggplot(aes(y = Variable_labels, x = Estimate)) +
   theme_bw() +

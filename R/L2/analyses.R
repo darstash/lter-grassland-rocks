@@ -1742,3 +1742,99 @@ AICctab(resil.lm.log, resil.lm.wd, resil.lm.wd.int, resil.lm.dom, resil.lm.dom.i
 ggpredict(model = resil.lm.log, terms = c("richness"), back_transform = F) %>%
   plot(show_data = TRUE)
 
+##### SEM #####
+library(piecewiseSEM)
+
+plot_ece_control # dataframe with the control plots resistance calculated
+
+# check distribution of data
+plot_ece_control %>% 
+  gather(key = Metric, value = Value, richness, 
+         evar, dominant_relative_abund, dominant_relative_abund_zero,
+         resistance) %>% 
+  dplyr::select(Metric, Value) %>%
+  ggplot(aes(x = Value))+
+  geom_histogram()+
+  facet_grid(.~Metric, scales = "free")
+
+dim(plot_ece_control)
+
+plot_ece_control_noNA <- plot_ece_control %>%
+  dplyr::select(richness,
+                evar, dominant_relative_abund, dominant_relative_abund_zero,
+                resistance, fire_frequency) %>%
+  drop_na() %>%
+  data.frame
+
+dim(plot_ece_control_noNA)
+
+
+model.1 <- psem(
+  lm(log10(resistance) ~ richness + dominant_relative_abund_zero + fire_frequency,
+     data = plot_ece_control_noNA),
+  lm(richness ~ fire_frequency,
+     data = plot_ece_control_noNA),
+  lm(dominant_relative_abund_zero ~ fire_frequency,
+     data = plot_ece_control_noNA),
+  data = plot_ece_control_noNA
+)
+
+summary(model.1, .progressBar = F) # suggests adding a path between dominant_relative_abund_zero and richness
+
+plot(model.1)
+
+plot_ece_control_noNA %>% 
+  
+  ggplot(., aes(x = richness, y = dominant_relative_abund_zero))+
+  
+  geom_point()+
+  
+  geom_smooth(method = "lm")+
+  theme_bw()
+
+summary(lm(dominant_relative_abund_zero ~ richness,
+           data = plot_ece_control_noNA))
+
+model.2 <- psem(
+  lm(log10(resistance) ~ richness + dominant_relative_abund_zero + fire_frequency,
+     data = plot_ece_control_noNA),
+  lm(richness ~ fire_frequency,
+     data = plot_ece_control_noNA),
+  lm(dominant_relative_abund_zero ~ richness+ fire_frequency,
+     data = plot_ece_control_noNA),
+  data = plot_ece_control_noNA
+)
+
+summary(model.2, .progressBar = F) # suggests adding a path between dominant_relative_abund_zero and richness
+
+plot(model.2)
+
+model.3 <- psem(
+  lm(log10(resistance) ~ richness + dominant_relative_abund_zero,
+     data = plot_ece_control_noNA),
+  lm(richness ~ fire_frequency,
+     data = plot_ece_control_noNA),
+  lm(dominant_relative_abund_zero ~ richness,
+     data = plot_ece_control_noNA),
+  data = plot_ece_control_noNA
+)
+
+summary(model.3, .progressBar = F) # suggests adding a path between dominant_relative_abund_zero and richness
+
+plot(model.3)
+
+model.4 <- psem(
+  lm(log10(resistance) ~ richness + dominant_relative_abund_zero + fire_frequency,
+     data = plot_ece_control_noNA),
+  lm(richness ~ fire_frequency,
+     data = plot_ece_control_noNA),
+  lm(dominant_relative_abund_zero ~ fire_frequency + richness,
+     data = plot_ece_control_noNA),
+  data = plot_ece_control_noNA
+)
+
+summary(model.4, .progressBar = F) # suggests adding a path between dominant_relative_abund_zero and richness
+
+plot(model.4)
+
+anova(model.2, model.3)

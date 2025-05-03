@@ -4,7 +4,7 @@
 # DATA INPUT:   Data imported as csv files from shared Google drive L2 folder
 # DATA OUTPUT:  Core analyses
 # PROJECT:      LTER Grassland Rock
-# DATE:         October 2024 , last updated: April 2025
+# DATE:         October 2024 , last updated: May 2025
 
 # Clear all existing data
 rm(list=ls())
@@ -201,6 +201,20 @@ unique(plot_ece_9_cn$nitrogen)
 table(plot_ece_9_cn$nutrients_grouped)
 table(plot_ece_9_rm_na$nutrients_added)
 
+#analysis of nutrient and climate event category on resistance####
+resis_nitro<-lmer(log(resistance)~nitrogen*spei9_category+(1|site/experiment/uniqueid)
+                  +(1|year), data=plot_ece_9_cn)
+anova(resis_nitro)
+summary(resis_nitro)
+simres <- simulateResiduals(resis_nitro)
+plot(simres)
+
+plot_ece_9_cn%>%
+  ggplot(aes(x=spei9_category, y=log(resistance), col=nitrogen))+
+  stat_summary(fun.data=mean_cl_boot, position=position_dodge(0.2))+
+  theme_bw()
+
+
 #Analysis of resistance with control and nitrogen####
 resis_cn<-lmer(log(resistance)~richness*dominant_relative_abund_zero+nitrogen+richness:nitrogen+evar+
                  dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
@@ -266,10 +280,10 @@ simres <- simulateResiduals(resis_cn8)
 plot(simres)
 
 #plot best model
-ggpredict(model = resis_cn8, terms = c("richness", "spei9_category"), back_transform = F ) %>%
+ggpredict(model = resis_cn8, terms = c("richness", "spei9_category","nitrogen"), back_transform = F ) %>%
   plot(show_data = TRUE)+
   labs(x="richness")
-ggpredict(model = resis_cn8, terms = "evar", back_transform = F) %>%
+-ggpredict(model = resis_cn8, terms = "evar", back_transform = F) %>%
   plot(show_data = TRUE)+
   labs(x="evenness")
 ggpredict(model = resis_cn8, terms = "spei9_category", back_transform = F) %>%
@@ -279,7 +293,20 @@ ggpredict(model = resis_cn8, terms = "dominant_relative_abund_zero", back_transf
   plot(show_data = TRUE)+
   labs(x="Relative abundance of dominant species")
 
+#refit the model with prior years for the predictors
 
+resis_cn9<-lmer(log(resistance)~prior_year_rich+prior_year_dom_zero+prior_year_evar+nitrogen+
+                  prior_year_rich:spei9_category+
+                  spei9_category+(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn)
+
+anova(resis_cn9)
+summary(resis_cn9)
+simres <- simulateResiduals(resis_cn9)
+plot(simres)
+ggpredict(model = resis_cn9, terms = c("prior_year_rich", "spei9_category"), back_transform = F ) %>%
+  plot(show_data = TRUE)+
+  labs(x="richness")
 #create effect size plot from the model
 #modified from Seraina
 resis_cn8_std <- update(resis_cn8, 

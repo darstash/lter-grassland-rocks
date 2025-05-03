@@ -4,7 +4,7 @@
 # DATA INPUT: .csv file of plot metrics and species abundance imported from Google Drive L2 folder
 # DATA OUTPUT: .csv of updated plot metrics dataset that includes richness and dominance  
 # PROJECT: LTER Grassland Rock
-# DATE: October 2024: Last updated: Feb 4, 2025
+# DATE: October 2024: Last updated: May, 2025
 
 # Clear all existing data
 rm(list=ls())
@@ -77,7 +77,15 @@ plot_metrics_SPEI_diversity <- plot_metrics_SPEI %>%
   #create a new column of dominant abundance and convert NAs to zero
   #as NAs are primarily due to the absence of the dominant species
   mutate(dominant_relative_abund_zero=dominant_relative_abund)%>%
-  mutate(dominant_relative_abund_zero=ifelse(is.na(dominant_relative_abund_zero),0,dominant_relative_abund_zero))
+  mutate(dominant_relative_abund_zero=ifelse(is.na(dominant_relative_abund_zero),0,dominant_relative_abund_zero))%>%
+  #create a column for predictors (richness, etc.) prior to the climate events
+  group_by(uniqueid)%>%
+  arrange(uniqueid, year)%>%
+  mutate(prior_year_rich=lag(Richness),
+         prior_year_type=lag(spei9_category),
+         prior_year_dom_zero=lag(dominant_relative_abund_zero),
+         prior_year_dom=lag(dominant_relative_abund),
+         prior_year_evar=lag(Evar))
 
 
 write.csv(plot_metrics_SPEI_diversity, file.path(L2_dir, "./plot_metrics_SPEI_diversity.csv"), row.names=F)

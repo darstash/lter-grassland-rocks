@@ -20,6 +20,7 @@ library(bbmle)
 library(MuMIn)
 library(DHARMa)
 library(car)
+library(patchwork)
 
 # Set working directory 
 L0_dir <- Sys.getenv("L0DIR")
@@ -28,12 +29,13 @@ L2_dir <- Sys.getenv("L2DIR")
 list.files(L2_dir)
 
 # Read in CSV files ----
-plot_spei <- read.csv(file.path(L2_dir, "plot_metrics_SPEI.csv"))
+plot_spei <- read.csv(file.path(L2_dir, "plot_metrics_SPEI_diversity.csv")) # why are there more plots than spei without diversity?
 metadata <- read.csv(file.path(L2_dir, "metadata.csv"))
 
 # Make sure spei category is a factor
 str(plot_spei)
 plot_spei$spei12_category <- factor(plot_spei$spei12_category, levels = c("Extreme dry", "Moderate dry", "Normal", "Moderate wet", "Extreme wet"))
+plot_spei$spei9_category <- factor(plot_spei$spei9_category, levels = c("Extreme dry", "Moderate dry", "Normal", "Moderate wet", "Extreme wet"))
 
 # Summarize spei by year
 spei_summary <- plot_spei %>%
@@ -42,6 +44,9 @@ spei_summary <- plot_spei %>%
             spei9 = mean(spei9),
             spei6 = mean(spei6),
             spei3 = mean(spei3))
+spei9_summary <- plot_spei %>%
+  group_by(year, spei9_category, site) %>%
+  summarize(spei9 = mean(spei9))
 
 # Merge metadata with spei to get treatment column
 metadata_filter <- metadata %>%
@@ -55,11 +60,11 @@ x <- plot_filter %>% group_by(site, year, uniqueid, higher_order_organization) %
 plot_trt <- left_join(plot_filter, metadata_filter)
 
 # Look at SPEI plots for each site in the range the data exist
-spei_summary %>%
+spei9_summary %>%
   filter(site == "CDR") %>%
-  ggplot(aes (x = year, y = spei12)) +
+  ggplot(aes (x = year, y = spei9)) +
   geom_line(alpha = 0.5) + 
-  geom_point( aes(color = spei12_category), size = 1.25) + theme_bw() +
+  geom_point( aes(color = spei9_category), size = 1.25) + theme_bw() +
   scale_x_continuous(breaks = seq(1980, 2025, by = 10)) +
   annotate( "text", label = "CDR",
             x = 2000, y = 2, size = 6, colour = "black") + 
@@ -67,22 +72,22 @@ spei_summary %>%
   geom_hline(yintercept = -1.28, col = "#F5191CFF", linetype = "dashed")+
   geom_hline(yintercept = 1.28, col = "#3B99B1FF", linetype = "dashed")
 
-spei_summary %>%
+spei9_summary %>%
   filter(site == "KBS") %>%
-  ggplot(aes (x = year, y = spei12)) +
+  ggplot(aes (x = year, y = spei9)) +
   geom_line(alpha = 0.5) + 
-  geom_point( aes(color = spei12_category), size = 1.25) + theme_bw() +
+  geom_point( aes(color = spei9_category), size = 1.25) + theme_bw() +
   scale_x_continuous(breaks = seq(1990, 2025, by = 10)) +
   annotate( "text", label = "KBS",
             x = 2000, y = 2, size = 5, colour = "black") + 
-  scale_color_manual(values = c("#E78200FF", "#EAC728FF", "#81BB95FF", "#3B99B1FF"))
+  scale_color_manual(values = c("#F5191CFF", "#E78200FF", "#EAC728FF", "#81BB95FF", "#3B99B1FF"))
 
 
-spei_summary %>%
+spei9_summary %>%
   filter(site == "KNZ") %>%
-  ggplot(aes(x = year, y = spei12)) +
+  ggplot(aes(x = year, y = spei9)) +
   geom_line(alpha = 0.5) + 
-  geom_point( aes(color = spei12_category), size = 1.25) + theme_bw() +
+  geom_point( aes(color = spei9_category), size = 1.25) + theme_bw() +
   scale_x_continuous(breaks = seq(1990, 2025, by = 10)) +
   annotate( "text", label = "KNZ",
             x = 2000, y = 2, size = 5, colour = "black") + 
@@ -1130,6 +1135,21 @@ plot_model(
   show.data = TRUE
 )
 
+# Maowei's way for SPEI3
+lrr.lm3sub2 <- lmer(LRR ~ spei3_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr3sub)
+summary(lrr.lm3sub2)
+simres <- simulateResiduals(lrr.lm3sub2)
+plot(simres)
+
+# Plot the LRR model
+plot_model(
+  lrr.lm3sub2,
+  type = "pred",
+  terms= c("spei3_category", "nitrogen"),
+  show.data = TRUE
+)
+
+
 # Using SPEI6
 plot_sub_lrr6 <- plot_n_sub %>%
   group_by(uniqueid) %>%
@@ -1180,7 +1200,7 @@ normal_biomass9sub <- plot_sub_lrr9  %>%
 plot_sub_lrr9 <- left_join(plot_sub_lrr9, normal_biomass9sub)
 
 lrr9sub <- plot_sub_lrr9 %>%
-  filter(prior_year_type != "Extreme wet" | prior_year_type != "Extreme dry") %>%
+  # filter(prior_year_type != "Extreme wet" | prior_year_type != "Extreme dry") %>%
   filter(spei9_category == "Extreme wet" | spei9_category == "Extreme dry") %>%
   mutate(LRR = log(plot_biomass / average_normal_biomass))  # Calculate the log response ratio
 
@@ -1201,6 +1221,178 @@ plot_model(
   terms= c("abs_spei9", "spei9_category", "nitrogen"),
   show.data = TRUE
 )
+
+# Simple model
+lrr.lm9sub2 <- lmer(LRR ~ spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr9sub)
+summary(lrr.lm9sub2)
+simres <- simulateResiduals(lrr.lm9sub2)
+plot(simres)
+
+plot_model(
+  lrr.lm9sub2,
+  type = "pred",
+  terms= c("spei9_category", "nitrogen"),
+  show.data = F
+) + theme_bw()
+
+## Final LRR plot for ANPP ----
+lrr9sub %>%
+  ggplot(aes(x = spei9_category, y = LRR, col = nitrogen)) +
+  stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2)) + 
+  geom_hline(yintercept=0, linetype='dashed', col = 'black')+
+  theme_bw()
+anpp_plot <- lrr9sub %>%
+  ggplot(aes(x = spei9_category, y = LRR, col = nitrogen)) +
+  stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2)) + 
+  geom_hline(yintercept=0, linetype='dashed', col = 'black')+
+  theme_bw() +
+  labs(x = "Event type", y = "ANPP LRR") +
+  theme(legend.position="none")
+
+# LRR for richness
+plot_sub_lrr9_rich <- plot_n_sub %>%
+  group_by(uniqueid) %>%
+  arrange(uniqueid, year) %>%
+  mutate(prior_year_richness = lag(Richness),
+         prior_year_type = lag(spei9_category)) %>%
+  ungroup()
+normal_biomass9sub_rich <- plot_sub_lrr9_rich  %>%
+  group_by(uniqueid) %>%
+  filter(spei9_category == "Normal" | spei9_category == "Moderate wet" | spei9_category == "Moderate dry") %>%
+  summarize(average_normal_rich = mean(Richness, na.rm=T))
+plot_sub_lrr9_rich <- left_join(plot_sub_lrr9_rich, normal_biomass9sub_rich)
+
+lrr9sub_rich <- plot_sub_lrr9_rich %>%
+  filter(prior_year_type != "Extreme wet" | prior_year_type != "Extreme dry") %>%
+  filter(spei9_category == "Extreme wet" | spei9_category == "Extreme dry") %>%
+  mutate(LRR = log(Richness / average_normal_rich))  # Calculate the log response ratio
+
+lrr.lm9sub_rich <- lmer(LRR ~ spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr9sub_rich)
+summary(lrr.lm9sub_rich)
+simres <- simulateResiduals(lrr.lm9sub_rich)
+plot(simres)
+
+## Final LRR plot for richness ----
+lrr9sub_rich %>%
+  ggplot(aes(x = spei9_category, y = LRR, col = nitrogen)) +
+  stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2)) + 
+  geom_hline(yintercept=0, linetype='dashed', col = 'black')+
+  theme_bw()
+rich_plot <- lrr9sub_rich %>%
+  ggplot(aes(x = spei9_category, y = LRR, col = nitrogen)) +
+  stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2)) + 
+  geom_hline(yintercept=0, linetype='dashed', col = 'black')+
+  theme_bw() +
+  labs(x = "Event type", y = "Richness LRR") +
+  theme(legend.position="none")
+
+# LRR for dominance (NO ZEROS!!!)
+plot_sub_lrr9_dom <- plot_n_sub %>%
+  group_by(uniqueid) %>%
+  arrange(uniqueid, year) %>%
+  mutate(prior_year_dom = lag(dominant_relative_abund),
+         prior_year_type = lag(spei9_category)) %>%
+  ungroup()
+normal_biomass9sub_dom <- plot_sub_lrr9_dom  %>%
+  group_by(uniqueid) %>%
+  filter(spei9_category == "Normal" | spei9_category == "Moderate wet" | spei9_category == "Moderate dry") %>%
+  summarize(average_normal_dom = mean(dominant_relative_abund, na.rm=T))
+plot_sub_lrr9_dom <- left_join(plot_sub_lrr9_dom, normal_biomass9sub_dom)
+
+lrr9sub_dom <- plot_sub_lrr9_dom %>%
+  # filter(prior_year_type != "Extreme wet" | prior_year_type != "Extreme dry") %>%
+  filter(spei9_category == "Extreme wet" | spei9_category == "Extreme dry") %>%
+  mutate(LRR = log(dominant_relative_abund / average_normal_dom))  # Calculate the log response ratio
+
+lrr.lm9sub_dom <- lmer(LRR ~ spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr9sub_dom)
+summary(lrr.lm9sub_dom)
+simres <- simulateResiduals(lrr.lm9sub_dom)
+plot(simres)
+
+## Final LRR plot for dominance ----
+lrr9sub_dom %>%
+  ggplot(aes(x = spei9_category, y = LRR, col = nitrogen)) +
+  stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2)) + 
+  geom_hline(yintercept=0, linetype='dashed', col = 'black')+
+  theme_bw()
+dom_plot <- lrr9sub_dom %>%
+  ggplot(aes(x = spei9_category, y = LRR, col = nitrogen)) +
+  stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2)) + 
+  geom_hline(yintercept=0, linetype='dashed', col = 'black')+
+  theme_bw() +
+  labs(x = "Event type", y = "Dominance LRR", col = "Fertilizer")
+
+# LRR for dominance (Top 7 species) 
+# Andropogon gerardii/Andropogon gerardi (typo), Elymus repens, Poa pratensis, Schizachyrium scoparium, Solidago canadensis, Sorghastrum nutans
+plot_n_sub$dominant_species_code2 <- gsub("^.*_","", plot_n_sub$dominant_species_code)
+
+plot_sub_lrr9_dom2 <- plot_n_sub %>%
+  filter(dominant_species_code2 == "Andropogon gerardii" | dominant_species_code2 == "Andropogon gerardi" | dominant_species_code2 == "Elymus repens" | dominant_species_code2 == "Poa pratensis" | dominant_species_code2 == "Schizachyrium scoparium" | dominant_species_code2 == "Solidago canadensis" | dominant_species_code2 == "Sorghastrum nutans")
+
+plot_sub_lrr9_dom2 <- plot_sub_lrr9_dom2 %>%
+  group_by(uniqueid) %>%
+  arrange(uniqueid, year) %>%
+  mutate(prior_year_dom = lag(dominant_relative_abund),
+         prior_year_type = lag(spei9_category)) %>%
+  ungroup()
+normal_biomass9sub_dom2 <- plot_sub_lrr9_dom2  %>%
+  group_by(uniqueid) %>%
+  filter(spei9_category == "Normal" | spei9_category == "Moderate wet" | spei9_category == "Moderate dry") %>%
+  summarize(average_normal_dom = mean(dominant_relative_abund, na.rm=T))
+plot_sub_lrr9_dom2 <- left_join(plot_sub_lrr9_dom2, normal_biomass9sub_dom2)
+
+lrr9sub_dom2 <- plot_sub_lrr9_dom2 %>%
+  # filter(prior_year_type != "Extreme wet" | prior_year_type != "Extreme dry") %>%
+  filter(spei9_category == "Extreme wet" | spei9_category == "Extreme dry") %>%
+  mutate(LRR = log(dominant_relative_abund / average_normal_dom))  # Calculate the log response ratio
+
+lrr.lm9sub_dom2 <- lmer(LRR ~ spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr9sub_dom2)
+summary(lrr.lm9sub_dom2)
+simres <- simulateResiduals(lrr.lm9sub_dom2)
+plot(simres)
+
+# LRR plot for dominance of top seven species
+cols <- c("N" = "darkgreen", "no_fertilizer" = "darkgray")
+lrr9sub_dom2 %>%
+  ggplot(aes(x = spei9_category, y = LRR, col = nitrogen)) +
+  stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2)) + 
+  geom_hline(yintercept=0, linetype='dashed', col = 'black')+
+  theme_bw() +
+  scale_color_manual(values = cols) +
+  labs(x = "Event type", col = "Fertilizer")
+
+# LRR for evenness
+plot_sub_lrr9_ev <- plot_n_sub %>%
+  group_by(uniqueid) %>%
+  arrange(uniqueid, year) %>%
+  mutate(prior_year_ev = lag(Evar),
+         prior_year_type = lag(spei9_category)) %>%
+  ungroup()
+normal_biomass9sub_ev <- plot_sub_lrr9_ev  %>%
+  group_by(uniqueid) %>%
+  filter(spei9_category == "Normal" | spei9_category == "Moderate wet" | spei9_category == "Moderate dry") %>%
+  summarize(average_normal_ev = mean(Evar, na.rm=T))
+plot_sub_lrr9_ev <- left_join(plot_sub_lrr9_ev, normal_biomass9sub_ev)
+
+lrr9sub_ev <- plot_sub_lrr9_ev %>%
+  # filter(prior_year_type != "Extreme wet" | prior_year_type != "Extreme dry") %>%
+  filter(spei9_category == "Extreme wet" | spei9_category == "Extreme dry") %>%
+  mutate(LRR = log(Evar / average_normal_ev))  # Calculate the log response ratio
+
+lrr.lm9sub_ev <- lmer(LRR ~ spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr9sub_ev)
+summary(lrr.lm9sub_ev)
+simres <- simulateResiduals(lrr.lm9sub_ev)
+plot(simres)
+
+## Final LRR plot for evenness
+lrr9sub_ev %>%
+  ggplot(aes(x = spei9_category, y = LRR, col = nitrogen)) +
+  stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2)) + 
+  geom_hline(yintercept=0, linetype='dashed', col = 'black')+
+  theme_bw()
+
+## Final LRR plot ----
+anpp_plot + rich_plot + dom_plot & plot_annotation(tag_levels = 'A')
 
 # Using SPEI12
 plot_sub_lrr12 <- plot_n_sub %>%

@@ -1,3 +1,35 @@
+safeFixCatDir <- function(basis.set, modelList) {
+  data <- as.data.frame(modelList$data)
+  
+  for (i in seq_along(basis.set)) {
+    var <- basis.set[[i]][2]
+    
+    # Skip malformed or composite terms
+    if (length(var) != 1 || grepl("\\(", var)) {
+      next
+    }
+    
+    # Defensive: skip if var is not a column
+    if (!var %in% colnames(data)) {
+      next
+    }
+    
+    # Safe check
+    if (is.factor(data[[var]]) || is.character(data[[var]])) {
+      levels.var <- levels(as.factor(data[[var]]))
+      conds <- basis.set[[i]][-(1:2)]
+      
+      # Remove from conditioning set if present
+      new.conds <- conds[!conds %in% levels.var]
+      basis.set[[i]] <- c(basis.set[[i]][1:2], new.conds)
+    }
+  }
+  
+  return(basis.set)
+}
+
+
+
 basisSet2 <- function (modelList.with.data, direction = NULL, interactions = FALSE) {
   amat <- getDAG(modelList.with.data)
   b <- lapply(1:nrow(amat), function(i) {
@@ -23,7 +55,8 @@ basisSet2 <- function (modelList.with.data, direction = NULL, interactions = FAL
     b <- piecewiseSEM:::removeCerror(b, modelList.with.data)
     b <- piecewiseSEM:::reverseAddVars(b, modelList.with.data, amat)
     b <- piecewiseSEM:::reverseNonLin(b, modelList.with.data, amat)
-    b <- piecewiseSEM:::fixCatDir(b, modelList.with.data) # Here is the cause of the problem!
+    # b <- piecewiseSEM:::fixCatDir(b, modelList.with.data) # Here is the cause of the problem!
+    b <- safeFixCatDir(b, modelList.with.data)
     if (!is.null(direction))
       b <- piecewiseSEM:::specifyDir(b, direction)
   }
@@ -47,9 +80,16 @@ multigroup2 <- function(
   
   intModelList <- lapply(modelList, function(i) {
     rhs2 <-
-      paste(paste(piecewiseSEM:::all.vars_trans(i)[-1], "*", group),
-            collapse = " + "
-      )
+      ifelse(grepl("merMod", class(i)) == T, paste(paste(paste(piecewiseSEM:::all.vars_trans(i)[-1], "*", group), collapse = " + "),  "+ (", findbars(formula(i)),")"), 
+             paste(paste(piecewiseSEM:::all.vars_trans(i)[-1], "*", group), collapse = " + "))
+     
+     # ifelse(class(i) == "lmerMod", paste(paste(paste(piecewiseSEM:::all.vars_trans(i)[-1], "*", group), 
+      #                                           collapse = " + "),  "+ (", findbars(formula(i)),")"), 
+      #        paste(paste(piecewiseSEM:::all.vars_trans(i)[-1], "*", group), collapse = " + ")) 
+   
+     # paste(paste(piecewiseSEM:::all.vars_trans(i)[-1], "*", group),
+    #       collapse = " + "
+    # )
     i <- update(i, formula(paste(". ~ ", rhs2)))
     return(i)
   })

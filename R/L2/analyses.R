@@ -1749,59 +1749,45 @@ ggpredict(model = resil.lm.log, terms = c("richness"), back_transform = F) %>%
 ##### SEM #####
 library(piecewiseSEM)
 
-names(plot_ece_meta)
-table(plot_ece_meta$nutrients_added)
-hist(plot_ece_meta$nitrogen_amount)
-table(plot_ece_meta$spei9_category)
+names(plot_ece_9_cn)
 
-plot_ece_meta$nutrients_grouped = case_when(plot_ece_meta$nutrients_added == "no_fertilizer" ~ "none", 
-                                            plot_ece_meta$nutrients_added == "none" ~ "none", 
-                                            plot_ece_meta$nutrients_added == "N" ~ "N",
-                                            plot_ece_meta$nutrients_added == "NP" ~ "Nplus",
-                                            plot_ece_meta$nutrients_added == "NK" ~ "Nplus",
-                                            plot_ece_meta$nutrients_added == "NPK" ~ "Nplus",
-                                            plot_ece_meta$nutrients_added == "NPK+" ~ "Nplus",
-                                            plot_ece_meta$nutrients_added == "NPK+Fence" ~ "Nplus",
-                                            plot_ece_meta$nutrients_added == "P" ~ "plus",
-                                            plot_ece_meta$nutrients_added == "K" ~ "plus",
-                                            plot_ece_meta$nutrients_added == "PK" ~ "Nplus",
-                                            plot_ece_meta$nutrients_added == "PK+" ~ "Nplus")
-
-table(plot_ece_meta$nutrients_grouped)
+table ( plot_ece_9_cn$nutrients_grouped )
 
 # get list of experiments that manipulated N
 manipulated_n_exp = plot_ece_meta %>% filter (!is.na(nitrogen_amount))  %>% distinct(experiment) %>% select(experiment)
 
 # get subset file for SEM:
 plot_ece_meta_selSEM_init = plot_ece_9_cn %>% 
-  select (site, experiment, uniqueid,spei9_category,nitrogen_amount,nutrients_added,
+  select (site, experiment, uniqueid,spei9_category,nutrients_grouped ,
                           richness,dominant_relative_abund_zero,resistance,resilience) %>%  # only rows we care about
-  filter (  experiment %in%  manipulated_n_exp[,1] ) 
+  filter (  experiment %in%  manipulated_n_exp[,1] & nutrients_grouped != "N" ) 
 
 plot_ece_meta_selSEM = plot_ece_meta_selSEM_init[complete.cases(plot_ece_meta_selSEM_init ) ,]
 plot_ece_meta_selSEM$spei9_category = as.factor(plot_ece_meta_selSEM$spei9_category)
+
+table(plot_ece_meta_selSEM$nutrients_grouped)
+plot_ece_meta_selSEM$nut_dummy = case_when(plot_ece_meta_selSEM$nutrients_grouped =="no_fertilizer" ~ 0,
+                                           plot_ece_meta_selSEM$nutrients_grouped =="Nplus" ~ 1)
 dim(plot_ece_meta_selSEM)
 unique(plot_ece_meta_selSEM$spei9_category)
-unique(plot_ece_meta_selSEM$nutrients_added)
-table(plot_ece_meta_selSEM$nutrients_added)
 table(plot_ece_meta_selSEM$nitrogen_amount)
 unique(plot_ece_9_cn$spei9_category)
 unique(plot_ece_9_cn$nitrogen_amount)
-plot_ece_control # dataframe with the control plots resistance calculated
 
 table (is.na( plot_ece_meta_selSEM ) )
 
 
 caitlin_resist <- psem(
-  lm(log10(resistance) ~ richness + dominant_relative_abund_zero + nitrogen_amount,
+  lm(log10(resistance) ~ richness + dominant_relative_abund_zero + nut_dummy,
      data = plot_ece_meta_selSEM ),
-  lm(richness ~ nitrogen_amount,
+  lm(richness ~ nut_dummy,
      data = plot_ece_meta_selSEM),
-  lm(dominant_relative_abund_zero ~nitrogen_amount ,
+  lm(dominant_relative_abund_zero ~nut_dummy ,
      data = plot_ece_meta_selSEM), 
   
-  lm(log10(resilience) ~ richness + dominant_relative_abund_zero + nitrogen_amount,
-     data = plot_ece_meta_selSEM )
+  lm(log10(resilience) ~ richness + dominant_relative_abund_zero + nut_dummy,
+     data = plot_ece_meta_selSEM ) ,
+  data = plot_ece_meta_selSEM
 )
 
 summary(caitlin_resist)

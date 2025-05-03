@@ -1749,6 +1749,8 @@ ggpredict(model = resil.lm.log, terms = c("richness"), back_transform = F) %>%
 ##### SEM #####
 library(piecewiseSEM)
 
+source ( paste(getwd(), "/R/L2/SEM custom functions.R", sep = ""))
+
 names(plot_ece_9_cn)
 
 table ( plot_ece_9_cn$nutrients_grouped )
@@ -1792,7 +1794,9 @@ caitlin_resist <- psem(
 
 summary(caitlin_resist)
 plot(caitlin_resist)
-multigroup(caitlin_resist, group = "spei9_category")
+multigroup2(caitlin_resist, group = "spei9_category")
+
+
 
 # matt's code below: 
 # check distribution of data

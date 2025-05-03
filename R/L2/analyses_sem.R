@@ -1748,8 +1748,7 @@ ggpredict(model = resil.lm.log, terms = c("richness"), back_transform = F) %>%
 
 ##### SEM #####
 library(piecewiseSEM)
-
-source ( paste(getwd(), "/R/L2/SEM custom functions.R", sep = ""))
+source( paste(getwd(), "/R/L2/SEM custom functions.R", sep = ""))
 
 names(plot_ece_9_cn)
 
@@ -1778,23 +1777,22 @@ unique(plot_ece_9_cn$nitrogen_amount)
 
 table (is.na( plot_ece_meta_selSEM ) )
 
-
-caitlin_resist <- psem(
-  lm(log10(resistance) ~ richness + dominant_relative_abund_zero + nut_dummy,
+seraina_resist <- psem(
+  lmer(log10(resistance) ~ richness + dominant_relative_abund_zero + nut_dummy+(1|site/experiment/uniqueid),
      data = plot_ece_meta_selSEM ),
-  lm(richness ~ nut_dummy,
+  lmer(richness ~ nut_dummy+(1|site/experiment/uniqueid),
      data = plot_ece_meta_selSEM),
-  lm(dominant_relative_abund_zero ~nut_dummy ,
+  lmer(dominant_relative_abund_zero ~nut_dummy +(1|site/experiment/uniqueid),
      data = plot_ece_meta_selSEM), 
   
-  lm(log10(resilience) ~ richness + dominant_relative_abund_zero + nut_dummy,
+  lmer(log10(resilience) ~ richness + dominant_relative_abund_zero + nut_dummy+(1|site/experiment/uniqueid),
      data = plot_ece_meta_selSEM ) ,
   data = plot_ece_meta_selSEM
 )
 
-summary(caitlin_resist)
-plot(caitlin_resist)
-multigroup2(caitlin_resist, group = "spei9_category")
+summary(seraina_resist)
+plot(seraina_resist)
+multigroup2(seraina_resist, group = "spei9_category")
 
 
 

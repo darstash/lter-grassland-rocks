@@ -85,7 +85,8 @@ plot_metrics_SPEI_diversity <- plot_metrics_SPEI %>%
          prior_year_type=lag(spei9_category),
          prior_year_dom_zero=lag(dominant_relative_abund_zero),
          prior_year_dom=lag(dominant_relative_abund),
-         prior_year_evar=lag(Evar))
+         prior_year_evar=lag(Evar),
+         prior_year_spei9=lag(spei9))
 
 
 write.csv(plot_metrics_SPEI_diversity, file.path(L2_dir, "./plot_metrics_SPEI_diversity.csv"), row.names=F)

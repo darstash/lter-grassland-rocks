@@ -1236,6 +1236,7 @@ plot_model(
 ) + theme_bw()
 
 ## Final LRR plot for ANPP ----
+cols <- c("N" = "darkgreen", "no_fertilizer" = "bisque4")
 lrr9sub %>%
   ggplot(aes(x = spei9_category, y = LRR, col = nitrogen)) +
   stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2)) + 
@@ -1247,7 +1248,8 @@ anpp_plot <- lrr9sub %>%
   geom_hline(yintercept=0, linetype='dashed', col = 'black')+
   theme_bw() +
   labs(x = "Event type", y = "ANPP LRR") +
-  theme(legend.position="none")
+  theme(legend.position="none") +
+  scale_color_manual(values = cols)
 
 # LRR for richness
 plot_sub_lrr9_rich <- plot_n_sub %>%
@@ -1284,7 +1286,8 @@ rich_plot <- lrr9sub_rich %>%
   geom_hline(yintercept=0, linetype='dashed', col = 'black')+
   theme_bw() +
   labs(x = "Event type", y = "Richness LRR") +
-  theme(legend.position="none")
+  theme(legend.position="none") +
+  scale_color_manual(values = cols)
 
 # LRR for dominance (NO ZEROS!!!)
 plot_sub_lrr9_dom <- plot_n_sub %>%
@@ -1320,7 +1323,9 @@ dom_plot <- lrr9sub_dom %>%
   stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2)) + 
   geom_hline(yintercept=0, linetype='dashed', col = 'black')+
   theme_bw() +
-  labs(x = "Event type", y = "Dominance LRR", col = "Fertilizer")
+  labs(x = "Event type", y = "Dominance LRR", col = "Fertilizer") +
+  scale_color_manual(values = cols)
+
 
 # LRR for dominance (Top 7 species) 
 # Andropogon gerardii/Andropogon gerardi (typo), Elymus repens, Poa pratensis, Schizachyrium scoparium, Solidago canadensis, Sorghastrum nutans
@@ -1352,7 +1357,6 @@ simres <- simulateResiduals(lrr.lm9sub_dom2)
 plot(simres)
 
 # LRR plot for dominance of top seven species
-cols <- c("N" = "darkgreen", "no_fertilizer" = "darkgray")
 lrr9sub_dom2 %>%
   ggplot(aes(x = spei9_category, y = LRR, col = nitrogen)) +
   stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2)) + 

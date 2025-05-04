@@ -428,6 +428,31 @@ resis_estim_plot<-coef(summary(resis_cn8_std)) %>%
   geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2) +
   geom_text(aes(x = stars_location, label = stars))
 
+
+# emtrends ####
+library(emmeans)
+library(ggeffects)
+
+emtrends(resis_cn9, var = "richness", specs = c("spei9_category"), infer = T) %>%
+  data.frame() %>%
+  
+  ggplot(aes(y = spei9_category, x = richness.trend)) +
+  geom_point() +
+  geom_vline(xintercept = 0) +
+  geom_errorbarh(aes(xmin = richness.trend-SE, xmax = richness.trend+SE), height = 0.2) +
+  labs(x = "Richness effect")
+
+ggeffect(resis_cn9, terms = c("richness", "spei9_category")) %>%
+  data.frame() %>%
+  
+  ggplot(aes(y = predicted, x = x, color = group, fill = group)) +
+  geom_ribbon(aes(ymax = predicted + std.error, ymin = predicted -std.error), 
+              alpha = 0.1, color = NA) +
+  geom_line() +
+  labs(y = "predicted resistance \u00B1 SE",
+       x = "species richness",
+       color = "", fill = "")
+
 #nitrogen and climate event effect on resilience####
 resil_nitro<-lmer(log(resilience)~nitrogen*spei9_category+(1|site/experiment/uniqueid)
                   +(1|year), data=plot_ece_9_cn)

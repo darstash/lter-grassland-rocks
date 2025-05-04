@@ -22,6 +22,7 @@ library(car)
 library(GGally)
 library(performance)
 library(sjPlot)
+library(patchwork)
 
 # Set working directory 
 L0_dir <- Sys.getenv("L0DIR")
@@ -209,7 +210,7 @@ summary(resis_nitro)
 simres <- simulateResiduals(resis_nitro)
 plot(simres)
 
-plot_ece_9_cn%>%
+resis_N_fig<-plot_ece_9_cn%>%
   ggplot(aes(x=spei9_category, y=log(resistance), col=nitrogen))+
   stat_summary(fun.data=mean_cl_boot, position=position_dodge(0.2))+
   theme_bw()
@@ -279,8 +280,8 @@ summary(resis_cn8)
 simres <- simulateResiduals(resis_cn8)
 plot(simres)
 
-#plot best model
-ggpredict(model = resis_cn8, terms = c("richness", "spei9_category","nitrogen"), back_transform = F ) %>%
+#plot best model for resistance####
+res_rich_plot<-ggpredict(model = resis_cn8, terms = c("richness", "spei9_category","nitrogen"), back_transform = F ) %>%
   plot(show_data = TRUE)+
   labs(x="richness")
 -ggpredict(model = resis_cn8, terms = "evar", back_transform = F) %>%
@@ -289,7 +290,7 @@ ggpredict(model = resis_cn8, terms = c("richness", "spei9_category","nitrogen"),
 ggpredict(model = resis_cn8, terms = "spei9_category", back_transform = F) %>%
   plot()+
   labs(x="Spei9 category")
-ggpredict(model = resis_cn8, terms = "dominant_relative_abund_zero", back_transform = F) %>%
+resis_domin_plot<-ggpredict(model = resis_cn8, terms =  c("dominant_relative_abund_zero", "spei9_category","nitrogen"), back_transform = F) %>%
   plot(show_data = TRUE)+
   labs(x="Relative abundance of dominant species")
 
@@ -316,7 +317,7 @@ resis_cn8_std <- update(resis_cn8,
                                       dominant_relative_abund_zero = scale(dominant_relative_abund_zero),
                                ))
 
-coef(summary(resis_cn8_std)) %>%
+resis_estim_plot<-coef(summary(resis_cn8_std)) %>%
   data.frame() %>%
   rownames_to_column("Variable") %>%
   rename("SE" = "Std..Error",
@@ -357,10 +358,22 @@ coef(summary(resis_cn8_std)) %>%
        x = "estimate \u00B1 se") +
   scale_y_discrete(limits = rev) +
   geom_vline(xintercept = 0) +
-  geom_col()+
+  geom_point()+
   geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2) +
   geom_text(aes(x = stars_location, label = stars))
 
+#nitrogen and climate event effect on resilience####
+resil_nitro<-lmer(log(resilience)~nitrogen*spei9_category+(1|site/experiment/uniqueid)
+                  +(1|year), data=plot_ece_9_cn)
+anova(resil_nitro)
+summary(resil_nitro)
+simres <- simulateResiduals(resil_nitro)
+plot(simres)
+
+resil_N_fig<-plot_ece_9_cn%>%
+  ggplot(aes(x=spei9_category, y=log(resilience), col=nitrogen))+
+  stat_summary(fun.data=mean_cl_boot, position=position_dodge(0.2))+
+  theme_bw()
 
 
 #Analysis of resilience with control and nitrogen####
@@ -435,10 +448,19 @@ resil_cn_test<-lmer(log(resilience)~richness*dominant_relative_abund_zero*spei9_
                 +(1|year), data=plot_ece_9_cn)
 anova(resil_cn_test)#similar with or without resistance
 
-#plot best model
+#plot best model for reilience####
 ggpredict(model = resil_cn8, terms = c("richness", "dominant_relative_abund_zero","spei9_category"), back_transform = F ) %>%
   plot(show_data = TRUE)+
   labs(x="richness")
+resil_model_plot<-ggpredict(model = resil_cn8, terms = c("richness","spei9_category","nitrogen", "dominant_relative_abund_zero"), back_transform = F ) %>%
+  plot(show_data = TRUE)+
+  labs(x="richness")
+ggpredict(model = resil_cn8, terms = c("richness", "spei9_category","nitrogen"), back_transform = F ) %>%
+  plot(show_data = TRUE)+
+  labs(x="richness")
+ggpredict(model = resil_cn8, terms = c("dominant_relative_abund_zero","spei9_category","nitrogen"), back_transform = F ) %>%
+  plot(show_data = TRUE)+
+  labs(x="Relative abundance of dominant species")
 ggpredict(model = resil_cn8, terms = "spei9_category", back_transform = F) %>%
   plot()+
   labs(x="Spei9 category")
@@ -446,7 +468,12 @@ ggpredict(model = resil_cn8, terms = "dominant_relative_abund_zero", back_transf
   plot(show_data = TRUE)+
   labs(x="Relative abundance of dominant species")
 
-#create effect size plot from the model
+#combine resistance and resilience figures####
+res_rich_plot + resis_domin_plot& plot_annotation(tag_levels = 'A')
+resil_model_plot& plot_annotation(tag_levels = 'A')
+
+
+#create effect size plot from resilience model
 resil_cn8_std <- update(resil_cn8, 
                         data = plot_ece_9_cn %>% 
                           mutate(richness = scale(richness),
@@ -454,7 +481,7 @@ resil_cn8_std <- update(resil_cn8,
                                  dominant_relative_abund_zero = scale(dominant_relative_abund_zero),
                           ))
 
-coef(summary(resil_cn8_std)) %>%
+resil_estim_plot<-coef(summary(resil_cn8_std)) %>%
   data.frame() %>%
   rownames_to_column("Variable") %>%
   rename("SE" = "Std..Error",
@@ -501,11 +528,12 @@ coef(summary(resil_cn8_std)) %>%
        x = "estimate \u00B1 se") +
   scale_y_discrete(limits = rev) +
   geom_vline(xintercept = 0) +
-  geom_col()+
+  geom_point()+
   geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2) +
   geom_text(aes(x = stars_location, label = stars))
 
-
+#combine resistance and resilience effect size figure####
+resis_estim_plot+resil_estim_plot & plot_annotation(tag_levels = 'A')
 
 # Subset to only have control plots
 plot_ece_control <- plot_ece_rm_na %>%

@@ -345,6 +345,16 @@ anova(resis_cn9)
 summary(resis_cn9)
 simres <- simulateResiduals(resis_cn9)
 plot(simres)
+#including spei9 intensity
+resis_cn10<-lmer(log(resistance)~richness+dominant_relative_abund_zero+nitrogen+evar+
+                  dominant_relative_abund_zero:spei9_category+spei9+spei9:spei9_category+
+                  spei9_category+(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn_prior)
+
+anova(resis_cn10)
+summary(resis_cn10)
+simres <- simulateResiduals(resis_cn10)
+plot(simres)
 
 #plot best model for resistance####
 res_rich_plot<-ggpredict(model = resis_cn9, terms = c("richness", "spei9_category"), back_transform = F ) %>%
@@ -553,6 +563,18 @@ resil_cn_test<-lmer(log(resilience)~richness*dominant_relative_abund_zero*spei9_
                   resistance+(1|site/experiment/uniqueid)
                 +(1|year), data=plot_ece_9_cn_prior)
 anova(resil_cn_test)#similar with or without resistance
+#including spei9####
+resil_cn_spei9<-lmer(log(resilience)~richness*dominant_relative_abund_zero*spei9_category*spei9+nitrogen+evar+
+                  (1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn_prior)
+
+anova(resil_cn_spei9)
+summary(resil_cn_spei9)
+resil_cn_spei9_1<-lmer(log(resilience)~richness*dominant_relative_abund_zero*spei9_category+nitrogen+evar+
+                       spei9+richness:spei9+spei9_category:spei9+richness:spei9:spei9_category+(1|site/experiment/uniqueid)
+                     +(1|year), data=plot_ece_9_cn_prior)
+
+anova(resil_cn_spei9_1)#may need more investigation
 
 #plot best model for reilience####
 ggpredict(model = resil_cn8, terms = c("richness", "dominant_relative_abund_zero","spei9_category"), back_transform = F ) %>%

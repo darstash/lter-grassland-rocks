@@ -60,11 +60,11 @@ x <- plot_filter %>% group_by(site, year, uniqueid, higher_order_organization) %
 plot_trt <- left_join(plot_filter, metadata_filter)
 
 # Look at SPEI plots for each site in the range the data exist
-spei9_summary %>%
+spei_summary %>%
   filter(site == "CDR") %>%
-  ggplot(aes (x = year, y = spei9)) +
+  ggplot(aes (x = year, y = spei12)) +
   geom_line(alpha = 0.5) + 
-  geom_point( aes(color = spei9_category), size = 1.25) + theme_bw() +
+  geom_point( aes(color = spei12_category), size = 1.25) + theme_bw() +
   scale_x_continuous(breaks = seq(1980, 2025, by = 10)) +
   annotate( "text", label = "CDR",
             x = 2000, y = 2, size = 6, colour = "black") + 
@@ -72,22 +72,22 @@ spei9_summary %>%
   geom_hline(yintercept = -1.28, col = "#F5191CFF", linetype = "dashed")+
   geom_hline(yintercept = 1.28, col = "#3B99B1FF", linetype = "dashed")
 
-spei9_summary %>%
+spei_summary %>%
   filter(site == "KBS") %>%
-  ggplot(aes (x = year, y = spei9)) +
+  ggplot(aes (x = year, y = spei12)) +
   geom_line(alpha = 0.5) + 
-  geom_point( aes(color = spei9_category), size = 1.25) + theme_bw() +
+  geom_point( aes(color = spei12_category), size = 1.25) + theme_bw() +
   scale_x_continuous(breaks = seq(1990, 2025, by = 10)) +
   annotate( "text", label = "KBS",
             x = 2000, y = 2, size = 5, colour = "black") + 
-  scale_color_manual(values = c("#F5191CFF", "#E78200FF", "#EAC728FF", "#81BB95FF", "#3B99B1FF"))
+  scale_color_manual(values = c("#E78200FF", "#EAC728FF", "#81BB95FF", "#3B99B1FF"))
 
 
-spei9_summary %>%
+spei_summary %>%
   filter(site == "KNZ") %>%
-  ggplot(aes(x = year, y = spei9)) +
+  ggplot(aes(x = year, y = spei12)) +
   geom_line(alpha = 0.5) + 
-  geom_point( aes(color = spei9_category), size = 1.25) + theme_bw() +
+  geom_point( aes(color = spei12_category), size = 1.25) + theme_bw() +
   scale_x_continuous(breaks = seq(1990, 2025, by = 10)) +
   annotate( "text", label = "KNZ",
             x = 2000, y = 2, size = 5, colour = "black") + 
@@ -1225,13 +1225,8 @@ plot_model(
 # Simple model
 lrr.lm9sub2 <- lmer(LRR ~ spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr9sub)
 summary(lrr.lm9sub2)
-emm_biomass <- emmeans(lrr.lm9sub2, pairwise ~ spei9_category * nitrogen)
+emm_biomass <- emmeans(lrr.lm9sub2, pairwise ~ spei9_category * nitrogen, infer = T)
 summary(emm_biomass)
-joint_tests(lrr.lm9sub2, by = "spei9_category")
-joint_tests(lrr.lm9sub2, by = "nitrogen")
-pairs(emm_biomass, simple = "nitrogen")
-pairs(emm_biomass, simple = "spei9_category")
-pairs(emm_biomass)
 simres <- simulateResiduals(lrr.lm9sub2)
 plot(simres)
 
@@ -1239,7 +1234,7 @@ plot_model(
   lrr.lm9sub2,
   type = "pred",
   terms= c("spei9_category", "nitrogen"),
-  show.data = T
+  show.data = F
 ) + theme_bw()
 
 ## Final LRR plot for ANPP ----
@@ -1280,12 +1275,8 @@ lrr9sub_rich <- plot_sub_lrr9_rich %>%
 
 lrr.lm9sub_rich <- lmer(LRR ~ spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr9sub_rich)
 summary(lrr.lm9sub_rich)
-emm_rich <- emmeans(lrr.lm9sub_rich, ~ spei9_category * nitrogen)
+emm_rich <- emmeans(lrr.lm9sub_rich, pairwise ~ spei9_category * nitrogen, infer = T)
 summary(emm_rich)
-joint_tests(lrr.lm9sub_rich, by = "spei9_category")
-joint_tests(lrr.lm9sub_rich, by = "nitrogen")
-pairs(emm_rich, simple = "nitrogen")
-pairs(emm_rich, simple = "spei9_category")
 simres <- simulateResiduals(lrr.lm9sub_rich)
 plot(simres)
 
@@ -1332,12 +1323,8 @@ lrr9sub_dom <- plot_sub_lrr9_dom %>%
 
 lrr.lm9sub_dom <- lmer(LRR ~ spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr9sub_dom)
 summary(lrr.lm9sub_dom)
-emm_dom <- emmeans(lrr.lm9sub_dom, ~ spei9_category * nitrogen)
+emm_dom <- emmeans(lrr.lm9sub_dom, pairwise ~ spei9_category * nitrogen, infer = T)
 summary(emm_dom)
-joint_tests(lrr.lm9sub_dom, by = "spei9_category")
-joint_tests(lrr.lm9sub_dom, by = "nitrogen")
-pairs(emm_dom, simple = "nitrogen")
-pairs(emm_dom, simple = "spei9_category")
 simres <- simulateResiduals(lrr.lm9sub_dom)
 plot(simres)
 

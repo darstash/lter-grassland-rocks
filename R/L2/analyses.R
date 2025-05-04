@@ -215,103 +215,159 @@ resis_N_fig<-plot_ece_9_cn%>%
   stat_summary(fun.data=mean_cl_boot, position=position_dodge(0.2))+
   theme_bw()
 
+#including prior spei9 as covariate####
+resis_prior<-lmer(log(resistance)~richness*dominant_relative_abund_zero+prior_year_spei9+nitrogen+richness:nitrogen+evar+
+                 dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                 evar:nitrogen+evar:spei9_category+spei9_category+nitrogen:spei9_category+(1|site/experiment/uniqueid)
+               +(1|year), data=plot_ece_9_cn_prior, REML=F)
+summary(resis_prior)
+anova(resis_prior)
+
+resis_prior1<-lmer(log(resistance)~richness*dominant_relative_abund_zero+prior_year_spei9+nitrogen+richness:nitrogen+evar+
+                    dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                    evar:nitrogen+evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
+                  +(1|year), data=plot_ece_9_cn_prior, REML=F)
+summary(resis_prior1)
+anova(resis_prior1)
+
+resis_prior2<-lmer(log(resistance)~richness*dominant_relative_abund_zero+prior_year_spei9+nitrogen+evar+
+                     dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                     evar:nitrogen+evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
+                   +(1|year), data=plot_ece_9_cn_prior, REML=F)
+summary(resis_prior2)
+anova(resis_prior2)
+
+resis_prior3<-lmer(log(resistance)~richness*dominant_relative_abund_zero+prior_year_spei9+nitrogen+evar+
+                     dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                     evar:nitrogen+spei9_category+(1|site/experiment/uniqueid)
+                   +(1|year), data=plot_ece_9_cn_prior, REML=F)
+summary(resis_prior3)
+anova(resis_prior3)
+
+resis_prior4<-lmer(log(resistance)~richness+dominant_relative_abund_zero+prior_year_spei9+nitrogen+evar+
+                     dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                     evar:nitrogen+spei9_category+(1|site/experiment/uniqueid)
+                   +(1|year), data=plot_ece_9_cn_prior, REML=F)
+summary(resis_prior4)
+anova(resis_prior4)
+
+resis_prior5<-lmer(log(resistance)~richness+dominant_relative_abund_zero+prior_year_spei9+nitrogen+evar+
+                     dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                     spei9_category+(1|site/experiment/uniqueid)
+                   +(1|year), data=plot_ece_9_cn_prior, REML=F)
+anova(resis_prior5)
+resis_prior6<-lmer(log(resistance)~richness+dominant_relative_abund_zero+prior_year_spei9+nitrogen+evar+
+                     richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                     spei9_category+(1|site/experiment/uniqueid)
+                   +(1|year), data=plot_ece_9_cn_prior, REML=F)
+anova(resis_prior6)
+resis_prior7<-lmer(log(resistance)~richness+dominant_relative_abund_zero+prior_year_spei9+nitrogen+evar+
+                     dominant_relative_abund_zero:spei9_category+
+                     spei9_category+(1|site/experiment/uniqueid)
+                   +(1|year), data=plot_ece_9_cn_prior, REML=F)
+anova(resis_prior7)#no major changes from model without prior year spei9
 
 #Analysis of resistance with control and nitrogen####
+#rename prior year community metrics and create a new dataframe
+plot_ece_9_cn_prior<-plot_ece_9_cn%>%
+  select(-richness, -evar, -dominant_relative_abund, -dominant_relative_abund_zero)%>%
+  rename(richness=prior_year_rich,
+         dominant_relative_abund_zero= prior_year_dom_zero,
+         dominant_relative_abund=prior_year_dom,
+         evar=prior_year_evar)
+
+
 resis_cn<-lmer(log(resistance)~richness*dominant_relative_abund_zero+nitrogen+richness:nitrogen+evar+
                  dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
                     evar:nitrogen+evar:spei9_category+spei9_category+nitrogen:spei9_category+(1|site/experiment/uniqueid)
-                  +(1|year), data=plot_ece_9_cn, REML=F)
+                  +(1|year), data=plot_ece_9_cn_prior, REML=F)
 summary(resis_cn)
 anova(resis_cn)
 #model update
 resis_cn1<-lmer(log(resistance)~richness*dominant_relative_abund_zero+nitrogen+richness:nitrogen+evar+
                   dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
                   evar:nitrogen+evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
-                +(1|year), data=plot_ece_9_cn, REML=F)
+                +(1|year), data=plot_ece_9_cn_prior, REML=F)
 anova(resis_cn1)
 #model update
 resis_cn2<-lmer(log(resistance)~richness*dominant_relative_abund_zero+nitrogen+richness:nitrogen+evar+
                   dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
                   evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
-                +(1|year), data=plot_ece_9_cn, REML=F)
+                +(1|year), data=plot_ece_9_cn_prior, REML=F)
 anova(resis_cn2)
 #model update
 resis_cn3<-lmer(log(resistance)~richness*dominant_relative_abund_zero+nitrogen+richness:nitrogen+evar+
-                  dominant_relative_abund_zero:nitrogen+richness:spei9_category+
+                  dominant_relative_abund_zero:spei9_category+richness:spei9_category+
                   evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
-                +(1|year), data=plot_ece_9_cn, REML=F)
+                +(1|year), data=plot_ece_9_cn_prior, REML=F)
 anova(resis_cn3)
 #model update
-resis_cn4<-lmer(log(resistance)~richness*dominant_relative_abund_zero+nitrogen+richness:nitrogen+evar+
-                  richness:spei9_category+
-                  evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
-                +(1|year), data=plot_ece_9_cn, REML=F)
+resis_cn4<-lmer(log(resistance)~richness*dominant_relative_abund_zero+nitrogen+evar+
+                  richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                  spei9_category+(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn_prior, REML=F)
 anova(resis_cn4)
 #model update
-resis_cn5<-lmer(log(resistance)~richness*dominant_relative_abund_zero+nitrogen+evar+
-                  richness:spei9_category+
-                  evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
-                +(1|year), data=plot_ece_9_cn, REML=F)
-anova(resis_cn5)
+resis_cn5<-lmer(log(resistance)~richness+dominant_relative_abund_zero+nitrogen+evar+
+                  richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                  spei9_category+(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn_prior, REML=F)
+anova(resis_cn5) 
 #model update
-resis_cn6<-lmer(log(resistance)~richness+dominant_relative_abund_zero+evar+nitrogen+
-                  richness:spei9_category+
-                  evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
-                +(1|year), data=plot_ece_9_cn, REML=F)
+resis_cn6<-lmer(log(resistance)~richness+dominant_relative_abund_zero+nitrogen+evar+
+                  dominant_relative_abund_zero:spei9_category+
+                  spei9_category+(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn_prior, REML=F)
 anova(resis_cn6)
 #model update
-resis_cn7<-lmer(log(resistance)~richness+dominant_relative_abund_zero+evar+nitrogen+
-                  richness:spei9_category+
+resis_cn7<-lmer(log(resistance)~richness+dominant_relative_abund_zero+nitrogen+
+                  dominant_relative_abund_zero:spei9_category+
                   spei9_category+(1|site/experiment/uniqueid)
-                +(1|year), data=plot_ece_9_cn, REML=F)
+                +(1|year), data=plot_ece_9_cn_prior, REML=F)
 anova(resis_cn7)
+#model update
+resis_cn8<-lmer(log(resistance)~richness+dominant_relative_abund_zero+
+                  dominant_relative_abund_zero:spei9_category+
+                  spei9_category+(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn_prior, REML=F)
+anova(resis_cn8)
 
 #model selection with likelihood ratio
 anova(resis_cn,resis_cn1,resis_cn2,resis_cn3,resis_cn4,resis_cn5,resis_cn6,resis_cn7)
 #resis_cn7 is the best model
 #refit best model with REML
-resis_cn8<-lmer(log(resistance)~richness+dominant_relative_abund_zero+evar+nitrogen+
-                  richness:spei9_category+
+resis_cn9<-lmer(log(resistance)~richness+dominant_relative_abund_zero+nitrogen+evar+
+                  dominant_relative_abund_zero:spei9_category+
                   spei9_category+(1|site/experiment/uniqueid)
-                +(1|year), data=plot_ece_9_cn)
-
-anova(resis_cn8)
-summary(resis_cn8)
-simres <- simulateResiduals(resis_cn8)
-plot(simres)
-
-#plot best model for resistance####
-res_rich_plot<-ggpredict(model = resis_cn8, terms = c("richness", "spei9_category","nitrogen"), back_transform = F ) %>%
-  plot(show_data = TRUE)+
-  labs(x="richness")
--ggpredict(model = resis_cn8, terms = "evar", back_transform = F) %>%
-  plot(show_data = TRUE)+
-  labs(x="evenness")
-ggpredict(model = resis_cn8, terms = "spei9_category", back_transform = F) %>%
-  plot()+
-  labs(x="Spei9 category")
-resis_domin_plot<-ggpredict(model = resis_cn8, terms =  c("dominant_relative_abund_zero", "spei9_category","nitrogen"), back_transform = F) %>%
-  plot(show_data = TRUE)+
-  labs(x="Relative abundance of dominant species")
-
-#refit the model with prior years for the predictors
-
-resis_cn9<-lmer(log(resistance)~prior_year_rich+prior_year_dom_zero+prior_year_evar+nitrogen+
-                  prior_year_rich:spei9_category+
-                  spei9_category+(1|site/experiment/uniqueid)
-                +(1|year), data=plot_ece_9_cn)
+                +(1|year), data=plot_ece_9_cn_prior)
 
 anova(resis_cn9)
 summary(resis_cn9)
 simres <- simulateResiduals(resis_cn9)
 plot(simres)
-ggpredict(model = resis_cn9, terms = c("prior_year_rich", "spei9_category"), back_transform = F ) %>%
+
+#plot best model for resistance####
+res_rich_plot<-ggpredict(model = resis_cn9, terms = c("richness", "spei9_category"), back_transform = F ) %>%
   plot(show_data = TRUE)+
   labs(x="richness")
+ggpredict(model = resis_cn9, terms = "evar", back_transform = F) %>%
+  plot(show_data = TRUE)+
+  labs(x="evenness")
+ggpredict(model = resis_cn9, terms = "spei9_category", back_transform = F) %>%
+  plot()+
+  labs(x="Spei9 category")
+resis_domin_plot<-ggpredict(model = resis_cn9, terms =  c("dominant_relative_abund_zero", "spei9_category"), back_transform = F) %>%
+  plot(show_data = TRUE)+
+  labs(x="Relative abundance of dominant species")
+ggpredict(model = resis_cn9, terms =  c("dominant_relative_abund_zero", "spei9_category"), back_transform = F) %>%
+  plot(show_data = TRUE)+
+  labs(x="Relative abundance of dominant species")
+
+
 #create effect size plot from the model
 #modified from Seraina
-resis_cn8_std <- update(resis_cn8, 
-                             data = plot_ece_9_cn %>% 
+resis_cn8_std <- update(resis_cn9, 
+                             data = plot_ece_9_cn_prior %>% 
                                mutate(richness = scale(richness),
                                       evar = scale(evar),
                                       dominant_relative_abund_zero = scale(dominant_relative_abund_zero),
@@ -330,14 +386,14 @@ resis_estim_plot<-coef(summary(resis_cn8_std)) %>%
                                       "evar",
                                       "nitrogenno_fertilizer",
                                       "spei9_categoryExtreme wet",
-                                      "richness:spei9_categoryExtreme wet")),
+                                      "dominant_relative_abund_zero:spei9_categoryExtreme wet")),
          # cosmetics in the names
          Variable_labels = factor(case_when(Variable %in% "(Intercept)" ~ "intercept",
                                             Variable %in% "evar" ~ "evenness",
                                             Variable %in% "dominant_relative_abund_zero" ~ "dominant abundance",
                                             Variable %in% "nitrogenno_fertilizer" ~ "no fertilizer",
                                             Variable %in% "spei9_categoryExtreme wet" ~ "SPEI9: extreme wet",
-                                            Variable %in% "richness:spei9_categoryExtreme wet" ~ "richness x SPEI9: extreme wet",
+                                            Variable %in% "dominant_relative_abund_zero:spei9_categoryExtreme wet" ~ "dominance x SPEI9: extreme wet",
                                             .default = Variable)),
          Variable_labels = fct_reorder(Variable_labels, as.numeric(Variable)),
          # get significances and their plotting location (perhaps necessary to play with the +/- offset)
@@ -376,58 +432,108 @@ resil_N_fig<-plot_ece_9_cn%>%
   theme_bw()
 
 
+#resilience including prior year spei9
+resil_prior<-lmer(log(resilience)~richness*dominant_relative_abund_zero+prior_year_spei9+nitrogen+richness:nitrogen+evar+
+                 dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                 evar:nitrogen+evar:spei9_category+spei9_category+nitrogen:spei9_category+(1|site/experiment/uniqueid)
+               +(1|year), data=plot_ece_9_cn_prior, REML=F)
+summary(resil_prior)
+anova(resil_prior)
+resil_prior1<-lmer(log(resilience)~richness*dominant_relative_abund_zero+prior_year_spei9+nitrogen+richness:nitrogen+evar+
+                    dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                    evar:spei9_category+spei9_category+nitrogen:spei9_category+(1|site/experiment/uniqueid)
+                  +(1|year), data=plot_ece_9_cn_prior, REML=F)
+summary(resil_prior1)
+resil_prior2<-lmer(log(resilience)~richness+dominant_relative_abund_zero+prior_year_spei9+nitrogen+richness:nitrogen+evar+
+                     dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                     evar:spei9_category+spei9_category+nitrogen:spei9_category+(1|site/experiment/uniqueid)
+                   +(1|year), data=plot_ece_9_cn_prior, REML=F)
+summary(resil_prior2)
+resil_prior3<-lmer(log(resilience)~richness+dominant_relative_abund_zero+prior_year_spei9+nitrogen+evar+
+                     dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                     evar:spei9_category+spei9_category+nitrogen:spei9_category+(1|site/experiment/uniqueid)
+                   +(1|year), data=plot_ece_9_cn_prior, REML=F)
+summary(resil_prior3)
+resil_prior4<-lmer(log(resilience)~richness+dominant_relative_abund_zero+prior_year_spei9+nitrogen+evar+
+                     dominant_relative_abund_zero:nitrogen+dominant_relative_abund_zero:spei9_category+
+                     evar:spei9_category+spei9_category+nitrogen:spei9_category+(1|site/experiment/uniqueid)
+                   +(1|year), data=plot_ece_9_cn_prior, REML=F)
+summary(resil_prior4)
+resil_prior5<-lmer(log(resilience)~richness+dominant_relative_abund_zero+prior_year_spei9+nitrogen+evar+
+                     dominant_relative_abund_zero:nitrogen+dominant_relative_abund_zero:spei9_category+
+                     spei9_category+nitrogen:spei9_category+(1|site/experiment/uniqueid)
+                   +(1|year), data=plot_ece_9_cn_prior, REML=F)
+summary(resil_prior5)
+resil_prior6<-lmer(log(resilience)~richness*dominant_relative_abund_zero*spei9_category+prior_year_spei9+nitrogen+evar+
+                     dominant_relative_abund_zero:nitrogen+dominant_relative_abund_zero:spei9_category+
+                     nitrogen:spei9_category+(1|site/experiment/uniqueid)
+                   +(1|year), data=plot_ece_9_cn_prior, REML=F)
+summary(resil_prior6)
+resil_prior7<-lmer(log(resilience)~richness*dominant_relative_abund_zero*spei9_category+prior_year_spei9+nitrogen+evar+
+                     dominant_relative_abund_zero:spei9_category+
+                     nitrogen:spei9_category+(1|site/experiment/uniqueid)
+                   +(1|year), data=plot_ece_9_cn_prior, REML=F)
+summary(resil_prior7)
+anova(resil_prior7)
+resil_prior8<-lmer(log(resilience)~richness*dominant_relative_abund_zero*spei9_category+prior_year_spei9+nitrogen+evar+
+                     dominant_relative_abund_zero:spei9_category+
+                     (1|site/experiment/uniqueid)
+                   +(1|year), data=plot_ece_9_cn_prior, REML=F)
+summary(resil_prior8)
+anova(resil_prior8)#may need to investigate further-three way interaction similar to model without prior year spei9
+anova(resil_prior8,resil_prior7,resil_prior6,resil_prior5,resil_prior4,resil_prior3,resil_prior2,resil_prior1,resil_prior)
+
 #Analysis of resilience with control and nitrogen####
 resil_cn<-lmer(log(resilience)~richness*dominant_relative_abund_zero+nitrogen+richness:nitrogen+evar+
                  dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
                  evar:nitrogen+evar:spei9_category+spei9_category+nitrogen:spei9_category+(1|site/experiment/uniqueid)
-               +(1|year), data=plot_ece_9_cn, REML=F)
+               +(1|year), data=plot_ece_9_cn_prior, REML=F)
 summary(resil_cn)
 anova(resil_cn)
 #model update
-resil_cn1<-lmer(log(resilience)~richness*dominant_relative_abund_zero+nitrogen+richness:nitrogen+evar+
-                  dominant_relative_abund_zero:nitrogen+richness:spei9_category+
+resil_cn1<-lmer(log(resilience)~richness+dominant_relative_abund_zero+nitrogen+richness:nitrogen+evar+
+                  dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
                   evar:nitrogen+evar:spei9_category+spei9_category+nitrogen:spei9_category+(1|site/experiment/uniqueid)
-                +(1|year), data=plot_ece_9_cn, REML=F)
+                +(1|year), data=plot_ece_9_cn_prior, REML=F)
 anova(resil_cn1)
 #model update
-resil_cn2<-lmer(log(resilience)~richness*dominant_relative_abund_zero+nitrogen+richness:nitrogen+evar+
-                  richness:spei9_category+
-                  evar:nitrogen+evar:spei9_category+spei9_category+nitrogen:spei9_category+(1|site/experiment/uniqueid)
-                +(1|year), data=plot_ece_9_cn, REML=F)
+resil_cn2<-lmer(log(resilience)~richness+dominant_relative_abund_zero+nitrogen+richness:nitrogen+evar+
+                  dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                  +evar:spei9_category+spei9_category+nitrogen:spei9_category+(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn_prior, REML=F)
 anova(resil_cn2)
 #model update
-resil_cn3<-lmer(log(resilience)~richness*dominant_relative_abund_zero+nitrogen+evar+
-                  richness:spei9_category+
-                  evar:nitrogen+evar:spei9_category+spei9_category+nitrogen:spei9_category+(1|site/experiment/uniqueid)
-                +(1|year), data=plot_ece_9_cn, REML=F)
+resil_cn3<-lmer(log(resilience)~richness*dominant_relative_abund_zero+nitrogen+richness:nitrogen+evar+
+                  dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                  +spei9_category+nitrogen:spei9_category+(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn_prior, REML=F)
 anova(resil_cn3)
 #model update
 resil_cn4<-lmer(log(resilience)~richness*dominant_relative_abund_zero+nitrogen+evar+
-                  richness:spei9_category+
-                  evar:nitrogen+evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
-                +(1|year), data=plot_ece_9_cn, REML=F)
+                  richness:spei9_category+evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn_prior, REML=F)
 anova(resil_cn4)
+summary(resil_cn4)
 #model update
 resil_cn5<-lmer(log(resilience)~richness*dominant_relative_abund_zero+nitrogen+evar+
-                  richness:spei9_category+
-                  evar:nitrogen+spei9_category+(1|site/experiment/uniqueid)
-                +(1|year), data=plot_ece_9_cn, REML=F)
+                  richness:spei9_category+spei9_category+(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn_prior, REML=F)
 anova(resil_cn5)
 summary(resil_cn5)
 
 #model update
-resil_cn6<-lmer(log(resilience)~richness*dominant_relative_abund_zero+nitrogen+evar+
-                  richness:spei9_category+
-                  spei9_category+(1|site/experiment/uniqueid)
-                +(1|year), data=plot_ece_9_cn, REML=F)
+resil_cn6<-lmer(log(resilience)~richness*dominant_relative_abund_zero*spei9_category+nitrogen+evar+
+                  +(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn_prior, REML=F)
 anova(resil_cn6)
+summary(resil_cn6)
 #model selection with likelihood ratio
 anova(resil_cn6,resil_cn5,resil_cn4,resil_cn3,resil_cn2,resil_cn1,resil_cn)
 #since the model output multiple two way interaction, we decided to include a meaningful three way interaction
 #model update
 resil_cn7<-lmer(log(resilience)~richness*dominant_relative_abund_zero*spei9_category+nitrogen+evar+
        (1|site/experiment/uniqueid)
-     +(1|year), data=plot_ece_9_cn, REML=F)
+     +(1|year), data=plot_ece_9_cn_prior, REML=F)
 anova(resil_cn7)
 #model selection
 anova(resil_cn7, resil_cn6)
@@ -435,7 +541,7 @@ anova(resil_cn7, resil_cn6)
 #refit with REML
 resil_cn8<-lmer(log(resilience)~richness*dominant_relative_abund_zero*spei9_category+nitrogen+evar+
                   (1|site/experiment/uniqueid)
-                +(1|year), data=plot_ece_9_cn)
+                +(1|year), data=plot_ece_9_cn_prior)
 
 anova(resil_cn8)
 summary(resil_cn8)
@@ -445,7 +551,7 @@ plot(simres)
 #include resistance as a covariate in the model to test if things change
 resil_cn_test<-lmer(log(resilience)~richness*dominant_relative_abund_zero*spei9_category+nitrogen+evar+
                   resistance+(1|site/experiment/uniqueid)
-                +(1|year), data=plot_ece_9_cn)
+                +(1|year), data=plot_ece_9_cn_prior)
 anova(resil_cn_test)#similar with or without resistance
 
 #plot best model for reilience####
@@ -472,10 +578,18 @@ ggpredict(model = resil_cn8, terms = "dominant_relative_abund_zero", back_transf
 res_rich_plot + resis_domin_plot& plot_annotation(tag_levels = 'A')
 resil_model_plot& plot_annotation(tag_levels = 'A')
 
-
+#refit model with prior year before event####
+resil_cn9<-lmer(log(resilience)~prior_year_rich*prior_year_dom_zero*spei9_category+
+                       nitrogen+prior_year_evar+(1|site/experiment/uniqueid)
+                     +(1|year), data=plot_ece_9_cn)
+summary(resil_cn9)
+anova(resil_cn9)
+simres <- simulateResiduals(resil_cn9)
+plot(simres)
+check_model(resis_spei9_m4)
 #create effect size plot from resilience model
 resil_cn8_std <- update(resil_cn8, 
-                        data = plot_ece_9_cn %>% 
+                        data = plot_ece_9_cn_prior %>% 
                           mutate(richness = scale(richness),
                                  evar = scale(evar),
                                  dominant_relative_abund_zero = scale(dominant_relative_abund_zero),
@@ -535,7 +649,29 @@ resil_estim_plot<-coef(summary(resil_cn8_std)) %>%
 #combine resistance and resilience effect size figure####
 resis_estim_plot+resil_estim_plot & plot_annotation(tag_levels = 'A')
 
-# Subset to only have control plots
+#runing model for just control using community metrics from year before event#### 
+#filetr for only control plots
+plot_ece_9_c_prior<-plot_ece_9_cn_prior%>%
+  filter(nitrogen=="no_fertilizer")
+
+#analysis of nutrient and climate event category on resistance####
+resis_c<-lmer(log(resistance)~spei9_category+(1|site/experiment/uniqueid)
+                  +(1|year), data=plot_ece_9_c_prior)
+anova(resis_c)
+summary(resis_c)
+simres <- simulateResiduals(resis_c)
+plot(simres)
+
+resis_c_fig<-plot_ece_9_c_prior%>%
+  ggplot(aes(x=spei9_category, y=log(resistance)))+
+  stat_summary(fun.data=mean_cl_boot, position=position_dodge(0.2))+
+  theme_bw()
+
+
+
+
+
+# Subset to only have control plots####
 plot_ece_control <- plot_ece_rm_na %>%
   filter(treatment == "control")
 plot_ece_9_control <- plot_ece_9_cn %>%

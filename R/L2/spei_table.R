@@ -1225,6 +1225,13 @@ plot_model(
 # Simple model
 lrr.lm9sub2 <- lmer(LRR ~ spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr9sub)
 summary(lrr.lm9sub2)
+emm_biomass <- emmeans(lrr.lm9sub2, pairwise ~ spei9_category * nitrogen)
+summary(emm_biomass)
+joint_tests(lrr.lm9sub2, by = "spei9_category")
+joint_tests(lrr.lm9sub2, by = "nitrogen")
+pairs(emm_biomass, simple = "nitrogen")
+pairs(emm_biomass, simple = "spei9_category")
+pairs(emm_biomass)
 simres <- simulateResiduals(lrr.lm9sub2)
 plot(simres)
 
@@ -1232,7 +1239,7 @@ plot_model(
   lrr.lm9sub2,
   type = "pred",
   terms= c("spei9_category", "nitrogen"),
-  show.data = F
+  show.data = T
 ) + theme_bw()
 
 ## Final LRR plot for ANPP ----
@@ -1273,6 +1280,12 @@ lrr9sub_rich <- plot_sub_lrr9_rich %>%
 
 lrr.lm9sub_rich <- lmer(LRR ~ spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr9sub_rich)
 summary(lrr.lm9sub_rich)
+emm_rich <- emmeans(lrr.lm9sub_rich, ~ spei9_category * nitrogen)
+summary(emm_rich)
+joint_tests(lrr.lm9sub_rich, by = "spei9_category")
+joint_tests(lrr.lm9sub_rich, by = "nitrogen")
+pairs(emm_rich, simple = "nitrogen")
+pairs(emm_rich, simple = "spei9_category")
 simres <- simulateResiduals(lrr.lm9sub_rich)
 plot(simres)
 
@@ -1291,6 +1304,13 @@ rich_plot <- lrr9sub_rich %>%
   labs(x = "Event type", y = "Richness LRR") +
   theme(legend.position="none") +
   scale_color_manual(values = cols)
+
+plot_model(
+  lrr.lm9sub_rich,
+  type = "pred",
+  terms= c("spei9_category", "nitrogen"),
+  show.data = F
+) + theme_bw()
 
 # LRR for dominance (NO ZEROS!!!)
 plot_sub_lrr9_dom <- plot_n_sub %>%
@@ -1312,6 +1332,12 @@ lrr9sub_dom <- plot_sub_lrr9_dom %>%
 
 lrr.lm9sub_dom <- lmer(LRR ~ spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr9sub_dom)
 summary(lrr.lm9sub_dom)
+emm_dom <- emmeans(lrr.lm9sub_dom, ~ spei9_category * nitrogen)
+summary(emm_dom)
+joint_tests(lrr.lm9sub_dom, by = "spei9_category")
+joint_tests(lrr.lm9sub_dom, by = "nitrogen")
+pairs(emm_dom, simple = "nitrogen")
+pairs(emm_dom, simple = "spei9_category")
 simres <- simulateResiduals(lrr.lm9sub_dom)
 plot(simres)
 
@@ -1332,6 +1358,12 @@ dom_plot <- lrr9sub_dom %>%
   scale_shape_manual(values = c(19, 17), labels = c('no nutrients', 'nutrients')) +
   theme(legend.title=element_blank())
 
+plot_model(
+  lrr.lm9sub_dom,
+  type = "pred",
+  terms= c("spei9_category", "nitrogen"),
+  show.data = F
+) + theme_bw()
 
 # LRR for dominance (Top 7 species) 
 # Andropogon gerardii/Andropogon gerardi (typo), Elymus repens, Poa pratensis, Schizachyrium scoparium, Solidago canadensis, Sorghastrum nutans

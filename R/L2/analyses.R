@@ -450,7 +450,7 @@ emtrends(resis_cn9, var = "dominant_relative_abund_zero", specs = c("spei9_categ
                      xmax = dominant_relative_abund_zero.trend+SE),
                  height = 0.2) +
   geom_text(aes(label = stars, x = star_location, y = spei9_category)) +
-  labs(x = "Dominance effect", y = "", title="log(resistance)")
+  labs(x = "Dominance effect \u00B1 SE", y = "", title="log(resistance)")
 
 ggeffect(resis_cn9, terms = c("richness", "spei9_category")) %>%
   data.frame() %>%

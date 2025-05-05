@@ -433,14 +433,24 @@ resis_estim_plot<-coef(summary(resis_cn8_std)) %>%
 library(emmeans)
 library(ggeffects)
 
-emtrends(resis_cn9, var = "richness", specs = c("spei9_category"), infer = T) %>%
+emtrends(resis_cn9, var = "dominant_relative_abund_zero", specs = c("spei9_category"), infer = T) %>%
   data.frame() %>%
+  mutate(stars = case_when(p.value < 0.001 ~ "***",
+                           p.value > 0.001 & p.value < 0.01 ~"**",
+                           p.value > 0.01 & p.value < 0.05 ~ "*",
+                           p.value > 0.05 & p.value < 0.09 ~ ".",
+                           p.value > 0.09 ~ ""),
+         star_location = case_when(z.ratio < 0 ~ dominant_relative_abund_zero.trend - SE - 0.05,
+                                   z.ratio > 0 ~ dominant_relative_abund_zero.trend + SE + 0.05)) %>%
   
-  ggplot(aes(y = spei9_category, x = richness.trend)) +
+  ggplot(aes(y = spei9_category, x = dominant_relative_abund_zero.trend)) +
   geom_point() +
   geom_vline(xintercept = 0) +
-  geom_errorbarh(aes(xmin = richness.trend-SE, xmax = richness.trend+SE), height = 0.2) +
-  labs(x = "Richness effect")
+  geom_errorbarh(aes(xmin = dominant_relative_abund_zero.trend-SE,
+                     xmax = dominant_relative_abund_zero.trend+SE),
+                 height = 0.2) +
+  geom_text(aes(label = stars, x = star_location, y = spei9_category)) +
+  labs(x = "Dominance effect", y = "", title="log(resistance)")
 
 ggeffect(resis_cn9, terms = c("richness", "spei9_category")) %>%
   data.frame() %>%

@@ -234,13 +234,14 @@ manipulated_n_exp = plot_ece_meta %>% filter (!is.na(nitrogen_amount))  %>% dist
 
 # get subset file for SEM:
 plot_ece_meta_selSEM_init = plot_ece_9_cn %>% 
-  select (site, experiment, uniqueid,spei9_category,spei9, nutrients_grouped , evar,
+  select (site, experiment, uniqueid,spei9_category,spei9, prior_year_spei9,nutrients_grouped , evar,
           richness,dominant_relative_abund_zero,resistance,resilience) #%>%  # only rows we care about
   #filter (  nutrients_grouped != "N" )  # experiment %in%  manipulated_n_exp[,1] 
 
 plot_ece_meta_selSEM = plot_ece_meta_selSEM_init[complete.cases(plot_ece_meta_selSEM_init ) ,]
 plot_ece_meta_selSEM$spei9_category = as.factor(plot_ece_meta_selSEM$spei9_category)
 plot_ece_meta_selSEM$spei9_abs = abs(plot_ece_meta_selSEM$spei9)
+plot_ece_meta_selSEM$prior_year_spei9_abs = abs(plot_ece_meta_selSEM$prior_year_spei9)
 
 table(plot_ece_meta_selSEM$nutrients_grouped)
 plot_ece_meta_selSEM$nut_dummy = case_when(plot_ece_meta_selSEM$nutrients_grouped =="no_fertilizer" ~ 0,
@@ -274,15 +275,13 @@ df <- plot_ece_meta_selSEM %>%
   )
 
 # SCALE!!
-df[,c("richness", "dominant_relative_abund_zero", "evar", "spei9_abs",
+df[,c("richness", "dominant_relative_abund_zero", "evar", "spei9_abs", "prior_year_spei9_abs","prior_year_spei9",
       "resistance", "resilience","log_resistance", "log_resilience")] <- 
-  scale(df[,c("richness", "dominant_relative_abund_zero", "evar", "spei9_abs",
+  scale(df[,c("richness", "dominant_relative_abund_zero", "evar", "spei9_abs", "prior_year_spei9_abs", "prior_year_spei9",
               "resistance", "resilience","log_resistance", "log_resilience")])
 
 #df[,c("richness", "dominant_relative_abund_zero", "evar", "spei9_abs")] <- 
 #  scale(df[,c("richness", "dominant_relative_abund_zero", "evar", "spei9_abs")])
-
-df$eventSite = paste(df$spei9_category, df$site)
 
 names(df)
 head(df)
@@ -346,30 +345,7 @@ hist(df$spei9_abs)
 
 # this is the model !!!!!!
 seraina_all <- psem(
-  lmer(log_resistance ~ spei9_abs +richness + dominant_relative_abund_zero + evar +nut_dummy+ +  (1|site/experiment/uniqueid),
-       data = df ),
-  lmer(richness ~ nut_dummy +  (1|site/experiment/uniqueid),
-       data = df),
-  lmer(dominant_relative_abund_zero ~ nut_dummy +   (1|site/experiment/uniqueid),
-       data = df), 
-  lmer(evar ~ nut_dummy +  (1|site/experiment/uniqueid),
-       data = df), 
-  
-  lmer(log_resilience ~ spei9_abs + richness + dominant_relative_abund_zero +evar + nut_dummy +  (1|site/experiment/uniqueid),
-       data = df ) ,
-  
-  richness %~~% evar, 
-  richness %~~% dominant_relative_abund_zero, 
-  evar %~~% dominant_relative_abund_zero, 
-  log_resistance %~~% log_resilience,
-  
-  data = df
-)
-length(unique(df$experiment))
-
-
-seraina_legacy <- psem(
-  lmer(log_resistance ~ spei9_abs +richness + dominant_relative_abund_zero + evar +nut_dummy+ +  (1|site/experiment/uniqueid),
+  lmer(log_resistance ~ spei9_abs +richness + dominant_relative_abund_zero + evar +nut_dummy+  (1|site/experiment/uniqueid),
        data = df ),
   lmer(richness ~ nut_dummy +  (1|site/experiment/uniqueid),
        data = df),
@@ -389,15 +365,43 @@ seraina_legacy <- psem(
   data = df
 )
 
-
- summary(seraina_all)
+summary(seraina_all)
 
 plot(seraina_all)
 multigroup2(seraina_all, group = "spei9_category")
 plot(multigroup$group.coefs)
 
-df$eventSite
-multigroup2(seraina_all, group = "eventSite")
+
+
+
+seraina_legacy <- psem(
+  lmer(log_resistance ~ spei9_abs + prior_year_spei9 + richness + dominant_relative_abund_zero + evar +nut_dummy  +(1|site/experiment/uniqueid),
+       data = df ),
+  lmer(richness ~ nut_dummy + prior_year_spei9 + (1|site/experiment/uniqueid),
+       data = df),
+  lmer(dominant_relative_abund_zero ~ nut_dummy +  prior_year_spei9 + (1|site/experiment/uniqueid),
+       data = df), 
+  lmer(evar ~ nut_dummy + prior_year_spei9 + (1|site/experiment/uniqueid),
+       data = df), 
+  
+  lmer(log_resilience ~ spei9_abs + prior_year_spei9 +richness + dominant_relative_abund_zero +evar + nut_dummy +    (1|site/experiment/uniqueid),
+       data = df ) ,
+  
+  richness %~~% evar, 
+  richness %~~% dominant_relative_abund_zero, 
+  evar %~~% dominant_relative_abund_zero, 
+  log_resistance %~~% log_resilience,
+  
+  data = df
+)
+
+summary(seraina_legacy)
+
+plot(seraina_all)
+multigroup2(seraina_legacy, group = "spei9_category")
+plot(multigroup$group.coefs)
+
+ 
 
 #  separate models ....
 

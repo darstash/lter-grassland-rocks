@@ -439,9 +439,9 @@ seraina_dry <- psem(
   lmer(log_resilience ~ spei9_abs + richness + dominant_relative_abund_zero +evar + nut_dummy +  (1|site/experiment/uniqueid),
        data = df_dry ) ,
   
-  #richness %~~% evar, 
+  richness %~~% evar,
   richness %~~% dominant_relative_abund_zero, 
- # evar %~~% dominant_relative_abund_zero, 
+ evar %~~% dominant_relative_abund_zero,
   log_resistance %~~% log_resilience,
   
   data = df_dry
@@ -537,9 +537,9 @@ seraina_wet <- psem(
   lmer(log_resilience ~ spei9_abs+richness + dominant_relative_abund_zero + nut_dummy+ evar +(1|site/experiment/uniqueid),
        data = df_wet ) ,
   
-  #richness %~~% evar, 
+  richness %~~% evar,
   richness %~~% dominant_relative_abund_zero, 
-  #evar %~~% dominant_relative_abund_zero,
+  evar %~~% dominant_relative_abund_zero,
   log_resistance %~~% log_resilience,
   
   data = df_wet
@@ -564,9 +564,9 @@ seraina_wet3 <- psem(
   lmer(resilience ~ richness + dominant_relative_abund_zero + nut_dummy+ evar +(1|site/experiment/uniqueid),
        data = df_wet ) ,
   
-  #richness %~~% evar, 
+  richness %~~% evar,
   richness %~~% dominant_relative_abund_zero, 
-  #evar %~~% dominant_relative_abund_zero,
+  evar %~~% dominant_relative_abund_zero,
   resistance %~~% resilience,
   
   data = df_wet

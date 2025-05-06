@@ -234,7 +234,7 @@ manipulated_n_exp = plot_ece_meta %>% filter (!is.na(nitrogen_amount))  %>% dist
 
 # get subset file for SEM:
 plot_ece_meta_selSEM_init = plot_ece_9_cn %>% 
-  select (site, experiment, uniqueid,spei9_category,spei9, nutrients_grouped , evar,
+  select (site, experiment, uniqueid,spei9_category,spei9, prior_year_spei9, nutrients_grouped , evar,
           richness,dominant_relative_abund_zero,resistance,resilience) #%>%  # only rows we care about
   #filter (  nutrients_grouped != "N" )  # experiment %in%  manipulated_n_exp[,1] 
 
@@ -274,9 +274,9 @@ df <- plot_ece_meta_selSEM %>%
   )
 
 # SCALE!!
-df[,c("richness", "dominant_relative_abund_zero", "evar", "spei9_abs",
+df[,c("richness", "dominant_relative_abund_zero", "evar", "spei9_abs", "prior_year_spei9",
       "resistance", "resilience","log_resistance", "log_resilience")] <- 
-  scale(df[,c("richness", "dominant_relative_abund_zero", "evar", "spei9_abs",
+  scale(df[,c("richness", "dominant_relative_abund_zero", "evar", "spei9_abs", "prior_year_spei9",
               "resistance", "resilience","log_resistance", "log_resilience")])
 
 #df[,c("richness", "dominant_relative_abund_zero", "evar", "spei9_abs")] <- 

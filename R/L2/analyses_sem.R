@@ -222,7 +222,7 @@ table(plot_ece_9_rm_na$nutrients_added)
 
 
 ##### SEM #####
-library(piecewiseSEM)
+library(piecewiseSEM, lavaan)
 source( paste(getwd(), "/R/L2/SEM custom functions.R", sep = ""))
 
 names(plot_ece_9_cn)
@@ -288,6 +288,318 @@ names(df)
 head(df)
 plot(plot_ece_meta_selSEM$richness, df$richness)
 
+
+df_dry <- df %>% filter(spei9_category %in% "Extreme dry")
+df_wet <- df %>% filter(spei9_category %in% "Extreme wet")
+
+
+
+
+##################################### #
+# Full SEM (without legacy effect) ####
+##################################### #
+
+
+## piecewise SEM ####
+#-------------------#
+
+### multigroup ####
+# this is our main model, but it doesn't yet include the legacy effect of past spei.
+
+model1 <- psem(
+  lmer(log_resistance ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|site/experiment/uniqueid),
+       data = df ),
+  lmer(log_resilience ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|site/experiment/uniqueid),
+       data = df ) ,
+  lmer(richness ~                                                                    nut_dummy + (1|site/experiment/uniqueid),
+       data = df),
+  lmer(dominant_relative_abund_zero ~                                                nut_dummy + (1|site/experiment/uniqueid),
+       data = df), 
+  lmer(evar ~                                                                        nut_dummy + (1|site/experiment/uniqueid),
+       data = df), 
+  
+  richness %~~% evar, 
+  richness %~~% dominant_relative_abund_zero, 
+  evar %~~% dominant_relative_abund_zero, 
+  log_resistance %~~% log_resilience,
+  
+  data = df
+)
+
+summary(model1)
+multigroup2(model1,  group = "spei9_category")
+
+
+
+### dry ####
+# this is the same model as model 1, but fitted to the dry subset of the data
+# this is done to get the R2 and the covariances
+
+model1_dry <- psem(
+  lmer(log_resistance ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|site/experiment/uniqueid),
+       data = df_dry ),
+  lmer(log_resilience ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|site/experiment/uniqueid),
+       data = df_dry) ,
+  lmer(richness ~                                                                    nut_dummy + (1|site/experiment/uniqueid),
+       data = df_dry),
+  lmer(dominant_relative_abund_zero ~                                                nut_dummy + (1|site/experiment/uniqueid),
+       data = df_dry), 
+  lmer(evar ~                                                                        nut_dummy + (1|site/experiment/uniqueid),
+       data = df_dry), 
+  
+  richness %~~% evar, 
+  richness %~~% dominant_relative_abund_zero, 
+  evar %~~% dominant_relative_abund_zero, 
+  log_resistance %~~% log_resilience,
+  
+  data = df_dry
+)
+
+summary(model1_dry)
+
+
+### wet ####
+# this is the same model as model 1, but fitted to the wet subset of the data
+# this is done to get the R2 and the covariances
+
+model1_wet <- psem(
+  lmer(log_resistance ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|site/experiment/uniqueid),
+       data = df_wet ),
+  lmer(log_resilience ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|site/experiment/uniqueid),
+       data = df_wet) ,
+  lmer(richness ~                                                                    nut_dummy + (1|site/experiment/uniqueid),
+       data = df_wet),
+  lmer(dominant_relative_abund_zero ~                                                nut_dummy +  (1|site/experiment/uniqueid),
+       data = df_wet), 
+  lmer(evar ~                                                                        nut_dummy + (1|site/experiment/uniqueid),
+       data = df_wet), 
+  
+  richness %~~% evar, 
+  richness %~~% dominant_relative_abund_zero, 
+  evar %~~% dominant_relative_abund_zero, 
+  log_resistance %~~% log_resilience,
+  
+  data = df_wet
+)
+
+summary(model1_wet)
+
+
+## lavaan ####
+#------------#
+model1_lavaan <- '
+# effects
+log_resistance               ~ nut_dummy + spei9_abs + richness + dominant_relative_abund_zero + evar
+log_resilience               ~ nut_dummy + spei9_abs + richness + dominant_relative_abund_zero + evar
+richness                     ~ c("sr_nu")*nut_dummy 
+dominant_relative_abund_zero ~ c("do_nu")*nut_dummy 
+evar                         ~ c("ev_nu")*nut_dummy 
+
+# correlations (by default constrained)
+richness                     ~~ c("sr_ev", "sr_ev") * evar
+evar                         ~~ c("ev_do", "ev_do") * dominant_relative_abund_zero
+dominant_relative_abund_zero ~~ c("do_sr", "do_sr") * richness
+log_resistance               ~~ log_resilience'
+
+
+model1_lavaan_fit <- sem(model1_lavaan, data = df, group = "spei9_category")
+
+test_constraints(fit = model1_lavaan_fit, groups_constrain = c(1,2)) %>%
+  mutate(stars = case_when(pValue < 0.001 ~ "***",
+                           pValue > 0.001 & pValue < 0.01 ~ "**",
+                           pValue > 0.01 & pValue < 0.05 ~ "*",
+                           pValue > 0.05 & pValue < 0.1 ~".",
+                           .default =""))
+
+model1_lavaan_c <- '
+# effects
+log_resistance               ~ c("rs_nu", "rs_nu") * nut_dummy +                       spei9_abs + c("rs_sr", "rs_sr") * richness + c("rs_do", "rs_do") * dominant_relative_abund_zero + c("rs_ev", "rs_ev") * evar
+log_resilience               ~                       nut_dummy +                       spei9_abs + c("rl_sr", "rl_sr") * richness + c("rl_do", "rl_do") * dominant_relative_abund_zero + c("rl_ev", "rl_ev") * evar # resilience ~ spei is marginally significant, but if I constrain it, there is a difference between the final constrained and fully unconstrained model
+richness                     ~ c("sr_nu")*nut_dummy 
+dominant_relative_abund_zero ~ c("do_nu")*nut_dummy 
+evar                         ~ c("ev_nu")*nut_dummy 
+
+# correlations (by default constrained)
+richness                     ~~ c("sr_ev", "sr_ev") * evar
+evar                         ~~ c("ev_do", "ev_do") * dominant_relative_abund_zero
+dominant_relative_abund_zero ~~ c("do_sr", "do_sr") * richness
+log_resistance               ~~ log_resilience' 
+
+model1_lavaan_fit_c <- sem(model1_lavaan_c, data = df, group = "spei9_category")
+
+anova(model1_lavaan_fit, model1_lavaan_fit_c) 
+
+fitmeasures(model1_lavaan_fit,  c("df", "AIC", "pvalue", "RMSEA", "CFI", "SRMR")) 
+# good fit when
+# p value > 0.05
+# rmsea   < 0.05
+# cfi     > 0.96 (0.90)
+# srmr    < 0.08
+
+summary(model1_lavaan_fit_c, rsquare=T)
+
+################################## #
+# Full SEM (with legacy effect) ####
+################################## #
+
+## piecewise SEM ####
+#-------------------#
+
+### multigroup ####
+# this is our second model, it includes the legacy effect of past spei.
+
+model2 <- psem(
+  lmer(log_resistance ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + prior_year_spei9 + (1|site/experiment/uniqueid),
+       data = df ),
+  lmer(log_resilience ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + prior_year_spei9 + (1|site/experiment/uniqueid),
+       data = df ) ,
+  lmer(richness ~                                                                    nut_dummy +                    (1|site/experiment/uniqueid),
+       data = df),
+  lmer(dominant_relative_abund_zero ~                                                nut_dummy +                    (1|site/experiment/uniqueid),
+       data = df), 
+  lmer(evar ~                                                                        nut_dummy +                    (1|site/experiment/uniqueid),
+       data = df), 
+  
+  richness %~~% evar, 
+  richness %~~% dominant_relative_abund_zero, 
+  evar %~~% dominant_relative_abund_zero, 
+  log_resistance %~~% log_resilience,
+  
+  data = df
+)
+
+summary(model2)
+multigroup2(model2,  group = "spei9_category")
+
+
+
+### dry ####
+# this is the same model as model 2, but fitted to the dry subset of the data
+# this is done to get the R2 and the covariances
+
+model2_dry <- psem(
+  lmer(log_resistance ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + prior_year_spei9 + (1|site/experiment/uniqueid),
+       data = df_dry ),
+  lmer(log_resilience ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + prior_year_spei9 + (1|site/experiment/uniqueid),
+       data = df_dry) ,
+  lmer(richness ~                                                                    nut_dummy +                    (1|site/experiment/uniqueid),
+       data = df_dry),
+  lmer(dominant_relative_abund_zero ~                                                nut_dummy +                    (1|site/experiment/uniqueid),
+       data = df_dry), 
+  lmer(evar ~                                                                        nut_dummy +                    (1|site/experiment/uniqueid),
+       data = df_dry), 
+  
+  richness %~~% evar, 
+  richness %~~% dominant_relative_abund_zero, 
+  evar %~~% dominant_relative_abund_zero, 
+  log_resistance %~~% log_resilience,
+  
+  data = df_dry
+)
+
+summary(model2_dry)
+
+
+### wet ####
+# this is the same model as model 2, but fitted to the wet subset of the data
+# this is done to get the R2 and the covariances
+
+model2_wet <- psem(
+  lmer(log_resistance ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + prior_year_spei9 + (1|site/experiment/uniqueid),
+       data = df_wet ),
+  lmer(log_resilience ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + prior_year_spei9 + (1|site/experiment/uniqueid),
+       data = df_wet) ,
+  lmer(richness ~                                                                    nut_dummy +                    (1|site/experiment/uniqueid),
+       data = df_wet),
+  lmer(dominant_relative_abund_zero ~                                                nut_dummy +                    (1|site/experiment/uniqueid),
+       data = df_wet), 
+  lmer(evar ~                                                                        nut_dummy +                    (1|site/experiment/uniqueid),
+       data = df_wet), 
+  
+  richness %~~% evar, 
+  richness %~~% dominant_relative_abund_zero, 
+  evar %~~% dominant_relative_abund_zero, 
+  log_resistance %~~% log_resilience,
+  
+  data = df_wet
+)
+
+summary(model2_wet)
+
+
+
+## lavaan ####
+#------------#
+model2_lavaan <- '
+# effects
+log_resistance               ~ nut_dummy + spei9_abs + richness + dominant_relative_abund_zero + evar + prior_year_spei9
+log_resilience               ~ nut_dummy + spei9_abs + richness + dominant_relative_abund_zero + evar + prior_year_spei9
+richness                     ~ c("sr_nu")*nut_dummy 
+dominant_relative_abund_zero ~ c("do_nu")*nut_dummy 
+evar                         ~ c("ev_nu")*nut_dummy 
+
+# correlations (by default constrained)
+richness                     ~~ c("sr_ev", "sr_ev") * evar
+evar                         ~~ c("ev_do", "ev_do") * dominant_relative_abund_zero
+dominant_relative_abund_zero ~~ c("do_sr", "do_sr") * richness
+log_resistance               ~~ log_resilience'
+
+
+model2_lavaan_fit <- sem(model2_lavaan, data = df, group = "spei9_category")
+
+test_constraints(fit = model2_lavaan_fit, groups_constrain = c(1,2)) %>%
+  mutate(stars = case_when(pValue < 0.001 ~ "***",
+                           pValue > 0.001 & pValue < 0.01 ~ "**",
+                           pValue > 0.01 & pValue < 0.05 ~ "*",
+                           pValue > 0.05 & pValue < 0.1 ~".",
+                           .default =""))
+
+model2_lavaan_c <- '
+# effects
+log_resistance               ~ c("rs_nu", "rs_nu") * nut_dummy + c("rs_sp", "rs_sp") * spei9_abs + c("rs_sr", "rs_sr") * richness + c("rs_do", "rs_do") * dominant_relative_abund_zero + c("rs_ev", "rs_ev") * evar + prior_year_spei9
+log_resilience               ~                       nut_dummy +                       spei9_abs + c("rl_sr", "rl_sr") * richness + c("rl_do", "rl_do") * dominant_relative_abund_zero + c("rl_ev", "rl_ev") * evar + prior_year_spei9# resilience ~ spei is marginally significant, but if I constrain it, there is a difference between the final constrained and fully unconstrained model
+richness                     ~ c("sr_nu")*nut_dummy 
+dominant_relative_abund_zero ~ c("do_nu")*nut_dummy 
+evar                         ~ c("ev_nu")*nut_dummy 
+
+# correlations (by default constrained)
+richness                     ~~ c("sr_ev", "sr_ev") * evar
+evar                         ~~ c("ev_do", "ev_do") * dominant_relative_abund_zero
+dominant_relative_abund_zero ~~ c("do_sr", "do_sr") * richness
+log_resistance               ~~ log_resilience' 
+
+model2_lavaan_fit_c <- sem(model2_lavaan_c, data = df, group = "spei9_category")
+
+anova(model2_lavaan_fit, model2_lavaan_fit_c) 
+
+fitmeasures(model2_lavaan_fit,  c("df", "AIC", "pvalue", "RMSEA", "CFI", "SRMR")) 
+# good fit when
+# p value > 0.05
+# rmsea   < 0.05
+# cfi     > 0.96 (0.90)
+# srmr    < 0.08
+
+summary(model2_lavaan_fit_c, rsquare=T)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+################################################################################
+################################################################################
+
+# old (some overlap with before) #####
 seraina_resist <- psem(
   lm(log_resistance ~ spei9_abs +richness + dominant_relative_abund_zero + evar + nut_dummy,
      data = df ),

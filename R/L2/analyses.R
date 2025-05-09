@@ -356,6 +356,98 @@ summary(resis_cn10)
 simres <- simulateResiduals(resis_cn10)
 plot(simres)
 
+# ASHLEY ###################################################
+#including spei9 intensity interactions
+plot_ece_9_cn_prior_rm <- plot_ece_9_cn_prior %>%
+  drop_na(richness, dominant_relative_abund_zero, evar)
+plot_ece_9_cn_prior <- plot_ece_9_cn_prior %>%
+  mutate(abs_spei9 = abs(spei9))
+
+resis_cn10.full2 <- lmer(log(resistance)~richness*spei9_category*abs(spei9) + dominant_relative_abund_zero*spei9_category*abs(spei9) + richness*dominant_relative_abund_zero*nitrogen + evar + (1|site/experiment/uniqueid)+(1|year), data=plot_ece_9_cn_prior_rm, REML = F, na.action = na.fail)
+summary(resis_cn10.full2)
+
+# Force model to include all fixed effects
+# dredge(resis_cn10.full2, fixed = c("richness", "dominant_relative_abund_zero", "spei9_category", "nitrogen", "spei9", "evar"), trace = 2)
+
+# Best model abs(sp9):rch, abs(sp9):sp9_ctg, dmn_rlt_abn_zer:sp9_ctg, rch:sp9_ctg, abs(sp9):rch:sp9_ctg, 
+# Second best model ADDED dmn_rlt_abn_zer:rch interaction
+
+# Best model
+resis_cn11 <- lmer(log(resistance) ~ richness*spei9_category*abs_spei9 + dominant_relative_abund_zero*spei9_category + nitrogen + evar + (1|site/experiment/uniqueid) + (1|year), data = plot_ece_9_cn_prior)
+summary(resis_cn11)
+anova(resis_cn11)
+
+ggpredict(model = resis_cn11, terms = c("richness", "abs_spei9", "spei9_category"), back_transform = F) %>%
+  plot(show_data = T)
+
+ggpredict(model = resis_cn11, terms = c("dominant_relative_abund_zero", "spei9_category"), back_transform = F) %>%
+  plot(show_data = T)
+
+#modified from Seraina
+resis_cn11_std <- update(resis_cn11, 
+                        data = plot_ece_9_cn_prior %>% 
+                          mutate(richness = scale(richness),
+                                 evar = scale(evar),
+                                 dominant_relative_abund_zero = scale(dominant_relative_abund_zero),
+                                 abs_spei9 = scale(abs_spei9)))
+
+resis_estim_plot_11 <-coef(summary(resis_cn11_std)) %>%
+  data.frame() %>%
+  rownames_to_column("Variable") %>%
+  rename("SE" = "Std..Error",
+         "p" = "Pr...t..") %>%
+  # order things neatly
+  mutate(Variable = factor(Variable,
+                           levels = c("(Intercept)",
+                                      "richness",
+                                      "dominant_relative_abund_zero",
+                                      "evar",
+                                      "nitrogenno_fertilizer",
+                                      "spei9_categoryExtreme wet",
+                                      "abs_spei9",
+                                      "spei9_categoryExtreme wet:abs_spei9",
+                                      "richness:spei9_categoryExtreme wet", 
+                                      "richness:abs_spei9",
+                                      "richness:spei9_categoryExtreme wet:abs_spei9",
+                                      "spei9_categoryExtreme wet:dominant_relative_abund_zero")),
+         # cosmetics in the names
+         Variable_labels = factor(case_when(Variable %in% "(Intercept)" ~ "intercept",
+                                            Variable %in% "evar" ~ "evenness",
+                                            Variable %in% "dominant_relative_abund_zero" ~ "dominant abundance",
+                                            Variable %in% "nitrogenno_fertilizer" ~ "no fertilizer",
+                                            Variable %in% "spei9_categoryExtreme wet" ~ "SPEI9: extreme wet",
+                                            Variable %in% "abs_spei9" ~ "|SPEI9|",
+                                            Variable %in% "spei9_categoryExtreme wet:abs_spei9" ~ "|SPEI9| x SPEI9: extreme wet",
+                                            Variable %in% "richness:spei9_categoryExtreme wet" ~ "richness x SPEI9: extreme wet",
+                                            Variable %in% "richness:abs_spei9" ~ "richness x |SPEI9|",
+                                            Variable %in% "richness:spei9_categoryExtreme wet:abs_spei9" ~ "richness x |SPEI9| x SPEI9: extreme wet",
+                                            Variable %in% "spei9_categoryExtreme wet:dominant_relative_abund_zero" ~ "dominance x SPEI9: extreme wet",
+                                            .default = Variable)),
+         Variable_labels = fct_reorder(Variable_labels, as.numeric(Variable)),
+         # get significances and their plotting location (perhaps necessary to play with the +/- offset)
+         stars = case_when(p < 0.001 ~ "***",
+                           p > 0.001 & p <0.01 ~ "**",
+                           p > 0.01  & p < 0.05 ~ "*",
+                           p > 0.05 & p <0.1 ~ ".",
+                           .default = ""),
+         stars_location = case_when(Estimate < 0 ~ Estimate - SE - 0.1,
+                                    Estimate > 0 ~ Estimate + SE + 0.1)
+  ) %>%
+  filter(Variable!="(Intercept)")%>%
+  
+  ggplot(aes(y = Variable_labels, x = Estimate)) +
+  theme_bw() +
+  theme(axis.title.y = element_blank()) +
+  labs(title = "log(resistance)",
+       x = "estimate \u00B1 se") +
+  scale_y_discrete(limits = rev) +
+  geom_vline(xintercept = 0) +
+  geom_point()+
+  geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2) +
+  geom_text(aes(x = stars_location, label = stars))
+##################################################################
+
+
 #plot best model for resistance####
 res_rich_plot<-ggpredict(model = resis_cn9, terms = c("richness", "spei9_category"), back_transform = F ) %>%
   plot(show_data = TRUE)+

@@ -31,6 +31,7 @@ list.files(L2_dir)
 # Read in CSV files ----
 plot_spei <- read.csv(file.path(L2_dir, "plot_metrics_SPEI_diversity.csv")) # why are there more plots than spei without diversity?
 metadata <- read.csv(file.path(L2_dir, "metadata.csv"))
+ece <- read.csv(file.path(L2_dir, "ece_resist_resil_spei9.csv"))
 
 # Make sure spei category is a factor
 str(plot_spei)
@@ -58,6 +59,7 @@ plot_filter <- plot_spei %>%
          higher_order_organization != "RaMPs_Block3")
 x <- plot_filter %>% group_by(site, year, uniqueid, higher_order_organization) %>% summarize(count = n())
 plot_trt <- left_join(plot_filter, metadata_filter)
+
 
 # Look at SPEI plots for each site in the range the data exist
 spei_summary %>%
@@ -1420,7 +1422,7 @@ lrr9sub_ev %>%
   geom_hline(yintercept=0, linetype='dashed', col = 'black')+
   theme_bw()
 
-## Final LRR plot ----
+## Final LRR plot version 1 ----
 anpp_plot + rich_plot + dom_plot & plot_annotation(tag_levels = 'A')
 
 # Using SPEI12
@@ -1615,4 +1617,77 @@ plot_model(
   terms= c("abs_spei12", "spei12_category", "nitrogen"),
   show.data = TRUE
 )
+
+# Resistance ----
+# Weird NAs... resistance values that we don't have plots for (maybe filtered out plots)
+ece <- distinct(ece)
+ece <-ece %>%
+  rename(year = ex_year)
+ece$year <- as.factor(ece$year)
+plot_ece <- right_join(plot_n_sub, ece)
+plot_ece <- plot_ece %>%
+  filter(!is.na(spei9_category))
+
+resist.lm9 <- lmer(log(resistance) ~ spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = plot_ece)
+summary(resist.lm9)
+emm_resist <- emmeans(resist.lm9, pairwise ~ spei9_category * nitrogen, infer = T)
+summary(emm_resist)
+simres <- simulateResiduals(resist.lm9)
+plot(simres)
+
+plot_model(
+  resist.lm9,
+  type = "pred",
+  terms= c("spei9_category", "nitrogen"),
+  show.data = F
+) + theme_bw()
+
+plot_ece %>%
+  ggplot(aes(x = spei9_category, y = log(resistance), col = spei9_category)) +
+  stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2), aes(shape = nitrogen)) + 
+  theme_bw() +
+  scale_color_manual(values = cols)
+
+resist_plot <- plot_ece %>%
+  mutate(nitrogen = relevel(as.factor(nitrogen), 'no_fertilizer', 'nitrogen')) %>%
+  ggplot(aes(x = spei9_category, y = log(resistance), col = spei9_category)) +
+  stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2), aes(shape = nitrogen)) + 
+  theme_bw() +
+  labs(x = "Event type", y = "ln(resistance)") +
+  theme(legend.position="none") +
+  scale_color_manual(values = cols)
+
+# Resilience ----
+resil.lm9 <- lmer(log(resilience) ~ spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = plot_ece)
+summary(resil.lm9)
+emm_resil <- emmeans(resil.lm9, pairwise ~ spei9_category * nitrogen, infer = T)
+summary(emm_resil)
+simres <- simulateResiduals(resil.lm9)
+plot(simres)
+
+plot_model(
+  resil.lm9,
+  type = "pred",
+  terms= c("spei9_category", "nitrogen"),
+  show.data = F
+) + theme_bw()
+
+plot_ece %>%
+  ggplot(aes(x = spei9_category, y = log(resilience), col = spei9_category)) +
+  stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2), aes(shape = nitrogen)) + 
+  theme_bw() +
+  scale_color_manual(values = cols)
+
+resil_plot <- plot_ece %>%
+  mutate(nitrogen = relevel(as.factor(nitrogen), 'no_fertilizer', 'nitrogen')) %>%
+  ggplot(aes(x = spei9_category, y = log(resilience), col = spei9_category)) +
+  stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2), aes(shape = nitrogen)) + 
+  theme_bw() +
+  labs(x = "Event type", y = "ln(resilience)") +
+  theme(legend.position="none") +
+  scale_color_manual(values = cols)
+
+# Final LRR plot version 2 ----
+anpp_plot + resist_plot + resil_plot + rich_plot + dom_plot + guide_area() + plot_layout(guides = 'collect') & plot_annotation(tag_levels = 'A') 
+
 

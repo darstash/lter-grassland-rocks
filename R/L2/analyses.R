@@ -703,6 +703,110 @@ resil_cn_spei9_1<-lmer(log(resilience)~richness*dominant_relative_abund_zero*spe
 
 anova(resil_cn_spei9_1)#may need more investigation
 
+# ASHLEY ###################################################
+#including spei9 intensity interactions
+plot_ece_9_cn_prior_rm <- plot_ece_9_cn_prior %>%
+  drop_na(richness, dominant_relative_abund_zero, evar)
+plot_ece_9_cn_prior <- plot_ece_9_cn_prior %>%
+  mutate(abs_spei9 = abs(spei9))
+
+resil_cn_spei9.full <- lmer(log(resilience)~richness*spei9_category*abs(spei9) + dominant_relative_abund_zero*spei9_category*abs(spei9) + richness*dominant_relative_abund_zero*nitrogen + evar + (1|site/experiment/uniqueid)+(1|year), data=plot_ece_9_cn_prior_rm, REML = F, na.action = na.fail)
+summary(resil_cn_spei9.full)
+
+# Force model to include all fixed effects
+dredge(resil_cn_spei9.full, fixed = c("richness", "dominant_relative_abund_zero", "spei9_category", "nitrogen", "spei9", "evar"), trace = 2)
+
+# Best model abs(sp9):rch, abs(sp9):sp9_ctg, dmn_rlt_abn_zer:ntr, ntr:rch, rch:sp9_ctg, abs(sp9):rch:sp9_ctg
+# Second best model drops ntr:rch (this is actually the best -- less dfs,  delta < 2)
+
+# Without forcing spei9
+dredge(resil_cn_spei9.full, fixed = c("richness", "dominant_relative_abund_zero", "spei9_category", "nitrogen", "evar"), trace = 2)
+
+# Same models come out as best
+
+# Best model
+resil_cn_spei9_2 <- lmer(log(resilience) ~ richness*spei9_category*abs_spei9 + dominant_relative_abund_zero*nitrogen + evar + (1|site/experiment/uniqueid) + (1|year), data = plot_ece_9_cn_prior)
+summary(resil_cn_spei9_2)
+anova(resil_cn_spei9_2)
+
+# Try to add resistance as covariate
+resil_cn_spei9_3 <- lmer(log(resilience) ~ richness*spei9_category*abs_spei9 + dominant_relative_abund_zero*nitrogen + evar + log(resistance) + (1|site/experiment/uniqueid) + (1|year), data = plot_ece_9_cn_prior)
+summary(resil_cn_spei9_3)
+
+ggpredict(model = resil_cn_spei9_3, terms = c("richness", "abs_spei9", "spei9_category"), back_transform = F) %>%
+  plot(show_data = T)
+
+ggpredict(model = resil_cn_spei9_3, terms = c("dominant_relative_abund_zero", "nitrogen"), back_transform = F) %>%
+  plot(show_data = T)
+
+ggpredict(model = resil_cn_spei9_3, terms = c("richness"), back_transform = F) %>%
+  plot(show_data = T)
+
+#modified from Seraina
+resil_cn_spei9_2_std <- update(resil_cn_spei9_2, 
+                         data = plot_ece_9_cn_prior %>% 
+                           mutate(richness = scale(richness),
+                                  evar = scale(evar),
+                                  dominant_relative_abund_zero = scale(dominant_relative_abund_zero),
+                                  abs_spei9 = scale(abs_spei9)))
+
+resil_estim_plot_spei9_2 <-coef(summary(resil_cn_spei9_2_std)) %>%
+  data.frame() %>%
+  rownames_to_column("Variable") %>%
+  rename("SE" = "Std..Error",
+         "p" = "Pr...t..") %>%
+  # order things neatly
+  mutate(Variable = factor(Variable,
+                           levels = c("(Intercept)",
+                                      "richness",
+                                      "dominant_relative_abund_zero",
+                                      "evar",
+                                      "nitrogenno_fertilizer",
+                                      "spei9_categoryExtreme wet",
+                                      "abs_spei9",
+                                      "spei9_categoryExtreme wet:abs_spei9",
+                                      "richness:spei9_categoryExtreme wet", 
+                                      "richness:abs_spei9",
+                                      "richness:spei9_categoryExtreme wet:abs_spei9",
+                                      "dominant_relative_abund_zero:nitrogenno_fertilizer")),
+         # cosmetics in the names
+         Variable_labels = factor(case_when(Variable %in% "(Intercept)" ~ "intercept",
+                                            Variable %in% "evar" ~ "evenness",
+                                            Variable %in% "dominant_relative_abund_zero" ~ "dominant abundance",
+                                            Variable %in% "nitrogenno_fertilizer" ~ "no fertilizer",
+                                            Variable %in% "spei9_categoryExtreme wet" ~ "SPEI9: extreme wet",
+                                            Variable %in% "abs_spei9" ~ "|SPEI9|",
+                                            Variable %in% "spei9_categoryExtreme wet:abs_spei9" ~ "|SPEI9| x SPEI9: extreme wet",
+                                            Variable %in% "richness:spei9_categoryExtreme wet" ~ "richness x SPEI9: extreme wet",
+                                            Variable %in% "richness:abs_spei9" ~ "richness x |SPEI9|",
+                                            Variable %in% "richness:spei9_categoryExtreme wet:abs_spei9" ~ "richness x |SPEI9| x SPEI9: extreme wet",
+                                            Variable %in% "dominant_relative_abund_zero:nitrogenno_fertilizer" ~ "dominance x nutrients: no fertilizer",
+                                            .default = Variable)),
+         Variable_labels = fct_reorder(Variable_labels, as.numeric(Variable)),
+         # get significances and their plotting location (perhaps necessary to play with the +/- offset)
+         stars = case_when(p < 0.001 ~ "***",
+                           p > 0.001 & p <0.01 ~ "**",
+                           p > 0.01  & p < 0.05 ~ "*",
+                           p > 0.05 & p <0.1 ~ ".",
+                           .default = ""),
+         stars_location = case_when(Estimate < 0 ~ Estimate - SE - 0.1,
+                                    Estimate > 0 ~ Estimate + SE + 0.1)
+  ) %>%
+  filter(Variable!="(Intercept)")%>%
+  
+  ggplot(aes(y = Variable_labels, x = Estimate)) +
+  theme_bw() +
+  theme(axis.title.y = element_blank()) +
+  labs(title = "log(resilience)",
+       x = "estimate \u00B1 se") +
+  scale_y_discrete(limits = rev) +
+  geom_vline(xintercept = 0) +
+  geom_point()+
+  geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2) +
+  geom_text(aes(x = stars_location, label = stars))
+##################################################################
+
+
 #plot best model for reilience####
 ggpredict(model = resil_cn8, terms = c("richness", "dominant_relative_abund_zero","spei9_category"), back_transform = F ) %>%
   plot(show_data = TRUE)+

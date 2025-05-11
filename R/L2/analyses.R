@@ -268,21 +268,9 @@ resis_cn6<-lmer(log(resistance)~richness+dominant_relative_abund_zero+nitrogen+e
                   spei9_category+(1|site/experiment/uniqueid)
                 +(1|year), data=plot_ece_9_cn_prior, REML=F)
 anova(resis_cn6)
-#model update
-resis_cn7<-lmer(log(resistance)~richness+dominant_relative_abund_zero+nitrogen+
-                  dominant_relative_abund_zero:spei9_category+
-                  spei9_category+(1|site/experiment/uniqueid)
-                +(1|year), data=plot_ece_9_cn_prior, REML=F)
-anova(resis_cn7)
-#model update
-resis_cn8<-lmer(log(resistance)~richness+dominant_relative_abund_zero+
-                  dominant_relative_abund_zero:spei9_category+
-                  spei9_category+(1|site/experiment/uniqueid)
-                +(1|year), data=plot_ece_9_cn_prior, REML=F)
-anova(resis_cn8)
 
 #model selection with likelihood ratio
-anova(resis_cn,resis_cn1,resis_cn2,resis_cn3,resis_cn4,resis_cn5,resis_cn6,resis_cn7)
+anova(resis_cn,resis_cn1,resis_cn2,resis_cn3,resis_cn4,resis_cn5,resis_cn6)
 #resis_cn7 is the best model
 #refit best model with REML
 resis_cn9<-lmer(log(resistance)~richness+dominant_relative_abund_zero+nitrogen+evar+
@@ -290,21 +278,10 @@ resis_cn9<-lmer(log(resistance)~richness+dominant_relative_abund_zero+nitrogen+e
                   spei9_category+(1|site/experiment/uniqueid)
                 +(1|year), data=plot_ece_9_cn_prior)
 
-anova(resis_cn9)
+anova(resis_cn9)#just need a table
 summary(resis_cn9)
 simres <- simulateResiduals(resis_cn9)
 plot(simres)
-#including spei9 intensity
-resis_cn10<-lmer(log(resistance)~richness+dominant_relative_abund_zero+nitrogen+evar+
-                  dominant_relative_abund_zero:spei9_category+spei9+spei9:spei9_category+
-                  spei9_category+(1|site/experiment/uniqueid)
-                +(1|year), data=plot_ece_9_cn_prior)
-
-anova(resis_cn10)
-summary(resis_cn10)
-simres <- simulateResiduals(resis_cn10)
-plot(simres)
-
 
 #including prior spei9 as covariate####
 resis_prior<-lmer(log(resistance)~richness*dominant_relative_abund_zero+prior_year_spei9+nitrogen+richness:nitrogen+evar+
@@ -357,6 +334,133 @@ resis_prior7<-lmer(log(resistance)~richness+dominant_relative_abund_zero+prior_y
                      spei9_category+(1|site/experiment/uniqueid)
                    +(1|year), data=plot_ece_9_cn_prior, REML=F)
 anova(resis_prior7)#no major changes from model without prior year spei9
+
+
+#examine wet and dry separately based on the combined model####
+plot_ece_9_cn_prior_wet<-plot_ece_9_cn_prior%>%
+  filter(spei9_category=="Extreme wet")
+plot_ece_9_cn_prior_dry<-plot_ece_9_cn_prior%>%
+  filter(spei9_category=="Extreme dry")
+
+#model for extreme wet####
+resis_wet<-lmer(log(resistance)~richness+dominant_relative_abund_zero+nitrogen+evar+
+                  dominant_relative_abund_zero+
+                  (1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn_prior_wet)
+anova(resis_wet)
+summary(resis_wet)#dominance showed positively significant 
+simres <- simulateResiduals(resis_wet)
+plot(simres)
+
+#modified from Seraina
+resis_wet_std <- update(resis_wet, 
+                         data = plot_ece_9_cn_prior_wet %>% 
+                           mutate(richness = scale(richness),
+                                  evar = scale(evar),
+                                  dominant_relative_abund_zero = scale(dominant_relative_abund_zero),
+                                  ))
+
+resis_estim_wet <-coef(summary(resis_wet_std)) %>%
+  data.frame() %>%
+  rownames_to_column("Variable") %>%
+  rename("SE" = "Std..Error",
+         "p" = "Pr...t..") %>%
+  # order things neatly
+  mutate(Variable = factor(Variable,
+                           levels = c("(Intercept)",
+                                      "richness",
+                                      "dominant_relative_abund_zero",
+                                      "evar",
+                                      "nitrogenno_fertilizer"
+                                      )),
+         # cosmetics in the names
+         Variable_labels = factor(case_when(Variable %in% "(Intercept)" ~ "intercept",
+                                            Variable %in% "evar" ~ "evenness",
+                                            Variable %in% "dominant_relative_abund_zero" ~ "dominant abundance",
+                                            Variable %in% "nitrogenno_fertilizer" ~ "no fertilizer",
+                                            .default = Variable)),
+         Variable_labels = fct_reorder(Variable_labels, as.numeric(Variable)),
+         # get significances and their plotting location (perhaps necessary to play with the +/- offset)
+         stars = case_when(p < 0.001 ~ "***",
+                           p > 0.001 & p <0.01 ~ "**",
+                           p > 0.01  & p < 0.05 ~ "*",
+                           p > 0.05 & p <0.1 ~ ".",
+                           .default = ""),
+         stars_location = case_when(Estimate < 0 ~ Estimate - SE - 0.1,
+                                    Estimate > 0 ~ Estimate + SE + 0.1)
+  ) %>%
+  filter(Variable!="(Intercept)")%>%
+  
+  ggplot(aes(y = Variable_labels, x = Estimate)) +
+  theme_bw() +
+  theme(axis.title.y = element_blank()) +
+  labs(title = "log(resistance)",
+       x = "estimate \u00B1 se") +
+  scale_y_discrete(limits = rev) +
+  geom_vline(xintercept = 0) +
+  geom_point()+
+  geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2) +
+  geom_text(aes(x = stars_location, label = stars))
+
+#model for extreme dry####
+resis_dry<-lmer(log(resistance)~richness+dominant_relative_abund_zero+nitrogen+evar+
+                  dominant_relative_abund_zero+
+                  (1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn_prior_dry)
+anova(resis_dry)
+summary(resis_dry)#dominance showed positively significant 
+simres <- simulateResiduals(resis_dry)
+plot(simres)#need to examine this further!
+
+#effect size figure for extreme dry
+resis_dry_std <- update(resis_dry, 
+                       data = plot_ece_9_cn_prior_dry %>% 
+                         mutate(richness = scale(richness),
+                                evar = scale(evar),
+                                dominant_relative_abund_zero = scale(dominant_relative_abund_zero),
+                         ))
+
+resis_estim_dry <-coef(summary(resis_dry_std)) %>%
+  data.frame() %>%
+  rownames_to_column("Variable") %>%
+  rename("SE" = "Std..Error",
+         "p" = "Pr...t..") %>%
+  # order things neatly
+  mutate(Variable = factor(Variable,
+                           levels = c("(Intercept)",
+                                      "richness",
+                                      "dominant_relative_abund_zero",
+                                      "evar",
+                                      "nitrogenno_fertilizer"
+                           )),
+         # cosmetics in the names
+         Variable_labels = factor(case_when(Variable %in% "(Intercept)" ~ "intercept",
+                                            Variable %in% "evar" ~ "evenness",
+                                            Variable %in% "dominant_relative_abund_zero" ~ "dominant abundance",
+                                            Variable %in% "nitrogenno_fertilizer" ~ "no fertilizer",
+                                            .default = Variable)),
+         Variable_labels = fct_reorder(Variable_labels, as.numeric(Variable)),
+         # get significances and their plotting location (perhaps necessary to play with the +/- offset)
+         stars = case_when(p < 0.001 ~ "***",
+                           p > 0.001 & p <0.01 ~ "**",
+                           p > 0.01  & p < 0.05 ~ "*",
+                           p > 0.05 & p <0.1 ~ ".",
+                           .default = ""),
+         stars_location = case_when(Estimate < 0 ~ Estimate - SE - 0.1,
+                                    Estimate > 0 ~ Estimate + SE + 0.1)
+  ) %>%
+  filter(Variable!="(Intercept)")%>%
+  
+  ggplot(aes(y = Variable_labels, x = Estimate)) +
+  theme_bw() +
+  theme(axis.title.y = element_blank()) +
+  labs(title = "log(resistance)",
+       x = "estimate \u00B1 se") +
+  scale_y_discrete(limits = rev) +
+  geom_vline(xintercept = 0) +
+  geom_point()+
+  geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2) +
+  geom_text(aes(x = stars_location, label = stars))
 
 # ASHLEY ###################################################
 #including spei9 intensity interactions
@@ -647,46 +751,201 @@ resil_cn3<-lmer(log(resilience)~richness*dominant_relative_abund_zero+nitrogen+r
                   +spei9_category+nitrogen:spei9_category+(1|site/experiment/uniqueid)
                 +(1|year), data=plot_ece_9_cn_prior, REML=F)
 anova(resil_cn3)
+
 #model update
 resil_cn4<-lmer(log(resilience)~richness*dominant_relative_abund_zero+nitrogen+evar+
-                  richness:spei9_category+evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
+                  dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                  +spei9_category+nitrogen:spei9_category+(1|site/experiment/uniqueid)
                 +(1|year), data=plot_ece_9_cn_prior, REML=F)
 anova(resil_cn4)
-summary(resil_cn4)
 #model update
-resil_cn5<-lmer(log(resilience)~richness*dominant_relative_abund_zero+nitrogen+evar+
-                  richness:spei9_category+spei9_category+(1|site/experiment/uniqueid)
+resil_cn5<-lmer(log(resilience)~richness+dominant_relative_abund_zero+nitrogen+evar+
+                  dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+                  +spei9_category+nitrogen:spei9_category+(1|site/experiment/uniqueid)
                 +(1|year), data=plot_ece_9_cn_prior, REML=F)
 anova(resil_cn5)
-summary(resil_cn5)
-
 #model update
-resil_cn6<-lmer(log(resilience)~richness*dominant_relative_abund_zero*spei9_category+nitrogen+evar+
-                  +(1|site/experiment/uniqueid)
+resil_cn6<-lmer(log(resilience)~richness+dominant_relative_abund_zero+nitrogen+evar+
+                  dominant_relative_abund_zero:nitrogen+dominant_relative_abund_zero:spei9_category+
+                  +spei9_category+nitrogen:spei9_category+(1|site/experiment/uniqueid)
                 +(1|year), data=plot_ece_9_cn_prior, REML=F)
 anova(resil_cn6)
-summary(resil_cn6)
+
 #model selection with likelihood ratio
 anova(resil_cn6,resil_cn5,resil_cn4,resil_cn3,resil_cn2,resil_cn1,resil_cn)
+
+#refit model with REML
+resil_cn7<-lmer(log(resilience)~richness+dominant_relative_abund_zero+nitrogen+evar+
+                  dominant_relative_abund_zero:nitrogen+dominant_relative_abund_zero:spei9_category+
+                  +spei9_category+nitrogen:spei9_category+(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn_prior)
+anova(resil_cn7)#consider removing years with sequential extreme events
+sims<-simulateResiduals(resil_cn7)
+plot(sims)
+
+#alternative model updates-Ignore 
+resil_cn8<-lmer(log(resilience)~richness*dominant_relative_abund_zero+nitrogen+evar+
+                  richness:spei9_category+evar:spei9_category+spei9_category+(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn_prior, REML=F)
+anova(resil_cn8)
+summary(resil_cn8)
+#model update
+resil_cn9<-lmer(log(resilience)~richness*dominant_relative_abund_zero+nitrogen+evar+
+                  richness:spei9_category+spei9_category+(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn_prior, REML=F)
+anova(resil_cn9)
+summary(resil_cn9)
+
+#model update
+resil_cn10<-lmer(log(resilience)~richness*dominant_relative_abund_zero*spei9_category+nitrogen+evar+
+                  +(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn_prior, REML=F)
+anova(resil_cn10)
+summary(resil_cn10)
+
 #since the model output multiple two way interaction, we decided to include a meaningful three way interaction
 #model update
-resil_cn7<-lmer(log(resilience)~richness*dominant_relative_abund_zero*spei9_category+nitrogen+evar+
+resil_cn11<-lmer(log(resilience)~richness*dominant_relative_abund_zero*spei9_category+nitrogen+evar+
        (1|site/experiment/uniqueid)
      +(1|year), data=plot_ece_9_cn_prior, REML=F)
-anova(resil_cn7)
+anova(resil_cn11)
 #model selection
-anova(resil_cn7, resil_cn6)
+anova(resil_cn11, resil_cn6)
 
 #refit with REML
-resil_cn8<-lmer(log(resilience)~richness*dominant_relative_abund_zero*spei9_category+nitrogen+evar+
+resil_cn12<-lmer(log(resilience)~richness*dominant_relative_abund_zero*spei9_category+nitrogen+evar+
                   (1|site/experiment/uniqueid)
                 +(1|year), data=plot_ece_9_cn_prior)
 
-anova(resil_cn8)
-summary(resil_cn8)
+anova(resil_cn12)
+summary(resil_cn12)
 #model diagnostics
-simres <- simulateResiduals(resil_cn8)
+simres <- simulateResiduals(resil_cn12)
 plot(simres)
+
+#resilience wet####
+resil_wet<-lmer(log(resilience)~richness+dominant_relative_abund_zero+nitrogen+evar+
+                  dominant_relative_abund_zero:nitrogen+(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn_prior_wet)
+anova(resil_wet)
+summary(resil_wet)
+sims<-simulateResiduals(resil_wet)
+plot(sims)
+
+#modified from Seraina
+resil_wet_std <- update(resil_wet, 
+                        data = plot_ece_9_cn_prior_wet %>% 
+                          mutate(richness = scale(richness),
+                                 evar = scale(evar),
+                                 dominant_relative_abund_zero = scale(dominant_relative_abund_zero),
+                          ))
+
+resil_estim_wet<-coef(summary(resil_wet_std)) %>%
+  data.frame() %>%
+  rownames_to_column("Variable") %>%
+  rename("SE" = "Std..Error",
+         "p" = "Pr...t..") %>%
+  # order things neatly
+  mutate(Variable = factor(Variable,
+                           levels = c("(Intercept)",
+                                      "richness",
+                                      "dominant_relative_abund_zero",
+                                      "evar",
+                                      "nitrogenno_fertilizer",
+                                      "dominant_relative_abund_zero:nitrogenno_fertilizer")),
+         # cosmetics in the names
+         Variable_labels = factor(case_when(Variable %in% "(Intercept)" ~ "intercept",
+                                            Variable %in% "evar" ~ "evenness",
+                                            Variable %in% "dominant_relative_abund_zero" ~ "dominant abundance",
+                                            Variable %in% "nitrogenno_fertilizer" ~ "no fertilizer",
+                                            Variable %in% "spei9_categoryExtreme wet" ~ "SPEI9: extreme wet",
+                                            Variable %in% "dominant_relative_abund_zero:nitrogenno_fertilizer" ~ "dominant:no fertilizer",
+                                            .default = Variable)),
+         Variable_labels = fct_reorder(Variable_labels, as.numeric(Variable)),
+         # get significances and their plotting location (perhaps necessary to play with the +/- offset)
+         stars = case_when(p < 0.001 ~ "***",
+                           p > 0.001 & p <0.01 ~ "**",
+                           p > 0.01  & p < 0.05 ~ "*",
+                           p > 0.05 & p <0.1 ~ ".",
+                           .default = ""),
+         stars_location = case_when(Estimate < 0 ~ Estimate - SE - 0.1,
+                                    Estimate > 0 ~ Estimate + SE + 0.1)
+  ) %>%
+  filter(Variable!="(Intercept)")%>%
+  
+  ggplot(aes(y = Variable_labels, x = Estimate)) +
+  theme_bw() +
+  theme(axis.title.y = element_blank()) +
+  labs(title = "log(resilience)",
+       x = "estimate \u00B1 se") +
+  scale_y_discrete(limits = rev) +
+  geom_vline(xintercept = 0) +
+  geom_point()+
+  geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2) +
+  geom_text(aes(x = stars_location, label = stars))
+
+#resilience dry####
+resil_dry<-lmer(log(resilience)~richness+dominant_relative_abund_zero+nitrogen+evar+
+                  dominant_relative_abund_zero:nitrogen+(1|site/experiment/uniqueid)
+                +(1|year), data=plot_ece_9_cn_prior_dry)
+anova(resil_dry)
+summary(resil_dry)
+sims<-simulateResiduals(resil_dry)#further investigations?
+plot(sims)
+
+#modified from Seraina
+resil_dry_std <- update(resil_dry, 
+                        data = plot_ece_9_cn_prior_dry %>% 
+                          mutate(richness = scale(richness),
+                                 evar = scale(evar),
+                                 dominant_relative_abund_zero = scale(dominant_relative_abund_zero),
+                          ))
+
+resil_estim_dry<-coef(summary(resil_dry_std)) %>%
+  data.frame() %>%
+  rownames_to_column("Variable") %>%
+  rename("SE" = "Std..Error",
+         "p" = "Pr...t..") %>%
+  # order things neatly
+  mutate(Variable = factor(Variable,
+                           levels = c("(Intercept)",
+                                      "richness",
+                                      "dominant_relative_abund_zero",
+                                      "evar",
+                                      "nitrogenno_fertilizer",
+                                      "dominant_relative_abund_zero:nitrogenno_fertilizer")),
+         # cosmetics in the names
+         Variable_labels = factor(case_when(Variable %in% "(Intercept)" ~ "intercept",
+                                            Variable %in% "evar" ~ "evenness",
+                                            Variable %in% "dominant_relative_abund_zero" ~ "dominant abundance",
+                                            Variable %in% "nitrogenno_fertilizer" ~ "no fertilizer",
+                                            Variable %in% "spei9_categoryExtreme wet" ~ "SPEI9: extreme wet",
+                                            Variable %in% "dominant_relative_abund_zero:nitrogenno_fertilizer" ~ "dominant:no fertilizer",
+                                            .default = Variable)),
+         Variable_labels = fct_reorder(Variable_labels, as.numeric(Variable)),
+         # get significances and their plotting location (perhaps necessary to play with the +/- offset)
+         stars = case_when(p < 0.001 ~ "***",
+                           p > 0.001 & p <0.01 ~ "**",
+                           p > 0.01  & p < 0.05 ~ "*",
+                           p > 0.05 & p <0.1 ~ ".",
+                           .default = ""),
+         stars_location = case_when(Estimate < 0 ~ Estimate - SE - 0.1,
+                                    Estimate > 0 ~ Estimate + SE + 0.1)
+  ) %>%
+  filter(Variable!="(Intercept)")%>%
+  
+  ggplot(aes(y = Variable_labels, x = Estimate)) +
+  theme_bw() +
+  theme(axis.title.y = element_blank()) +
+  labs(title = "log(resilience)",
+       x = "estimate \u00B1 se") +
+  scale_y_discrete(limits = rev) +
+  geom_vline(xintercept = 0) +
+  geom_point()+
+  geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2) +
+  geom_text(aes(x = stars_location, label = stars))
+
+
 #include resistance as a covariate in the model to test if things change
 resil_cn_test<-lmer(log(resilience)~richness*dominant_relative_abund_zero*spei9_category+nitrogen+evar+
                   resistance+(1|site/experiment/uniqueid)

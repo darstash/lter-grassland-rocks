@@ -330,6 +330,14 @@ summary(model1)
 multigroup2(model1,  group = "spei9_category")
 
 
+model1_all_sum = summary(model1, intercepts = T)
+model1_all_sum_paths = model1_all_sum$dTable %>% as.data.frame()
+model1_all_sum$dTable$Independ.Claim
+model1_all_sum_table = model1_all_sum$coefficients %>% as.data.frame()
+model1_all_sum_table$model = "All_no_legacy"
+model1_all_sum_paths$model = "All_no_legacy"
+
+
 
 ### dry ####
 # this is the same model as model 1, but fitted to the dry subset of the data
@@ -357,6 +365,13 @@ model1_dry <- psem(
 
 summary(model1_dry, intercepts = T)
 
+model1_dry_sum = summary(model1_dry, intercepts = T)
+model1_dry_sum_paths = model1_dry_sum$dTable %>% as.data.frame()
+model1_dry_sum_table = model1_dry_sum$coefficients %>% as.data.frame()
+model1_dry_sum_table$model = "Dry_no_legacy"
+model1_dry_sum_paths$model = "Dry_no_legacy"
+
+
 
 ### wet ####
 # this is the same model as model 1, but fitted to the wet subset of the data
@@ -383,7 +398,11 @@ model1_wet <- psem(
 )
 
 summary(model1_wet, intercepts = T)
-
+model1_wet_sum = summary(model1_wet, intercepts = T)
+model1_wet_sum_paths = model1_wet_sum$dTable %>% as.data.frame()
+model1_wet_sum_table = model1_wet_sum$coefficients %>% as.data.frame()
+model1_wet_sum_table$model = "Wet_no_legacy"
+model1_wet_sum_paths$model = "Wet_no_legacy"
 
 ## lavaan ####
 #------------#
@@ -471,6 +490,13 @@ model2 <- psem(
 summary(model2)
 multigroup2(model2,  group = "spei9_category")
 
+model2_all_sum = summary(model2, intercepts = T)
+model2_all_sum_paths = model2_all_sum$dTable %>% as.data.frame()
+model2_all_sum_table = model2_all_sum$coefficients %>% as.data.frame()
+model2_all_sum_table$model = "All_legacy"
+model2_all_sum_paths$model = "All_legacy"
+
+
 
 
 ### dry ####
@@ -499,6 +525,12 @@ model2_dry <- psem(
 
 summary(model2_dry, intercepts = T)
 
+model2_dry_sum = summary(model2_dry, intercepts = T)
+model2_dry_sum_paths = model2_dry_sum$dTable %>% as.data.frame()
+model2_dry_sum_table = model2_dry_sum$coefficients %>% as.data.frame()
+model2_dry_sum_table$model = "Dry_legacy"
+model2_dry_sum_paths$model = "Dry_legacy"
+
 
 ### wet ####
 # this is the same model as model 2, but fitted to the wet subset of the data
@@ -526,7 +558,45 @@ model2_wet <- psem(
 
 summary(model2_wet, intercepts = T)
 
+model2_wet_sum = summary(model2_wet, intercepts = T)
+model2_wet_sum$coefficients
+model2_wet_sum_paths = model2_wet_sum$dTable %>% as.data.frame()
+model2_wet_sum_table = model2_wet_sum$coefficients %>% as.data.frame()
+model2_wet_sum_table$model = "Wet_legacy"
+model2_wet_sum_paths$model = "Wet_legacy"
 
+
+##### combine output tables 
+alloutput = rbind (model1_all_sum_table, model1_dry_sum_table, model1_wet_sum_table, 
+                   model2_all_sum_table, model2_dry_sum_table, model2_wet_sum_table)
+
+alloutput_order = alloutput  %>% relocate(model) 
+str(alloutput_order)
+names(alloutput_order)[10] <- "Stars"
+alloutput_order$Std.Error = as.numeric(alloutput_order$Std.Error)
+head(alloutput_order )
+
+#View(alloutput_order)
+str(alloutput_order)
+select_if(alloutput_order, is.numeric )
+alloutput_order_round = alloutput_order %>% dplyr::select(where(is.numeric))  %>% round(3)
+meta_semtable = data.frame (alloutput_order[,1:3] )
+stars_semtable = data.frame (alloutput_order[,10] )
+
+final = cbind (meta_semtable, alloutput_order_round,stars_semtable) %>% as.data.frame()
+names(final)
+names(final)[10] <- "Stars"
+getwd()
+#write.csv(final, file.path(L2_dir, "./SEM_coefficients_output.csv"), row.names=F)
+
+
+allpath = rbind (model1_all_sum_paths, model1_dry_sum_paths, model1_wet_sum_paths, 
+                   model2_all_sum_paths, model2_dry_sum_paths, model2_wet_sum_paths)
+head(allpath)
+allpath_order = allpath  %>% relocate(model) 
+names(allpath_order)[7] <- "Stars"
+allpath_final = allpath_order %>% mutate(across(where(is.numeric), round, 3))
+#write.csv(allpath_final, file.path(L2_dir, "./SEM_coefficients_paths.csv"), row.names=F)
 
 ## lavaan ####
 #------------#

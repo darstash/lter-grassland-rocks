@@ -1271,7 +1271,7 @@ normal_biomass9sub_rich <- plot_sub_lrr9_rich  %>%
 plot_sub_lrr9_rich <- left_join(plot_sub_lrr9_rich, normal_biomass9sub_rich)
 
 lrr9sub_rich <- plot_sub_lrr9_rich %>%
-  filter(prior_year_type != "Extreme wet" | prior_year_type != "Extreme dry") %>%
+  # filter(prior_year_type != "Extreme wet" | prior_year_type != "Extreme dry") %>%
   filter(spei9_category == "Extreme wet" | spei9_category == "Extreme dry") %>%
   mutate(LRR = log(Richness / average_normal_rich))  # Calculate the log response ratio
 
@@ -1691,3 +1691,141 @@ resil_plot <- plot_ece %>%
 anpp_plot + resist_plot + resil_plot + rich_plot + dom_plot + guide_area() + plot_layout(guides = 'collect') & plot_annotation(tag_levels = 'A') 
 
 
+# ONLY normal biomass ----
+## ANPP with ONLY normal ----
+plot_sub_lrr9 <- plot_n_sub %>%
+  group_by(uniqueid) %>%
+  arrange(uniqueid, year) %>%
+  mutate(prior_year_biomass = lag(plot_biomass),
+         prior_year_type = lag(spei9_category)) %>%
+  ungroup()
+normal_biomass9sub_norm <- plot_sub_lrr9  %>%
+  group_by(uniqueid) %>%
+  filter(spei9_category == "Normal") %>%
+  summarize(average_normal_biomass = mean(plot_biomass, na.rm=T))
+plot_sub_lrr9_norm <- left_join(plot_sub_lrr9, normal_biomass9sub_norm)
+
+lrr9sub_norm <- plot_sub_lrr9_norm %>%
+  # filter(prior_year_type != "Extreme wet" | prior_year_type != "Extreme dry") %>%
+  filter(spei9_category == "Extreme wet" | spei9_category == "Extreme dry") %>%
+  mutate(LRR = log(plot_biomass / average_normal_biomass))  # Calculate the log response ratio
+
+# Take absolute value of SPEI9
+lrr9sub_norm <- lrr9sub_norm %>%
+  mutate(abs_spei9 = abs(spei9))
+
+# Simple model
+lrr.lm9sub2_norm <- lmer(LRR ~ spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr9sub_norm)
+summary(lrr.lm9sub2_norm)
+emm_biomass <- emmeans(lrr.lm9sub2_norm, pairwise ~ spei9_category * nitrogen, infer = T)
+summary(emm_biomass)
+simres <- simulateResiduals(lrr.lm9sub2_norm)
+plot(simres)
+
+plot_model(
+  lrr.lm9sub2_norm,
+  type = "pred",
+  terms= c("spei9_category", "nitrogen"),
+  show.data = F) + theme_bw()
+
+# LRR plot for ANPP
+cols <- c("Extreme dry" = "#E41A1C", "Extreme wet" = "#377EB8")
+lrr9sub_norm %>%
+  ggplot(aes(x = spei9_category, y = LRR, col = spei9_category)) +
+  stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2), aes(shape = nitrogen)) + 
+  geom_hline(yintercept=0, linetype='dashed', col = 'black')+
+  theme_bw() +
+  scale_color_manual(values = cols)
+anpp_plot <- lrr9sub %>%
+  mutate(nitrogen = relevel(as.factor(nitrogen), 'no_fertilizer', 'nitrogen')) %>%
+  ggplot(aes(x = spei9_category, y = LRR, col = spei9_category)) +
+  stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2), aes(shape = nitrogen)) + 
+  geom_hline(yintercept=0, linetype='dashed', col = 'black')+
+  theme_bw() +
+  labs(x = "Event type", y = "ANPP LRR") +
+  theme(legend.position="none") +
+  scale_color_manual(values = cols)
+
+## Richness with ONLY normal ----
+plot_sub_lrr9_rich <- plot_n_sub %>%
+  group_by(uniqueid) %>%
+  arrange(uniqueid, year) %>%
+  mutate(prior_year_richness = lag(Richness),
+         prior_year_type = lag(spei9_category)) %>%
+  ungroup()
+normal_biomass9sub_rich_norm <- plot_sub_lrr9_rich  %>%
+  group_by(uniqueid) %>%
+  filter(spei9_category == "Normal") %>%
+  summarize(average_normal_rich = mean(Richness, na.rm=T))
+plot_sub_lrr9_rich_norm <- left_join(plot_sub_lrr9_rich, normal_biomass9sub_rich_norm)
+
+lrr9sub_rich_norm <- plot_sub_lrr9_rich_norm %>%
+  # filter(prior_year_type != "Extreme wet" | prior_year_type != "Extreme dry") %>%
+  filter(spei9_category == "Extreme wet" | spei9_category == "Extreme dry") %>%
+  mutate(LRR = log(Richness / average_normal_rich))  # Calculate the log response ratio
+
+lrr.lm9sub_rich_norm <- lmer(LRR ~ spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr9sub_rich_norm)
+summary(lrr.lm9sub_rich_norm)
+emm_rich <- emmeans(lrr.lm9sub_rich_norm, pairwise ~ spei9_category * nitrogen, infer = T)
+summary(emm_rich)
+simres <- simulateResiduals(lrr.lm9sub_rich_norm)
+plot(simres)
+
+# LRR plot for richness 
+lrr9sub_rich_norm %>%
+  ggplot(aes(x = spei9_category, y = LRR, col = nitrogen)) +
+  stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2)) + 
+  geom_hline(yintercept=0, linetype='dashed', col = 'black')+
+  theme_bw()
+
+plot_model(
+  lrr.lm9sub_rich_norm,
+  type = "pred",
+  terms= c("spei9_category", "nitrogen"),
+  show.data = F
+) + theme_bw()
+
+plot_model(
+  lrr.lm9sub_rich_norm,
+  type = "int",
+  show.data = F
+) + theme_bw()
+
+## Dominance with ONLY normal (NO ZEROS!!!) ----
+plot_sub_lrr9_dom <- plot_n_sub %>%
+  group_by(uniqueid) %>%
+  arrange(uniqueid, year) %>%
+  mutate(prior_year_dom = lag(dominant_relative_abund),
+         prior_year_type = lag(spei9_category)) %>%
+  ungroup()
+normal_biomass9sub_dom_norm <- plot_sub_lrr9_dom  %>%
+  group_by(uniqueid) %>%
+  filter(spei9_category == "Normal") %>%
+  summarize(average_normal_dom = mean(dominant_relative_abund, na.rm=T))
+plot_sub_lrr9_dom_norm <- left_join(plot_sub_lrr9_dom, normal_biomass9sub_dom_norm)
+
+lrr9sub_dom_norm <- plot_sub_lrr9_dom_norm %>%
+  # filter(prior_year_type != "Extreme wet" | prior_year_type != "Extreme dry") %>%
+  filter(spei9_category == "Extreme wet" | spei9_category == "Extreme dry") %>%
+  mutate(LRR = log(dominant_relative_abund / average_normal_dom))  # Calculate the log response ratio
+
+lrr.lm9sub_dom_norm <- lmer(LRR ~ spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr9sub_dom_norm)
+summary(lrr.lm9sub_dom_norm)
+emm_dom <- emmeans(lrr.lm9sub_dom_norm, pairwise ~ spei9_category * nitrogen, infer = T)
+summary(emm_dom)
+simres <- simulateResiduals(lrr.lm9sub_dom_norm)
+plot(simres)
+
+# LRR plot for dominance normal only
+lrr9sub_dom_norm %>%
+  ggplot(aes(x = spei9_category, y = LRR, col = nitrogen)) +
+  stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2)) + 
+  geom_hline(yintercept=0, linetype='dashed', col = 'black')+
+  theme_bw()
+
+plot_model(
+  lrr.lm9sub_dom_norm,
+  type = "pred",
+  terms= c("spei9_category", "nitrogen"),
+  show.data = F
+) + theme_bw()

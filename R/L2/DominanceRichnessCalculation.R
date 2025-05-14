@@ -83,6 +83,8 @@ plot_metrics_SPEI_diversity <- plot_metrics_SPEI %>%
   arrange(uniqueid, year)%>%
   mutate(prior_year_rich=lag(Richness),
          prior_year_type=lag(spei9_category),
+         #category after the climate event
+         after_year_type=lead(spei9_category),
          prior_year_dom_zero=lag(dominant_relative_abund_zero),
          prior_year_dom=lag(dominant_relative_abund),
          prior_year_evar=lag(Evar),

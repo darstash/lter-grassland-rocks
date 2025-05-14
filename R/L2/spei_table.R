@@ -1354,9 +1354,13 @@ plot_model(
   show.data = F
 ) + theme_bw()
 
-# LRR for dominance (Top 7 species) 
+# LRR for dominance (Top 6 species) 
 # Andropogon gerardii/Andropogon gerardi (typo), Elymus repens, Poa pratensis, Schizachyrium scoparium, Solidago canadensis, Sorghastrum nutans
 plot_n_sub$dominant_species_code2 <- gsub("^.*_","", plot_n_sub$dominant_species_code)
+
+dominant_species_list <- plot_n_sub %>%
+  group_by(dominant_species_code2) %>%
+  summarize(n = n())
 
 plot_sub_lrr9_dom2 <- plot_n_sub %>%
   filter(dominant_species_code2 == "Andropogon gerardii" | dominant_species_code2 == "Andropogon gerardi" | dominant_species_code2 == "Elymus repens" | dominant_species_code2 == "Poa pratensis" | dominant_species_code2 == "Schizachyrium scoparium" | dominant_species_code2 == "Solidago canadensis" | dominant_species_code2 == "Sorghastrum nutans")
@@ -1736,7 +1740,7 @@ lrr9sub_norm %>%
   geom_hline(yintercept=0, linetype='dashed', col = 'black')+
   theme_bw() +
   scale_color_manual(values = cols)
-anpp_plot <- lrr9sub %>%
+anpp_plot_norm <- lrr9sub_norm %>%
   mutate(nitrogen = relevel(as.factor(nitrogen), 'no_fertilizer', 'nitrogen')) %>%
   ggplot(aes(x = spei9_category, y = LRR, col = spei9_category)) +
   stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2), aes(shape = nitrogen)) + 
@@ -1777,6 +1781,15 @@ lrr9sub_rich_norm %>%
   stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2)) + 
   geom_hline(yintercept=0, linetype='dashed', col = 'black')+
   theme_bw()
+rich_plot_norm <- lrr9sub_rich_norm %>%
+  mutate(nitrogen = relevel(as.factor(nitrogen), 'no_fertilizer', 'nitrogen')) %>%
+  ggplot(aes(x = spei9_category, y = LRR, col = spei9_category)) +
+  stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2), aes(shape = nitrogen)) + 
+  geom_hline(yintercept=0, linetype='dashed', col = 'black')+
+  theme_bw() +
+  labs(x = "Event type", y = "Richness LRR") +
+  theme(legend.position="none") +
+  scale_color_manual(values = cols)
 
 plot_model(
   lrr.lm9sub_rich_norm,
@@ -1822,6 +1835,16 @@ lrr9sub_dom_norm %>%
   stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2)) + 
   geom_hline(yintercept=0, linetype='dashed', col = 'black')+
   theme_bw()
+dom_plot_norm <- lrr9sub_dom_norm %>%
+  mutate(nitrogen = relevel(as.factor(nitrogen), 'no_fertilizer', 'nitrogen')) %>%
+  ggplot(aes(x = spei9_category, y = LRR, col = spei9_category)) +
+  stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2), aes(shape = nitrogen)) + 
+  geom_hline(yintercept=0, linetype='dashed', col = 'black')+
+  theme_bw() +
+  labs(x = "Event type", y = "Dominance LRR", shape = "Fertilizer") +
+  scale_color_manual(values = cols, guide = "none") +
+  scale_shape_manual(values = c(19, 17), labels = c('no nutrients', 'nutrients')) +
+  theme(legend.title=element_blank())
 
 plot_model(
   lrr.lm9sub_dom_norm,
@@ -1829,3 +1852,6 @@ plot_model(
   terms= c("spei9_category", "nitrogen"),
   show.data = F
 ) + theme_bw()
+
+## Final LRR plot NORMAL ----
+anpp_plot_norm + rich_plot_norm + dom_plot_norm & plot_annotation(tag_levels = 'A')

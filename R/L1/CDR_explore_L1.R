@@ -1059,6 +1059,11 @@ cdr_sp_data <- e001e002_anpp %>% mutate(dataset = "e001_e002") %>%
                  uniqueid,     species,      abundance,    relative_abundance,
                  original_measurement_unit))
 
+#last remove some artifact species that did not get filtered earlier
+cdr_sp_data <- cdr_sp_data %>%
+  filter(species != "Other") %>%
+  filter(species != "Other litter") %>%
+  filter(species != "Other animal diggings")
 #Combine CDR specieslevel abundance (biomass based/cover based in case of nutnet)
 
 

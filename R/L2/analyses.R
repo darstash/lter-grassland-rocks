@@ -202,14 +202,16 @@ plot_ece_9_cn <- plot_ece_9_rm_na %>%
          )%>%
   mutate(extreme_after=case_when(after_year_type=="Extreme wet"~"yes",
          after_year_type=="Extreme dry"~"yes",
-         .default="no"))#when the year after the extreme event is another extreme event
+         .default="no"),
+         nitrogen=case_when(nitrogen=="no_fertilizer"~"ambient",
+                            nitrogen=="N"~"nutrients"))#when the year after the extreme event is another extreme event
 
 #check treatment groups
 unique(plot_ece_9_cn$treatment)
 unique(plot_ece_9_cn$nitrogen)
 table(plot_ece_9_cn$extreme_after)
 table(plot_ece_9_cn$nutrients_grouped)
-table(plot_ece_9_rm_na$nutrients_added)
+table(plot_ece_9_cn$nitrogen)
 
 #using resistance calculated by excluding biomass during moderate events as part of the normal average####
 resis_nitro_n<-lmer(log(resistance_n)~nitrogen*spei9_category+(1|site/experiment/uniqueid)
@@ -295,41 +297,41 @@ plot(simres)
 
 ####using emmeans and ggeffects to figure out best way to show result####
 # emtrends
-library(emmeans)
-library(ggeffects)
-??ggeffects
-emtrends(resis_norm8, var = "dominant_relative_abund_zero", specs = c("spei9_category","nitrogen"), infer = T)%>%
-  data.frame()
-emtrends(resis_norm8, var = "richness", specs = c("spei9_category","nitrogen"), infer = T) %>%
-  data.frame() %>%
-  mutate(stars = case_when(p.value < 0.001 ~ "***",
-                           p.value > 0.001 & p.value < 0.01 ~"**",
-                           p.value > 0.01 & p.value < 0.05 ~ "*",
-                           p.value > 0.05 & p.value < 0.09 ~ ".",
-                           p.value > 0.09 ~ ""),
-         star_location = case_when(z.ratio < 0 ~ richness.trend - SE - 0.05,
-                                   z.ratio > 0 ~ richness.trend + SE + 0.05)) %>%
-  
-  ggplot(aes(y = spei9_category, x = richness.trend)) +
-  geom_point() +
-  geom_vline(xintercept = 0) +
-  geom_errorbarh(aes(xmin = richness.trend-SE,
-                     xmax = richness.trend+SE),
-                 height = 0.2) +
-  geom_text(aes(label = stars, x = star_location, y = spei9_category)) +
-  labs(x = "Richness effect \u00B1 SE", y = "", title="log(resistance)")+
-  facet_wrap(~nitrogen)
-
-ggeffect(resis_norm8, terms = c("richness", "spei9_category")) %>%
-  data.frame() %>%
-  
-  ggplot(aes(y = predicted, x = x, color = group, fill = group)) +
-  geom_ribbon(aes(ymax = predicted + std.error, ymin = predicted -std.error), 
-              alpha = 0.1, color = NA) +
-  geom_line() +
-  labs(y = "predicted resistance \u00B1 SE",
-       x = "species richness",
-       color = "", fill = "")
+# library(emmeans)
+# library(ggeffects)
+# ??ggeffects
+# emtrends(resis_norm8, var = "dominant_relative_abund_zero", specs = c("spei9_category","nitrogen"), infer = T)%>%
+#   data.frame()
+# emtrends(resis_norm8, var = "richness", specs = c("spei9_category","nitrogen"), infer = T) %>%
+#   data.frame() %>%
+#   mutate(stars = case_when(p.value < 0.001 ~ "***",
+#                            p.value > 0.001 & p.value < 0.01 ~"**",
+#                            p.value > 0.01 & p.value < 0.05 ~ "*",
+#                            p.value > 0.05 & p.value < 0.09 ~ ".",
+#                            p.value > 0.09 ~ ""),
+#          star_location = case_when(z.ratio < 0 ~ richness.trend - SE - 0.05,
+#                                    z.ratio > 0 ~ richness.trend + SE + 0.05)) %>%
+#   
+#   ggplot(aes(y = spei9_category, x = richness.trend)) +
+#   geom_point() +
+#   geom_vline(xintercept = 0) +
+#   geom_errorbarh(aes(xmin = richness.trend-SE,
+#                      xmax = richness.trend+SE),
+#                  height = 0.2) +
+#   geom_text(aes(label = stars, x = star_location, y = spei9_category)) +
+#   labs(x = "Richness effect \u00B1 SE", y = "", title="log(resistance)")+
+#   facet_wrap(~nitrogen)
+# 
+# ggeffect(resis_norm8, terms = c("richness", "spei9_category")) %>%
+#   data.frame() %>%
+#   
+#   ggplot(aes(y = predicted, x = x, color = group, fill = group)) +
+#   geom_ribbon(aes(ymax = predicted + std.error, ymin = predicted -std.error), 
+#               alpha = 0.1, color = NA) +
+#   geom_line() +
+#   labs(y = "predicted resistance \u00B1 SE",
+#        x = "species richness",
+#        color = "", fill = "")
 
 
 ###examine wet and dry separately based on the combined model####
@@ -376,13 +378,13 @@ resis_norm_estim_wet <-coef(summary(resis_norm_wet_std)) %>%
                                       "richness",
                                       "dominant_relative_abund_zero",
                                       "evar",
-                                      "nitrogenno_fertilizer"
+                                      "nitrogennutrients"
                            )),
          # cosmetics in the names
          Variable_labels = factor(case_when(Variable %in% "(Intercept)" ~ "intercept",
                                             Variable %in% "evar" ~ "evenness",
                                             Variable %in% "dominant_relative_abund_zero" ~ "dominant",
-                                            Variable %in% "nitrogenno_fertilizer" ~ "no nutrient",
+                                            Variable %in% "nitrogennutrients" ~ "nutrients",
                                             .default = Variable)),
          Variable_labels = fct_reorder(Variable_labels, as.numeric(Variable)),
          # get significances and their plotting location (perhaps necessary to play with the +/- offset)
@@ -405,7 +407,8 @@ resis_norm_estim_wet <-coef(summary(resis_norm_wet_std)) %>%
   geom_vline(xintercept = 0) +
   geom_point(col = "#377EB8", size =3)+
   geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2,col = "#377EB8") +
-  geom_text(aes(x = stars_location, label = stars))
+  geom_text(aes(x = stars_location, label = stars))#+
+  scale_x_continuous(limits = -0.4:0.4)
 
 #dry
 resis_norm_dry_std <- update(resis_norm_dry, 
@@ -426,13 +429,13 @@ resis_norm_estim_dry <-coef(summary(resis_norm_dry_std)) %>%
                                       "richness",
                                       "dominant_relative_abund_zero",
                                       "evar",
-                                      "nitrogenno_fertilizer"
+                                      "nitrogennutrients"
                            )),
          # cosmetics in the names
          Variable_labels = factor(case_when(Variable %in% "(Intercept)" ~ "intercept",
                                             Variable %in% "evar" ~ "evenness",
                                             Variable %in% "dominant_relative_abund_zero" ~ "dominant",
-                                            Variable %in% "nitrogenno_fertilizer" ~ "no nutrient",
+                                            Variable %in% "nitrogennutrients" ~ "nutrients",
                                             .default = Variable)),
          Variable_labels = fct_reorder(Variable_labels, as.numeric(Variable)),
          # get significances and their plotting location (perhaps necessary to play with the +/- offset)
@@ -455,7 +458,8 @@ resis_norm_estim_dry <-coef(summary(resis_norm_dry_std)) %>%
   geom_vline(xintercept = 0) +
   geom_point(col = "#E41A1C", size =3)+
   geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2,col = "#E41A1C") +
-  geom_text(aes(x = stars_location, label = stars))
+  geom_text(aes(x = stars_location, label = stars))#+
+  scale_x_continuous(limits=-0.4:0.4)
 
 
 ##using resilience based on excluding biomass form moderate events from the normal average####
@@ -558,7 +562,7 @@ resil_norm_dry<-lmer(log(resilience_n)~richness+dominant_relative_abund_zero+nit
 anova(resil_norm_dry)
 summary(resil_norm_dry)
 
-#modified from Seraina
+####create figure for resiience wet and dry####
 resil_norm_wet_std <- update(resil_norm_wet, 
                              data = plot_ece_9_cn_prior_rm_wet %>% 
                                mutate(richness = scale(richness),
@@ -567,7 +571,7 @@ resil_norm_wet_std <- update(resil_norm_wet,
                                ))
 
 resil_norm_estim_wet <-coef(summary(resil_norm_wet_std)) %>%
-  data.frame() %>%
+  data.frame()%>%
   rownames_to_column("Variable") %>%
   rename("SE" = "Std..Error",
          "p" = "Pr...t..") %>%
@@ -577,17 +581,17 @@ resil_norm_estim_wet <-coef(summary(resil_norm_wet_std)) %>%
                                       "richness",
                                       "dominant_relative_abund_zero",
                                       "evar",
-                                      "nitrogenno_fertilizer",
-                                      "dominant_relative_abund_zero:nitrogenno_fertilizer",
-                                      "nitrogenno_fertilizer:evar"
+                                      "nitrogennutrients",
+                                      "dominant_relative_abund_zero:nitrogennutrients",
+                                      "nitrogennutrients:evar"
                            )),
          # cosmetics in the names
          Variable_labels = factor(case_when(Variable %in% "(Intercept)" ~ "intercept",
                                             Variable %in% "evar" ~ "evenness",
                                             Variable %in% "dominant_relative_abund_zero" ~ "dominant",
-                                            Variable %in% "nitrogenno_fertilizer" ~ "no nutrient",
-                                            Variable %in% "dominant_relative_abund_zero:nitrogenno_fertilizer" ~ "dominant:no nutrient",
-                                            Variable %in% "nitrogenno_fertilizer:evar" ~ "evenness:no nutrient",
+                                            Variable %in% "nitrogennutrients" ~ "nutrients",
+                                            Variable %in% "dominant_relative_abund_zero:nitrogennutrients" ~ "dominant:nutrients",
+                                            Variable %in% "nitrogennutrients:evar" ~ "evenness:nutrients",
                                             .default = Variable)),
          Variable_labels = fct_reorder(Variable_labels, as.numeric(Variable)),
          # get significances and their plotting location (perhaps necessary to play with the +/- offset)
@@ -610,7 +614,8 @@ resil_norm_estim_wet <-coef(summary(resil_norm_wet_std)) %>%
   geom_vline(xintercept = 0) +
   geom_point(col = "#377EB8", size =3)+
   geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2,col = "#377EB8") +
-  geom_text(aes(x = stars_location, label = stars))
+  geom_text(aes(x = stars_location, label = stars))#+
+  scale_x_continuous(limits = -0.8:0.8)
 
 #dry
 resil_norm_dry_std <- update(resil_norm_dry, 
@@ -631,17 +636,17 @@ resil_norm_estim_dry <-coef(summary(resil_norm_dry_std)) %>%
                                       "richness",
                                       "dominant_relative_abund_zero",
                                       "evar",
-                                      "nitrogenno_fertilizer",
-                                      "dominant_relative_abund_zero:nitrogenno_fertilizer",
-                                      "nitrogenno_fertilizer:evar"
+                                      "nitrogennutrients",
+                                      "dominant_relative_abund_zero:nitrogennutrients",
+                                      "nitrogennutrients:evar"
                            )),
          # cosmetics in the names
          Variable_labels = factor(case_when(Variable %in% "(Intercept)" ~ "intercept",
                                             Variable %in% "evar" ~ "evenness",
                                             Variable %in% "dominant_relative_abund_zero" ~ "dominant",
-                                            Variable %in% "nitrogenno_fertilizer" ~ "no nutrient",
-                                            Variable %in% "dominant_relative_abund_zero:nitrogenno_fertilizer" ~ "dominant:no nutrient",
-                                            Variable %in% "nitrogenno_fertilizer:evar" ~ "evenness:no nutrient",
+                                            Variable %in% "nitrogennutrients" ~ "nutrients",
+                                            Variable %in% "dominant_relative_abund_zero:nitrogennutrients" ~ "dominant:nutrients",
+                                            Variable %in% "nitrogennutrients:evar" ~ "evenness:nutrients",
                                             .default = Variable)),
          Variable_labels = fct_reorder(Variable_labels, as.numeric(Variable)),
          # get significances and their plotting location (perhaps necessary to play with the +/- offset)
@@ -664,7 +669,8 @@ resil_norm_estim_dry <-coef(summary(resil_norm_dry_std)) %>%
   geom_vline(xintercept = 0) +
   geom_point(col = "#E41A1C", size =3)+
   geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2,col = "#E41A1C") +
-  geom_text(aes(x = stars_location, label = stars))
+  geom_text(aes(x = stars_location, label = stars))#+
+  scale_x_continuous(limits = -0.8:0.8)
 
 ##combine figure for resistance and resileince wet and dry####
 resis_norm_estim_dry + resis_norm_estim_wet+resil_norm_estim_dry+resil_norm_estim_wet& plot_annotation(tag_levels = 'A')

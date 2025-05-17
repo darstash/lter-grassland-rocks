@@ -34,22 +34,29 @@ plot <- read.csv(file.path(L2_dir, "plot_metrics_SPEI_diversity.csv"))
 ece <- read.csv(file.path(L2_dir, "ece_resist_resil.csv"))#based on SPEI6
 meta <- read.csv(file.path(L2_dir, "metadata.csv"))
 ece_9<-read.csv(file.path(L2_dir, "ece_resist_resil_spei9.csv"))#calculated based on SPEI9
+ece_9_norm<-read.csv(file.path(L2_dir, "ece_resist_resil_spei9_norm.csv"))#calculated based on SPEI9 without including moderate events as part of the normal events 
 
 names(plot)
 
 # Only keep distinct rows in ece
 ece <- distinct(ece)
 ece_9<-distinct(ece_9)
+ece_9_norm<-distinct(ece_9_norm)
 
 # Change ex_year to year
 ece <- ece %>%
   rename(year = ex_year)
 ece_9<-ece_9%>%
   rename(year = ex_year)
+ece_9_norm<-ece_9_norm%>%
+  rename(year = ex_year,
+         resistance_n=resistance,
+         resilience_n=resilience)
 
 # Merge plot with resistance and resilience
 plot_ece <- left_join(plot, ece)
 plot_ece_9<-left_join(plot, ece_9)
+plot_ece_9<-left_join(plot_ece_9, ece_9_norm)
 
 # Make column with categories for high and low dominance
 plot_ece <- plot_ece %>%
@@ -64,8 +71,8 @@ plot_ece_9 <- clean_names(plot_ece_9)
 
 
 # Convert Inf values to NA for resilience for some KBS 2015 plots
-plot_ece$resilience[plot_ece$resilience == Inf] <- NA
-plot_ece_9$resilience[plot_ece_9$resilience == Inf] <- NA
+# plot_ece$resilience[plot_ece$resilience == Inf] <- NA
+# plot_ece_9$resilience[plot_ece_9$resilience == Inf] <- NA
 
 # Add experiment column_SPEI6####
 plot_ece$experiment <- sub("nutnet.*", "nutnet", plot_ece$higher_order_organization)
@@ -211,7 +218,12 @@ plot_ece_9_cn <- plot_ece_9_rm_na %>%
   #add column with recoded nitrogen treatment
   mutate(nitrogen = dplyr::recode(nutrients_added, "NPK+" = "N", "NP" = "N", "NPK" = "N", "NK" = "N", "NPK+Fence" = "N", "none" = "no_fertilizer"),
          nutrients_grouped = dplyr::recode(nutrients_added, "NPK+" = "Nplus", "NP" = "Nplus", "NPK" = "Nplus", "NK" = "Nplus", "NPK+Fence" = "Nplus", "none" = "no_fertilizer")
-  )
+  ) %>%
+  mutate(extreme_after=case_when(after_year_type=="Extreme wet"~"yes",
+                                 after_year_type=="Extreme dry"~"yes",
+                                 .default="no"),
+         nitrogen=case_when(nitrogen=="no_fertilizer"~"ambient",
+                            nitrogen=="N"~"nutrients"))#when the year after the extreme event is another extreme event
 
 #check treatment groups
 unique(plot_ece_9_cn$treatment)
@@ -219,23 +231,25 @@ unique(plot_ece_9_cn$nitrogen)
 table(plot_ece_9_cn$nutrients_grouped)
 table(plot_ece_9_rm_na$nutrients_added)
 
-
+#remove resilience with extreme events after an extreme event
+plot_ece_9_cn_rm <- plot_ece_9_cn %>%
+  filter(extreme_after=="no")
 
 ##### SEM #####
 library(piecewiseSEM, lavaan)
 source( paste(getwd(), "/R/L2/SEM custom functions.R", sep = ""))
 
-names(plot_ece_9_cn)
+names(plot_ece_9_cn_rm)
 
-table ( plot_ece_9_cn$nutrients_grouped )
+table ( plot_ece_9_cn_rm$nutrients_grouped )
 
 # get list of experiments that manipulated N
 manipulated_n_exp = plot_ece_meta %>% filter (!is.na(nitrogen_amount))  %>% distinct(experiment) %>% select(experiment)
 
 # get subset file for SEM:
-plot_ece_meta_selSEM_init = plot_ece_9_cn %>% 
+plot_ece_meta_selSEM_init = plot_ece_9_cn_rm %>% 
   select (site, experiment, uniqueid,spei9_category,spei9, prior_year_spei9, nutrients_grouped , evar,
-          richness,dominant_relative_abund_zero,resistance,resilience) #%>%  # only rows we care about
+          richness,dominant_relative_abund_zero,resistance,resilience, year) #%>%  # only rows we care about
   #filter (  nutrients_grouped != "N" )  # experiment %in%  manipulated_n_exp[,1] 
 
 plot_ece_meta_selSEM = plot_ece_meta_selSEM_init[complete.cases(plot_ece_meta_selSEM_init ) ,]
@@ -270,7 +284,8 @@ df <- plot_ece_meta_selSEM %>%
     site = factor(site),
     experiment = factor(experiment),
     uniqueid = factor(uniqueid),
-    spei9_category = factor(spei9_category)
+    spei9_category = factor(spei9_category),
+    year = factor(year)
   )
 
 # SCALE!!
@@ -307,15 +322,15 @@ df_wet <- df %>% filter(spei9_category %in% "Extreme wet")
 # this is our main model, but it doesn't yet include the legacy effect of past spei.
 
 model1 <- psem(
-  lmer(log_resistance ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|site/experiment/uniqueid),
+  lmer(log_resistance ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|site/experiment/uniqueid) + (1|year),
        data = df ),
-  lmer(log_resilience ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|site/experiment/uniqueid),
+  lmer(log_resilience ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|site/experiment/uniqueid) + (1|year),
        data = df ) ,
-  lmer(richness ~                                                                    nut_dummy + (1|site/experiment/uniqueid),
+  lmer(richness ~                                                                    nut_dummy + (1|site/experiment/uniqueid) + (1|year),
        data = df),
-  lmer(dominant_relative_abund_zero ~                                                nut_dummy + (1|site/experiment/uniqueid),
+  lmer(dominant_relative_abund_zero ~                                                nut_dummy + (1|site/experiment/uniqueid) + (1|year),
        data = df), 
-  lmer(evar ~                                                                        nut_dummy + (1|site/experiment/uniqueid),
+  lmer(evar ~                                                                        nut_dummy + (1|site/experiment/uniqueid) + (1|year),
        data = df), 
   
   richness %~~% evar, 

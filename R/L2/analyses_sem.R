@@ -193,7 +193,7 @@ unique(plot_ece_9_meta$experiment)
 plot_ece_rm_na <- plot_ece_meta %>%
   drop_na(resistance)
 plot_ece_9_rm_na <- plot_ece_9_meta %>%
-  drop_na(resistance)
+  drop_na(resistance_n)
 #checking each experiment/study
 plot_filter<-plot_ece_rm_na%>%
   filter(experiment=="004b_fl")
@@ -233,7 +233,8 @@ table(plot_ece_9_rm_na$nutrients_added)
 
 #remove resilience with extreme events after an extreme event
 plot_ece_9_cn_rm <- plot_ece_9_cn %>%
-  filter(extreme_after=="no")
+  mutate(resilience_n = case_when(extreme_after == "yes" ~ NA,
+                        extreme_after == "no"  ~ resilience_n))
 
 ##### SEM #####
 library(piecewiseSEM, lavaan)
@@ -249,7 +250,7 @@ manipulated_n_exp = plot_ece_meta %>% filter (!is.na(nitrogen_amount))  %>% dist
 # get subset file for SEM:
 plot_ece_meta_selSEM_init = plot_ece_9_cn_rm %>% 
   select (site, experiment, uniqueid,spei9_category,spei9, prior_year_spei9, nutrients_grouped , evar,
-          richness,dominant_relative_abund_zero,resistance,resilience, year) #%>%  # only rows we care about
+          richness,dominant_relative_abund_zero,resistance_n,resilience_n, year) #%>%  # only rows we care about
   #filter (  nutrients_grouped != "N" )  # experiment %in%  manipulated_n_exp[,1] 
 
 plot_ece_meta_selSEM = plot_ece_meta_selSEM_init[complete.cases(plot_ece_meta_selSEM_init ) ,]
@@ -276,8 +277,8 @@ df <- plot_ece_meta_selSEM %>%
     # evar = scale(evar),
     # resistance = scale(resistance, center =F),
     # resilience = scale(resilience, center=F),
-    log_resistance = log10(resistance),
-    log_resilience = log10(resilience),
+    log_resistance = log10(resistance_n),
+    log_resilience = log10(resilience_n),
     # log_resistance = scale(resistance)),
     # log_resilience = scale(resilience),
     # spei9  = scale(case_when(spei9 < 0 ~ spei9*(-1),.default = spei9)), 
@@ -290,9 +291,9 @@ df <- plot_ece_meta_selSEM %>%
 
 # SCALE!!
 df[,c("richness", "dominant_relative_abund_zero", "evar", "spei9_abs", "prior_year_spei9",
-      "resistance", "resilience","log_resistance", "log_resilience")] <- 
+      "resistance_n", "resilience_n","log_resistance", "log_resilience")] <- 
   scale(df[,c("richness", "dominant_relative_abund_zero", "evar", "spei9_abs", "prior_year_spei9",
-              "resistance", "resilience","log_resistance", "log_resilience")])
+              "resistance_n", "resilience_n","log_resistance", "log_resilience")])
 
 #df[,c("richness", "dominant_relative_abund_zero", "evar", "spei9_abs")] <- 
 #  scale(df[,c("richness", "dominant_relative_abund_zero", "evar", "spei9_abs")])
@@ -320,17 +321,17 @@ df_wet <- df %>% filter(spei9_category %in% "Extreme wet")
 
 ### multigroup ####
 # this is our main model, but it doesn't yet include the legacy effect of past spei.
-
+# Doesn't converge with year as random intercept, weird...
 model1 <- psem(
-  lmer(log_resistance ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|site/experiment/uniqueid) + (1|year),
+  lmer(log_resistance ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|site/experiment/uniqueid),
        data = df ),
-  lmer(log_resilience ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|site/experiment/uniqueid) + (1|year),
+  lmer(log_resilience ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|site/experiment/uniqueid),
        data = df ) ,
-  lmer(richness ~                                                                    nut_dummy + (1|site/experiment/uniqueid) + (1|year),
+  lmer(richness ~                                                                    nut_dummy + (1|site/experiment/uniqueid),
        data = df),
-  lmer(dominant_relative_abund_zero ~                                                nut_dummy + (1|site/experiment/uniqueid) + (1|year),
+  lmer(dominant_relative_abund_zero ~                                                nut_dummy + (1|site/experiment/uniqueid),
        data = df), 
-  lmer(evar ~                                                                        nut_dummy + (1|site/experiment/uniqueid) + (1|year),
+  lmer(evar ~                                                                        nut_dummy + (1|site/experiment/uniqueid),
        data = df), 
   
   richness %~~% evar, 

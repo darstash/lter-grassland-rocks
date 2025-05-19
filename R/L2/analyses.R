@@ -23,7 +23,7 @@ library(GGally)
 library(performance)
 library(sjPlot)
 library(patchwork)
-
+library(cowplot)
 # Set working directory 
 L0_dir <- Sys.getenv("L0DIR")
 L1_dir <- Sys.getenv("L1DIR")
@@ -408,7 +408,7 @@ resis_norm_estim_wet <-coef(summary(resis_norm_wet_std)) %>%
   geom_point(col = "#377EB8", size =3)+
   geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2,col = "#377EB8") +
   geom_text(aes(x = stars_location, label = stars))#+
-  scale_x_continuous(limits = -0.4:0.4)
+  scale_x_continuous(limits = -0.8:0.8)
 
 #dry
 resis_norm_dry_std <- update(resis_norm_dry, 
@@ -459,7 +459,7 @@ resis_norm_estim_dry <-coef(summary(resis_norm_dry_std)) %>%
   geom_point(col = "#E41A1C", size =3)+
   geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2,col = "#E41A1C") +
   geom_text(aes(x = stars_location, label = stars))#+
-  scale_x_continuous(limits=-0.4:0.4)
+  scale_x_continuous(limits=-0.8:0.8)
 
 
 ##using resilience based on excluding biomass form moderate events from the normal average####
@@ -674,8 +674,11 @@ resil_norm_estim_dry <-coef(summary(resil_norm_dry_std)) %>%
   scale_x_continuous(limits = -0.8:0.8)
 
 ##combine figure for resistance and resileince wet and dry####
+#using patchwork
 resis_norm_estim_dry + resis_norm_estim_wet+resil_norm_estim_dry+resil_norm_estim_wet& plot_annotation(tag_levels = 'A')
-
+#using cowplot
+plot_grid(resis_norm_estim_dry, resis_norm_estim_wet,resil_norm_estim_dry,resil_norm_estim_wet, labels = c('A','B','C','D'))
+#still dropping elements
 
 # #analysis of nutrient and climate event category on resistance calculated with moderate event biomass as part of normal biomass avergae####
 # resis_nitro<-lmer(log(resistance)~nitrogen*spei9_category+(1|site/experiment/uniqueid)

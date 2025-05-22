@@ -342,8 +342,9 @@ model1 <- psem(
   data = df
 )
 
-summary(model1)
+model1.summary <- summary(model1)
 multigroup2(model1,  group = "spei9_category")
+multigroup3(model1,  group = "spei9_category") # use this if multigroup2 doesn't work
 
 
 model1_all_sum = summary(model1, intercepts = T)

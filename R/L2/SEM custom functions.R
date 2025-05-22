@@ -80,16 +80,16 @@ multigroup2 <- function(
   
   intModelList <- lapply(modelList, function(i) {
     rhs2 <-
-      ifelse(grepl("merMod", class(i)) == T, paste(paste(paste(piecewiseSEM:::all.vars_trans(i)[-1], "*", group), collapse = " + "),  "+ (", findbars(formula(i)),")"), 
-             paste(paste(piecewiseSEM:::all.vars_trans(i)[-1], "*", group), collapse = " + "))
+      ifelse(grepl("merMod", class(i)) == T, paste(paste(paste(all.vars_trans(i)[-1], "*", group), collapse = " + "),  "+ (", findbars(formula(i)),")"), 
+             paste(paste(all.vars_trans(i)[-1], "*", group), collapse = " + "))
      
-     # ifelse(class(i) == "lmerMod", paste(paste(paste(piecewiseSEM:::all.vars_trans(i)[-1], "*", group), 
-      #                                           collapse = " + "),  "+ (", findbars(formula(i)),")"), 
-      #        paste(paste(piecewiseSEM:::all.vars_trans(i)[-1], "*", group), collapse = " + ")) 
+      ifelse(class(i) == "lmerMod", paste(paste(paste(all.vars_trans(i)[-1], "*", group), 
+                                                 collapse = " + "),  "+ (", findbars(formula(i)),")"), 
+              paste(paste(all.vars_trans(i)[-1], "*", group), collapse = " + ")) 
    
-     # paste(paste(piecewiseSEM:::all.vars_trans(i)[-1], "*", group),
-    #       collapse = " + "
-    # )
+      paste(paste(all.vars_trans(i)[-1], "*", group),
+           collapse = " + "
+     )
     i <- update(i, formula(paste(". ~ ", rhs2)))
     return(i)
   })
@@ -199,6 +199,194 @@ multigroup2 <- function(
   )
   class(ret) <- "multigroup.psem"
   return(ret)
+}
+
+
+all.vars_trans <- function(formula., smoothed = FALSE) {
+  
+  if(!all(class(formula.) %in% c("formula", "formula.cerror"))) formula. <- formula(formula.)
+  
+  if(inherits(formula., "formula")) {
+    
+    if(formula.[[3]] == 1) ret <- deparse(formula.[[2]]) else {
+      
+      if(any(grepl("\\|", formula.))) formula. <- lme4::nobars(formula.)
+      
+      ret <- c(rownames(attr(terms(formula.), "factors"))[1], labels(terms(formula.)))
+      
+      if(smoothed == FALSE) ret <- gsub("(.*)\\,.*", "\\1", gsub("s\\((.*)\\).*", "\\1", ret)) 
+      
+      # else {
+      
+      # ret <- gsub("(s\\(.*),.*", "\\1", ret)
+      # 
+      # if(any(grepl("s\\(", ret))) ret <- sapply(ret, function(x) 
+      #   ifelse(grepl("s\\(", x) & !grepl("\\)", x), paste0(x, ")"), x))
+      
+      # }
+      
+      # ret <- gsub("(,.*)", "", ret)
+      
+    }
+    
+    return(ret)
+    
+  } else unlist(strsplit(formula., " ~~ "))
+  
+}
+
+
+multigroup3 <- function(
+    modelList,
+    group,
+    standardize = "scale",
+    standardize.type = "latent.linear",
+    test.type = "III") {
+  name <- deparse(match.call()$modelList)
+  data <- modelList$data
+  
+  modelList.with.data <- modelList # My solution
+  modelList <- piecewiseSEM:::removeData(modelList, formulas = 1) # piecewiseSEM:::fixCatDir(b, modelList) caused the issue
+  
+  intModelList <- lapply(modelList, function(i) {
+    rhs2 <-
+      ifelse(grepl("merMod", class(i)) == T, paste(paste(paste(all.vars_trans2(i)[-1], "*", group), collapse = " + "),  "+ (", findbars(formula(i)),")"), 
+             paste(paste(all.vars_trans2(i)[-1], "*", group), collapse = " + "))
+    
+    ifelse(class(i) == "lmerMod", paste(paste(paste(all.vars_trans2(i)[-1], "*", group), 
+                                              collapse = " + "),  "+ (", findbars(formula(i)),")"), 
+           paste(paste(all.vars_trans2(i)[-1], "*", group), collapse = " + ")) 
+    
+    paste(paste(all.vars_trans2(i)[-1], "*", group),
+          collapse = " + "
+    )
+    i <- update(i, formula(paste(". ~ ", rhs2)))
+    return(i)
+  }) # Matt nieland changed the code here
+  
+  newModelList <- lapply(unique(data[, group]), function(i) {
+    update(as.psem(modelList),
+           data = data[data[, group] == i, ]
+    )
+  })
+  names(newModelList) <- unique(data[, group])
+  coefsList <- lapply(
+    newModelList,
+    coefs,
+    standardize,
+    standardize.type,
+    test.type
+  )
+  names(coefsList) <- unique(data[, group])
+  coefTable <- coefs(
+    modelList, standardize, standardize.type,
+    test.type
+  )
+  anovaTable <- anova(as.psem(intModelList))[[1]]
+  anovaInts <- anovaTable[grepl(":", anovaTable$Predictor), ]
+  global <- anovaInts[anovaInts$P.Value >= 0.05, c(
+    "Response",
+    "Predictor"
+  )]
+  global$Predictor <-
+    sub(":", "\1", sub(group, "\1", global$Predictor))
+  if (nrow(global) == nrow(anovaInts)) {
+    newCoefsList <- list(global = coefTable)
+  } else {
+    newCoefsList <- lapply(names(coefsList), function(i) {
+      ct <- as.matrix(coefsList[[i]])
+      idx <- which(
+        apply(ct[, 1:2], 1, paste, collapse = "") %in%
+          apply(global[, 1:2], 1, paste, collapse = "")
+      )
+      ct[idx, ] <- as.matrix(coefTable[idx, ])
+      ct <- cbind(ct, ifelse(1:nrow(ct) %in% idx, "c",
+                             ""
+      ))
+      for (j in 1:nrow(ct)) {
+        if (ct[j, ncol(ct)] == "c") {
+          model <- modelList[[which(sapply(
+            piecewiseSEM:::listFormula(modelList),
+            function(x) {
+              piecewiseSEM:::all.vars.merMod(x)[1] == ct[
+                j,
+                "Response"
+              ]
+            }
+          ))]]
+          data. <- data[data[, group] == i, ]
+          sd.x <-
+            piecewiseSEM:::GetSDx(model, modelList, data., standardize)
+          sd.x <- sd.x[which(names(sd.x) == ct[j, "Predictor"])]
+          sd.y <- piecewiseSEM:::GetSDy(
+            model, data., standardize,
+            standardize.type
+          )
+          new.coef <- as.numeric(ct[j, "Estimate"]) *
+            (sd.x / sd.y)
+          ct[j, "Std.Estimate"] <- ifelse(length(new.coef) >
+                                            0, round(as.numeric(new.coef), 4), "-")
+        }
+      }
+      ct <- as.data.frame(ct)
+      ct[is.na(ct)] <- "-"
+      names(ct)[(ncol(ct) - 1):ncol(ct)] <- ""
+      return(ct)
+    })
+    names(newCoefsList) <- names(coefsList)
+  }
+  
+  if (nrow(global) == nrow(anovaInts)) {
+    gof <- piecewiseSEM::fisherC(modelList)
+  } else {
+    # b <- piecewiseSEM:::basisSet(modelList) # Here is the cause of the problem!
+    b <- basisSet2(modelList.with.data)
+    cf <- coefTable[coefTable$Response %in% global$Response & coefTable$Predictor %in% global$Predictor, ]
+    b <- lapply(
+      X = b,
+      FUN = function(i) {
+        for (j in 3:length(i)) {
+          value <- cf[cf$Response == i[2] & cf$Predictor == i[j], "Estimate"]
+          if (length(value) != 0) {
+            i[j] <- paste0("offset(", value, "*", i[j], ")")
+          }
+        }
+        return(i)
+      }
+    )
+    if (length(b) == 0) {
+      b <- NULL
+    }
+    gof <- fisherC(modelList, basis.set = b)
+  }
+  
+  ret <- list(
+    name = name,
+    group = group,
+    Cstat = gof,
+    global = global,
+    anovaInts = anovaInts,
+    group.coefs = newCoefsList
+  )
+  class(ret) <- "multigroup.psem"
+  return(ret)
+}
+
+all.vars_trans2 <- function(formula.) {
+  
+  if(!all(class(formula.) %in% c("formula", "formula.cerror"))) formula. <- formula(formula.)
+  
+  if(class(formula.) == "formula") {
+    
+    if(formula.[[3]] == 1) deparse(formula.[[2]]) else {
+      
+      if(any(grepl("\\|", formula.))) formula. <- lme4::nobars(formula.)
+      
+      c(rownames(attr(terms(formula.), "factors"))[1], labels(terms(formula.)))
+      
+    }
+  } else unlist(strsplit(formula., " ~~ "))
+  
 }
 
 

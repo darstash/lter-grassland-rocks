@@ -354,6 +354,31 @@ model1_all_sum_table = model1_all_sum$coefficients %>% as.data.frame()
 model1_all_sum_table$model = "All_no_legacy"
 model1_all_sum_paths$model = "All_no_legacy"
 
+model2 <- psem(
+  lmer(log_resistance ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|site/experiment/uniqueid), control=lmerControl(optimizer = "bobyqa"),
+       data = df ),
+  lmer(log_resilience ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|site/experiment/uniqueid), control=lmerControl(optimizer = "bobyqa"),
+       data = df ) ,
+  lmer(richness ~   spei9_abs +                                                                  nut_dummy + (1|site/experiment/uniqueid), control=lmerControl(optimizer = "bobyqa"),
+       data = df),
+  lmer(dominant_relative_abund_zero ~                                                 nut_dummy + (1|site/experiment/uniqueid), control=lmerControl(optimizer = "bobyqa"),
+       data = df), 
+  lmer(evar ~              spei9_abs +                                                           nut_dummy + (1|site/experiment/uniqueid), control=lmerControl(optimizer = "bobyqa"),
+       data = df), 
+  
+  richness %~~% evar, 
+  richness %~~% dominant_relative_abund_zero, 
+  evar %~~% dominant_relative_abund_zero, 
+  log_resistance %~~% log_resilience,
+  
+  data = df
+)
+
+model2.summary <- summary(model2)
+plot(model2)
+multigroup2(model2,  group = "spei9_category")
+multigroup3(model2,  group = "spei9_category") # use this if multigroup2 doesn't work
+
 
 
 ### dry ####

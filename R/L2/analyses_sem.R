@@ -355,7 +355,7 @@ model1_all_sum_table$model = "All_no_legacy"
 model1_all_sum_paths$model = "All_no_legacy"
 
 # Add spei9_abs and fix convergence error by removing site from random effects structure
-model2 <- psem(
+model1.1 <- psem(
   lmer(log_resistance ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|experiment/uniqueid), data = df),
   lmer(log_resilience ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|experiment/uniqueid), data = df) ,
   lmer(richness ~ spei9_abs + nut_dummy + (1|experiment/uniqueid), data = df),
@@ -376,10 +376,10 @@ lmer3 <- lmer(richness ~ spei9_abs + nut_dummy + (1|site/experiment/uniqueid), d
 lmer4 <- lmer(dominant_relative_abund_zero ~ nut_dummy + (1|site/experiment/uniqueid), data = df)
 lmer5 <- lmer(evar ~ spei9_abs + nut_dummy + (1|site/experiment/uniqueid), data = df)
 
-model2.summary <- summary(model2) # The warning message is a new implementation in psem... other people move forward after getting this message
-plot(model2)
-multigroup2(model2,  group = "spei9_category")
-multigroup3(model2,  group = "spei9_category") # use this if multigroup2 doesn't work
+model1.1.summary <- summary(model1.1) # The warning message is a new implementation in psem... other people move forward after getting this message
+plot(model1.1)
+multigroup2(model1.1,  group = "spei9_category")
+multigroup3(model1.1,  group = "spei9_category") # use this if multigroup2 doesn't work
 
 
 
@@ -415,8 +415,8 @@ model1_dry_sum_table = model1_dry_sum$coefficients %>% as.data.frame()
 model1_dry_sum_table$model = "Dry_no_legacy"
 model1_dry_sum_paths$model = "Dry_no_legacy"
 
-# Repeat but for model2
-model2_dry <- psem(
+# Repeat but for model1.1
+model1.1_dry <- psem(
   lmer(log_resistance ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|experiment/uniqueid),
        data = df_dry ),
   lmer(log_resilience ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|experiment/uniqueid),
@@ -436,13 +436,13 @@ model2_dry <- psem(
   data = df_dry
 )
 
-summary(model2_dry, intercepts = T)
+summary(model1.1_dry, intercepts = T)
 
-model2_dry_sum = summary(model1_dry, intercepts = T)
-model2_dry_sum_paths = model1_dry_sum$dTable %>% as.data.frame()
-model2_dry_sum_table = model1_dry_sum$coefficients %>% as.data.frame()
-model2_dry_sum_table$model = "Dry_no_legacy"
-model2_dry_sum_paths$model = "Dry_no_legacy"
+model1.1_dry_sum = summary(model1.1_dry, intercepts = T)
+model1.1_dry_sum_paths = model1.1_dry_sum$dTable %>% as.data.frame()
+model1.1_dry_sum_table = model1.1_dry_sum$coefficients %>% as.data.frame()
+model1.1_dry_sum_table$model = "Dry_no_legacy"
+model1.1_dry_sum_paths$model = "Dry_no_legacy"
 
 ### wet ####
 # this is the same model as model 1, but fitted to the wet subset of the data
@@ -475,8 +475,8 @@ model1_wet_sum_table = model1_wet_sum$coefficients %>% as.data.frame()
 model1_wet_sum_table$model = "Wet_no_legacy"
 model1_wet_sum_paths$model = "Wet_no_legacy"
 
-# Repeat for model 2
-model2_wet <- psem(
+# Repeat for model 1.1
+model1.1_wet <- psem(
   lmer(log_resistance ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|experiment/uniqueid),
        data = df_wet ),
   lmer(log_resilience ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|experiment/uniqueid),
@@ -496,12 +496,12 @@ model2_wet <- psem(
   data = df_wet
 )
 
-summary(model2_wet, intercepts = T)
-model2_wet_sum = summary(model1_wet, intercepts = T)
-model2_wet_sum_paths = model1_wet_sum$dTable %>% as.data.frame()
-model2_wet_sum_table = model1_wet_sum$coefficients %>% as.data.frame()
-model2_wet_sum_table$model = "Wet_no_legacy"
-model2_wet_sum_paths$model = "Wet_no_legacy"
+summary(model1.1_wet, intercepts = T)
+model1.1_wet_sum = summary(model1.1_wet, intercepts = T)
+model1.1_wet_sum_paths = model1.1_wet_sum$dTable %>% as.data.frame()
+model1.1_wet_sum_table = model1.1_wet_sum$coefficients %>% as.data.frame()
+model1.1_wet_sum_table$model = "Wet_no_legacy"
+model1.1_wet_sum_paths$model = "Wet_no_legacy"
 
 ## lavaan ####
 #------------#

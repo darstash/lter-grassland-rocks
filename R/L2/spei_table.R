@@ -463,22 +463,31 @@ plot_control$year <- as.factor(plot_control$year)
 # Try logging biomass and adding more random effects
 # Model comparison with spei12, 9, 6, 3 for ONLY control plots
 control_spei3.lm2.ln <- lmer(log1p(plot_biomass) ~ spei3 + I(spei3^2) + (1|site/experiment/uniqueid) + (1|year), data = plot_control)
+control_spei3.lm2.ln.ml <- lmer(log1p(plot_biomass) ~ spei3 + I(spei3^2) + (1|site/experiment/uniqueid) + (1|year), data = plot_control, REML = F)
 summary(control_spei3.lm2.ln) # Quadratic term significant
 control_spei3.lm.ln <- lmer(log1p(plot_biomass) ~ spei3 + (1|site/experiment/uniqueid) + (1|year), data = plot_control)
+control_spei3.lm.ln.ml <- lmer(log1p(plot_biomass) ~ spei3 + (1|site/experiment/uniqueid) + (1|year), data = plot_control, REML = F)
+
 simres <- simulateResiduals(control_spei3.lm2.ln)
 plot(simres) # Better 
 
 control_spei6.lm2.ln <- lmer(log1p(plot_biomass) ~ spei6 + I(spei6^2) + (1|site/experiment/uniqueid)
                              + (1|year), data = plot_control)
+control_spei6.lm2.ln.ml <- lmer(log1p(plot_biomass) ~ spei6 + I(spei6^2) + (1|site/experiment/uniqueid)
+                             + (1|year), data = plot_control, REML = F)
 summary(control_spei6.lm2.ln) # Quadratic term not significant
 control_spei6.lm.ln <- lmer(log1p(plot_biomass) ~ spei6 + (1|site/experiment/uniqueid)
                             + (1|year), data = plot_control)
+control_spei6.lm.ln.ml <- lmer(log1p(plot_biomass) ~ spei6 + (1|site/experiment/uniqueid)
+                            + (1|year), data = plot_control, REML = F)
 simres <- simulateResiduals(control_spei6.lm2.ln)
 plot(simres) # Better 
 
 control_spei9.lm2.ln <- lmer(log1p(plot_biomass) ~ spei9 + I(spei9^2) + (1|site/experiment/uniqueid) + (1|year), data = plot_control)
+control_spei9.lm2.ln.ml <- lmer(log1p(plot_biomass) ~ spei9 + I(spei9^2) + (1|site/experiment/uniqueid) + (1|year), data = plot_control, REML = F)
 summary(control_spei9.lm2.ln) # Quadratic term marginally significant
 control_spei9.lm.ln <- lmer(log1p(plot_biomass) ~ spei9 + (1|site/experiment/uniqueid) + (1|year), data = plot_control)
+control_spei9.lm.ln.ml <- lmer(log1p(plot_biomass) ~ spei9 + (1|site/experiment/uniqueid) + (1|year), data = plot_control, REML = F)
 summary(control_spei9.lm.ln)
 simres <- simulateResiduals(control_spei9.lm2.ln)
 plot(simres) # Better 
@@ -486,14 +495,17 @@ simres <- simulateResiduals(control_spei9.lm.ln)
 plot(simres) # Okay 
 
 control_spei12.lm2.ln <- lmer(log1p(plot_biomass) ~ spei12 + I(spei12^2) + (1|site/experiment/uniqueid) + (1|year), data = plot_control, control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000))) # Failed to converge with defaults
+control_spei12.lm2.ln.ml <- lmer(log1p(plot_biomass) ~ spei12 + I(spei12^2) + (1|site/experiment/uniqueid) + (1|year), data = plot_control, REML = F) 
 summary(control_spei12.lm2.ln)
 control_spei12.lm.ln <- lmer(log1p(plot_biomass) ~ spei12 + (1|site/experiment/uniqueid) + (1|year), data = plot_control, control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000))) # Failed to converge with defaults
+control_spei12.lm.ln.ml <- lmer(log1p(plot_biomass) ~ spei12 + (1|site/experiment/uniqueid) + (1|year), data = plot_control, REML = F) 
 simres <- simulateResiduals(control_spei12.lm2.ln)
 plot(simres) # Better 
 
-AICctab(control_spei3.lm2.ln, control_spei3.lm.ln, control_spei6.lm2.ln, control_spei6.lm.ln, control_spei9.lm2.ln, control_spei9.lm.ln, control_spei12.lm2.ln, control_spei12.lm.ln)
+# Need to use ML to compare AIC
+AICctab(control_spei3.lm2.ln.ml, control_spei3.lm.ln.ml, control_spei6.lm2.ln.ml, control_spei6.lm.ln.ml, control_spei9.lm2.ln.ml, control_spei9.lm.ln.ml, control_spei12.lm2.ln.ml, control_spei12.lm.ln.ml)
 
-# Compare model R2 like Robinson
+# Compare model R2 like Robinson (using REML)
 r.squaredGLMM(control_spei3.lm2.ln)
 r.squaredGLMM(control_spei3.lm.ln)
 r.squaredGLMM(control_spei6.lm2.ln)

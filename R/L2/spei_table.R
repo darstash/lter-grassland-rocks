@@ -508,8 +508,11 @@ plot_model(
   control_spei9.lm.ln,
   type = "pred",
   terms="spei9",
-  show.data = TRUE
-)
+  show.data = TRUE,
+  title = "",
+  axis.title = c("SPEI-9", "ANPP")) +
+  theme_bw()
+  
 
 ## Nitrogen biomass to choose SPEI ----
 # Add experiment column
@@ -570,9 +573,6 @@ plot_n_sub <- plot_n_sub %>%
   filter(disturbance != "disturbed") %>%
   filter(treatment != "irrigated") %>%
   filter(treatment != "altered") %>%
-  filter(treatment != "birds_excluded") %>%
-  filter(treatment != "nutnet_Fence") %>%
-  filter(treatment != "ConsumerExclusion_Fenced") %>%
   filter(grazing != "grazed") %>%
   filter(treatment != "insecticide") #remove plots with additional treatment
 
@@ -1750,6 +1750,26 @@ anpp_plot_norm <- lrr9sub_norm %>%
   theme(legend.position="none") +
   scale_color_manual(values = cols)
 
+# Three way interaction (for supplement)
+lrr9sub_norm$nitrogen <- fct_recode(lrr9sub_norm$nitrogen, "nutrients" = "N", "no nutrients" = "no_fertilizer")
+lrr.lm9sub_norm3 <- lmer(LRR ~ abs_spei9*spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr9sub_norm)
+summary(lrr.lm9sub_norm3)
+emtrends(lrr.lm9sub_norm3, pairwise ~ spei9_category * nitrogen, var = "abs_spei9", infer = T)
+simres <- simulateResiduals(lrr.lm9sub_norm3)
+plot(simres)
+
+anpp_plot_norm3 <- plot_model(
+  lrr.lm9sub_norm3,
+  type = "pred",
+  terms= c("abs_spei9", "spei9_category", "nitrogen"),
+  show.data = T,
+  title = "",
+  axis.title = c("|SPEI-9|", "ANPP LRR"),
+  legend.title = "Event type") +
+  theme_bw() +
+  geom_hline(yintercept=0, linetype='dashed', col = 'black')
+
+
 ## Richness with ONLY normal ----
 plot_sub_lrr9_rich <- plot_n_sub %>%
   group_by(uniqueid) %>%
@@ -1767,6 +1787,10 @@ lrr9sub_rich_norm <- plot_sub_lrr9_rich_norm %>%
   # filter(prior_year_type != "Extreme wet" | prior_year_type != "Extreme dry") %>%
   filter(spei9_category == "Extreme wet" | spei9_category == "Extreme dry") %>%
   mutate(LRR = log(Richness / average_normal_rich))  # Calculate the log response ratio
+
+# Take absolute value of SPEI9
+lrr9sub_rich_norm <- lrr9sub_rich_norm %>%
+  mutate(abs_spei9 = abs(spei9))
 
 lrr.lm9sub_rich_norm <- lmer(LRR ~ spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr9sub_rich_norm)
 summary(lrr.lm9sub_rich_norm)
@@ -1798,11 +1822,25 @@ plot_model(
   show.data = F
 ) + theme_bw()
 
-plot_model(
-  lrr.lm9sub_rich_norm,
-  type = "int",
-  show.data = F
-) + theme_bw()
+# Three way interaction (for supplement)
+lrr9sub_rich_norm$nitrogen <- fct_recode(lrr9sub_rich_norm$nitrogen, "nutrients" = "N", "no nutrients" = "no_fertilizer")
+lrr.lm9sub_rich_norm3 <- lmer(LRR ~ abs_spei9*spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr9sub_rich_norm)
+summary(lrr.lm9sub_rich_norm3)
+emtrends(lrr.lm9sub_rich_norm3, pairwise ~ spei9_category * nitrogen, var = "abs_spei9", infer = T)
+simres <- simulateResiduals(lrr.lm9sub_rich_norm3)
+plot(simres)
+
+rich_plot_norm3 <- plot_model(
+  lrr.lm9sub_rich_norm3,
+  type = "pred",
+  terms= c("abs_spei9", "spei9_category", "nitrogen"),
+  show.data = T,
+  title = "",
+  axis.title = c("|SPEI-9|", "Richness LRR"),
+  legend.title = "Event type") + 
+  theme_bw() +
+  geom_hline(yintercept=0, linetype='dashed', col = 'black')
+
 
 ## Dominance with ONLY normal (NO ZEROS!!!) ----
 plot_sub_lrr9_dom <- plot_n_sub %>%
@@ -1821,6 +1859,10 @@ lrr9sub_dom_norm <- plot_sub_lrr9_dom_norm %>%
   # filter(prior_year_type != "Extreme wet" | prior_year_type != "Extreme dry") %>%
   filter(spei9_category == "Extreme wet" | spei9_category == "Extreme dry") %>%
   mutate(LRR = log(dominant_relative_abund / average_normal_dom))  # Calculate the log response ratio
+
+# Take absolute value of SPEI9
+lrr9sub_dom_norm <- lrr9sub_dom_norm %>%
+  mutate(abs_spei9 = abs(spei9))
 
 lrr.lm9sub_dom_norm <- lmer(LRR ~ spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr9sub_dom_norm)
 summary(lrr.lm9sub_dom_norm)
@@ -1841,10 +1883,9 @@ dom_plot_norm <- lrr9sub_dom_norm %>%
   stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2), aes(shape = nitrogen)) + 
   geom_hline(yintercept=0, linetype='dashed', col = 'black')+
   theme_bw() +
-  labs(x = "Event type", y = "Dominance LRR", shape = "Fertilizer") +
-  scale_color_manual(values = cols, guide = "none") +
-  scale_shape_manual(values = c(19, 17), labels = c('no nutrients', 'nutrients')) +
-  theme(legend.title=element_blank())
+  labs(x = "Event type", y = "Dominance LRR") +
+  theme(legend.position="none") +
+  scale_color_manual(values = cols)
 
 plot_model(
   lrr.lm9sub_dom_norm,
@@ -1853,5 +1894,103 @@ plot_model(
   show.data = F
 ) + theme_bw()
 
+# Three way interaction (for supplement)
+lrr9sub_dom_norm$nitrogen <- fct_recode(lrr9sub_dom_norm$nitrogen, "nutrients" = "N", "no nutrients" = "no_fertilizer")
+lrr.lm9sub_dom_norm3 <- lmer(LRR ~ abs_spei9*spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr9sub_dom_norm)
+summary(lrr.lm9sub_dom_norm3)
+emtrends(lrr.lm9sub_dom_norm3, pairwise ~ spei9_category * nitrogen, var = "abs_spei9", infer = T)
+simres <- simulateResiduals(lrr.lm9sub_dom_norm3)
+plot(simres)
+
+dom_plot_norm3 <- plot_model(
+  lrr.lm9sub_dom_norm3,
+  type = "pred",
+  terms= c("abs_spei9", "spei9_category", "nitrogen"),
+  show.data = T,
+  title = "",
+  axis.title = c("|SPEI-9|", "Dominance LRR"),
+  legend.title = "Event type") +
+  theme_bw() +
+  geom_hline(yintercept=0, linetype='dashed', col = 'black')
+
+
+## Evenness with ONLY normal ----
+plot_sub_lrr9_ev <- plot_n_sub %>%
+  group_by(uniqueid) %>%
+  arrange(uniqueid, year) %>%
+  mutate(prior_year_ev = lag(Evar),
+         prior_year_type = lag(spei9_category)) %>%
+  ungroup()
+normal_biomass9sub_ev_norm <- plot_sub_lrr9_ev  %>%
+  group_by(uniqueid) %>%
+  filter(spei9_category == "Normal") %>%
+  summarize(average_normal_ev = mean(Evar, na.rm=T))
+plot_sub_lrr9_ev_norm <- left_join(plot_sub_lrr9_ev, normal_biomass9sub_ev_norm)
+
+lrr9sub_ev_norm <- plot_sub_lrr9_ev_norm %>%
+  # filter(prior_year_type != "Extreme wet" | prior_year_type != "Extreme dry") %>%
+  filter(spei9_category == "Extreme wet" | spei9_category == "Extreme dry") %>%
+  mutate(LRR = log(Evar / average_normal_ev))  # Calculate the log response ratio
+
+# Take absolute value of SPEI9
+lrr9sub_ev_norm <- lrr9sub_ev_norm %>%
+  mutate(abs_spei9 = abs(spei9))
+
+lrr.lm9sub_ev_norm <- lmer(LRR ~ spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr9sub_ev_norm)
+summary(lrr.lm9sub_ev_norm)
+emm_ev <- emmeans(lrr.lm9sub_ev_norm, pairwise ~ spei9_category * nitrogen, infer = T)
+summary(emm_ev)
+simres <- simulateResiduals(lrr.lm9sub_ev_norm)
+plot(simres)
+
+# LRR plot for evenness normal only
+lrr9sub_ev_norm %>%
+  ggplot(aes(x = spei9_category, y = LRR, col = nitrogen)) +
+  stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2)) + 
+  geom_hline(yintercept=0, linetype='dashed', col = 'black')+
+  theme_bw()
+ev_plot_norm <- lrr9sub_ev_norm %>%
+  mutate(nitrogen = relevel(as.factor(nitrogen), 'no_fertilizer', 'nitrogen')) %>%
+  ggplot(aes(x = spei9_category, y = LRR, col = spei9_category)) +
+  stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2), aes(shape = nitrogen)) + 
+  geom_hline(yintercept=0, linetype='dashed', col = 'black')+
+  theme_bw() +
+  labs(x = "Event type", y = "Evenness LRR", shape = "Fertilizer") +
+  scale_color_manual(values = cols, guide = "none") +
+  scale_shape_manual(values = c(19, 17), labels = c('no nutrients', 'nutrients')) +
+  theme(legend.title=element_blank())
+
+plot_model(
+  lrr.lm9sub_ev_norm,
+  type = "pred",
+  terms= c("spei9_category", "nitrogen"),
+  show.data = F
+) + theme_bw()
+
+# Three way interaction (for supplement)
+lrr9sub_ev_norm$nitrogen <- fct_recode(lrr9sub_ev_norm$nitrogen, "nutrients" = "N", "no nutrients" = "no_fertilizer")
+lrr.lm9sub_ev_norm3 <- lmer(LRR ~ abs_spei9*spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr9sub_ev_norm)
+summary(lrr.lm9sub_ev_norm3)
+emtrends(lrr.lm9sub_ev_norm3, pairwise ~ spei9_category * nitrogen, var = "abs_spei9", infer = T)
+simres <- simulateResiduals(lrr.lm9sub_ev_norm3)
+plot(simres)
+
+ev_plot_norm3 <- plot_model(
+  lrr.lm9sub_ev_norm3,
+  type = "pred",
+  terms= c("abs_spei9", "spei9_category", "nitrogen"),
+  show.data = T,
+  title = "",
+  axis.title = c("|SPEI-9|", "Evenness LRR"),
+  legend.title = "Event type") +
+  theme_bw() +
+  geom_hline(yintercept=0, linetype='dashed', col = 'black')
+
+
 ## Final LRR plot NORMAL ----
-anpp_plot_norm + rich_plot_norm + dom_plot_norm & plot_annotation(tag_levels = 'A')
+anpp_plot_norm + rich_plot_norm + dom_plot_norm + ev_plot_norm + plot_layout(guides = 'collect') & plot_annotation(tag_levels = 'A')
+
+# Supplemental figure
+anpp_plot_norm3 + rich_plot_norm3 + dom_plot_norm3 + ev_plot_norm3 + plot_layout(guides = 'collect') & plot_annotation(tag_levels = 'A')
+
+

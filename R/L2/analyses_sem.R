@@ -788,7 +788,7 @@ multigroup2(model0,  group = "spei9_category")
 
 
 ### dry ####
-# this is the same model as model 1, but fitted to the dry subset of the data
+# this is the same model as model 0, but fitted to the dry subset of the data
 # this is done to get the R2 and the covariances
 
 model0_dry <- psem(
@@ -815,7 +815,7 @@ summary(model0_dry, intercepts = T)
 
 
 ### wet ####
-# this is the same model as model 1, but fitted to the wet subset of the data
+# this is the same model as model 0, but fitted to the wet subset of the data
 # this is done to get the R2 and the covariances
 
 model0_wet <- psem(

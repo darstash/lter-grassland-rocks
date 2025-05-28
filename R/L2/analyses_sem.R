@@ -354,13 +354,13 @@ model1_all_sum_table = model1_all_sum$coefficients %>% as.data.frame()
 model1_all_sum_table$model = "All_no_legacy"
 model1_all_sum_paths$model = "All_no_legacy"
 
-# Add spei9_abs and fix convergence error by removing site from random effects structure
+# Fix convergence error by removing site from random effects structure
 model1.1 <- psem(
   lmer(log_resistance ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|experiment/uniqueid), data = df),
   lmer(log_resilience ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|experiment/uniqueid), data = df) ,
-  lmer(richness ~ spei9_abs + nut_dummy + (1|experiment/uniqueid), data = df),
+  lmer(richness ~ nut_dummy + (1|experiment/uniqueid), data = df),
   lmer(dominant_relative_abund_zero ~ nut_dummy + (1|experiment/uniqueid), data = df), 
-  lmer(evar ~ spei9_abs + nut_dummy + (1|experiment/uniqueid), data = df), 
+  lmer(evar ~ nut_dummy + (1|experiment/uniqueid), data = df), 
   
   richness %~~% evar, 
   richness %~~% dominant_relative_abund_zero, 
@@ -372,16 +372,21 @@ model1.1 <- psem(
 
 lmer1 <- lmer(log_resistance ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|site/experiment/uniqueid), data = df )
 lmer2 <- lmer(log_resilience ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|experiment), data = df )
-lmer3 <- lmer(richness ~ spei9_abs + nut_dummy + (1|site/experiment/uniqueid), data = df)
+lmer3 <- lmer(richness ~ nut_dummy + (1|site/experiment/uniqueid), data = df)
 lmer4 <- lmer(dominant_relative_abund_zero ~ nut_dummy + (1|site/experiment/uniqueid), data = df)
-lmer5 <- lmer(evar ~ spei9_abs + nut_dummy + (1|site/experiment/uniqueid), data = df)
+lmer5 <- lmer(evar ~ nut_dummy + (1|site/experiment/uniqueid), data = df)
 
-model1.1.summary <- summary(model1.1) # The warning message is a new implementation in psem... other people move forward after getting this message
+model1.1.summary <- summary(model1.1) 
 plot(model1.1)
 multigroup2(model1.1,  group = "spei9_category")
 multigroup3(model1.1,  group = "spei9_category") # use this if multigroup2 doesn't work
 
-
+model1.1_all_sum = summary(model1.1, intercepts = T)
+model1.1_all_sum_paths = model1.1_all_sum$dTable %>% as.data.frame()
+model1.1_all_sum$dTable$Independ.Claim
+model1.1_all_sum_table = model1.1_all_sum$coefficients %>% as.data.frame()
+model1.1_all_sum_table$model = "All_no_legacy"
+model1.1_all_sum_paths$model = "All_no_legacy"
 
 ### dry ####
 # this is the same model as model 1, but fitted to the dry subset of the data
@@ -547,7 +552,7 @@ model1_lavaan_fit_c <- sem(model1_lavaan_c, data = df, group = "spei9_category")
 
 anova(model1_lavaan_fit, model1_lavaan_fit_c) 
 
-fitmeasures(model1_lavaan_fit,  c("df", "AIC", "pvalue", "RMSEA", "CFI", "SRMR")) 
+fitmeasures(model1_lavaan_fit,  c("df", "AIC", "pvalue", "RMSEA", "CFI", "SRMR", "IFI")) 
 # good fit when
 # p value > 0.05
 # rmsea   < 0.05
@@ -555,6 +560,7 @@ fitmeasures(model1_lavaan_fit,  c("df", "AIC", "pvalue", "RMSEA", "CFI", "SRMR")
 # srmr    < 0.08
 
 summary(model1_lavaan_fit_c, rsquare=T)
+
 
 ################################## #
 # Full SEM (with legacy effect) ####

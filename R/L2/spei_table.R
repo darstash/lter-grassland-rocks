@@ -21,6 +21,8 @@ library(MuMIn)
 library(DHARMa)
 library(car)
 library(patchwork)
+library(ggeffects)
+library(ggsignif)
 
 # Set working directory 
 L0_dir <- Sys.getenv("L0DIR")
@@ -1742,7 +1744,12 @@ plot_model(
   lrr.lm9sub2_norm,
   type = "pred",
   terms= c("spei9_category", "nitrogen"),
-  show.data = F) + theme_bw()
+  show.data = F,
+  title = "") + 
+  theme_bw() +
+  geom_hline(yintercept=0, linetype='dashed', col = 'black') +
+  labs(x = "Event type", y = "ANPP LRR") +
+  theme(legend.position="none")
 
 # LRR plot for ANPP
 cols <- c("Extreme dry" = "#E41A1C", "Extreme wet" = "#377EB8")
@@ -1761,6 +1768,25 @@ anpp_plot_norm <- lrr9sub_norm %>%
   labs(x = "Event type", y = "ANPP LRR") +
   theme(legend.position="none") +
   scale_color_manual(values = cols)
+
+# Using ggpredict
+lrr.lm9sub2_norm.df <- predict_response(lrr.lm9sub2_norm, terms = c("spei9_category", "nitrogen"))
+
+anpp_plot_norm_pred <- lrr.lm9sub2_norm.df %>%
+  mutate(group = relevel(as.factor(group), 'no_fertilizer', 'nitrogen')) %>%
+  drop_na() %>%
+  ggplot(aes(x, predicted, color = x)) +
+  geom_point(aes(shape = group), position = position_dodge(0.2), size = 3) +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high, group = group), width = 0.2, position = position_dodge(0.2)) +
+  geom_hline(yintercept=0, linetype='dashed', col = 'black')+
+  theme_bw() +
+  labs(x = "Event type", y = "ANPP LRR") +
+  scale_color_manual(values = cols) +
+  theme(legend.position="none") +
+  geom_signif(map_signif_level = F, tip_length = 0, y_position = 0.4, xmin = 0.95, xmax = 1.95, annotations = "***", color = "black") +
+  geom_signif(map_signif_level = F, tip_length = 0, y_position = 0.6, xmin = 1.05, xmax = 2.05, annotations = "***", color = "black") +
+  annotate(geom = "text", x=1, y=0.125, label="***", color="black") +
+  annotate(geom = "text", x=2, y=0.5, label="**", color="black")
 
 # Three way interaction (for supplement)
 lrr9sub_norm$nitrogen <- fct_recode(lrr9sub_norm$nitrogen, "nutrients" = "N", "no nutrients" = "no_fertilizer")
@@ -1833,6 +1859,23 @@ plot_model(
   terms= c("spei9_category", "nitrogen"),
   show.data = F
 ) + theme_bw()
+
+# Using ggpredict
+lrr9sub_rich_norm.df <- predict_response(lrr.lm9sub_rich_norm, terms = c("spei9_category", "nitrogen"))
+
+rich_plot_norm_pred <- lrr9sub_rich_norm.df %>%
+  mutate(group = relevel(as.factor(group), 'no_fertilizer', 'nitrogen')) %>%
+  drop_na() %>%
+  ggplot(aes(x, predicted, color = x)) +
+  geom_point(aes(shape = group), position = position_dodge(0.2), size = 3) +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high, group = group), width = 0.2, position = position_dodge(0.2)) +
+  geom_hline(yintercept=0, linetype='dashed', col = 'black')+
+  theme_bw() +
+  labs(x = "Event type", y = "Richness LRR") +
+  scale_color_manual(values = cols) +
+  theme(legend.position="none") +
+  annotate(geom = "text", x=1, y=0.16, label= "***", color="black") +
+  annotate(geom = "text", x=2, y=0.125, label= "+", color="black")
 
 # Three way interaction (for supplement)
 lrr9sub_rich_norm$nitrogen <- fct_recode(lrr9sub_rich_norm$nitrogen, "nutrients" = "N", "no nutrients" = "no_fertilizer")
@@ -2000,6 +2043,9 @@ ev_plot_norm3 <- plot_model(
 
 
 ## Final LRR plot NORMAL ----
+anpp_plot_norm + rich_plot_norm + dom_plot_norm + ev_plot_norm + plot_layout(guides = 'collect') & plot_annotation(tag_levels = 'A')
+
+# Final LRR plot NORMAL (model predictions)
 anpp_plot_norm + rich_plot_norm + dom_plot_norm + ev_plot_norm + plot_layout(guides = 'collect') & plot_annotation(tag_levels = 'A')
 
 # Supplemental figure

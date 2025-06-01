@@ -294,6 +294,61 @@ anova(resis_norm8)
 summary(resis_norm8)
 simres <- simulateResiduals(resis_norm8)
 plot(simres)
+###figure for full resistance model####
+resis_full_std <- update(resis_norm8, 
+                             data = plot_ece_9_cn_prior %>% 
+                               mutate(richness = scale(richness),
+                                      evar = scale(evar),
+                                      dominant_relative_abund_zero = scale(dominant_relative_abund_zero),
+                               ))
+
+resis_full_estim <-coef(summary(resis_full_std)) %>%
+  data.frame() %>%
+  rownames_to_column("Variable") %>%
+  rename("SE" = "Std..Error",
+         "p" = "Pr...t..") %>%
+  # order things neatly
+  mutate(Variable = factor(Variable,
+                           levels = c("(Intercept)",
+                                      "richness",
+                                      "dominant_relative_abund_zero",
+                                      "evar",
+                                      "nitrogennutrients",
+                                      "spei9_categoryExtreme wet",
+                                      "richness:spei9_categoryExtreme wet"
+                           )),
+         # cosmetics in the names
+         Variable_labels = factor(case_when(Variable %in% "(Intercept)" ~ "intercept",
+                                            Variable %in% "evar" ~ "evenness",
+                                            Variable %in% "dominant_relative_abund_zero" ~ "dominant",
+                                            Variable %in% "nitrogennutrients" ~ "nutrients",
+                                            Variable %in% "spei9_categoryExtreme wet" ~ "extreme wet",
+                                            Variable %in% "richness:spei9_categoryExtreme wet" ~ "richness:extreme wet",
+                                            .default = Variable)),
+         Variable_labels = fct_reorder(Variable_labels, as.numeric(Variable)),
+         # get significances and their plotting location (perhaps necessary to play with the +/- offset)
+         stars = case_when(p < 0.001 ~ "***",
+                           p > 0.001 & p <0.01 ~ "**",
+                           p > 0.01  & p < 0.05 ~ "*",
+                           p > 0.05 & p <0.1 ~ ".",
+                           .default = ""),
+         stars_location = case_when(Estimate < 0 ~ Estimate - SE - 0.1,
+                                    Estimate > 0 ~ Estimate + SE + 0.1)
+  ) %>%
+  filter(Variable!="(Intercept)")%>%
+  
+  ggplot(aes(y = Variable_labels, x = Estimate))+
+  theme_bw() +
+  theme(axis.title.y = element_blank()) +
+  labs(title = "log(resistance)",
+       x = "estimate \u00B1 se") +
+  scale_y_discrete(limits = rev) +
+  geom_vline(xintercept = 0) +
+  geom_point(col = "#A020F0", size =3)+
+  geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2,col = "#A020F0") +
+  geom_text(aes(x = stars_location, label = stars))#+
+scale_x_continuous(limits = -0.8:0.8)
+
 
 ####using emmeans and ggeffects to figure out best way to show result####
 # emtrends
@@ -538,6 +593,66 @@ summary(resil_norm6)
 simres <- simulateResiduals(resil_norm6)
 plot(simres)
 
+####figure for full resilience model####
+resil_full_std <- update(resil_norm6, 
+                             data = plot_ece_9_cn_prior_rm %>% 
+                               mutate(richness = scale(richness),
+                                      evar = scale(evar),
+                                      dominant_relative_abund_zero = scale(dominant_relative_abund_zero),
+                               ))
+
+resil_full_estim <-coef(summary(resil_full_std)) %>%
+  data.frame()%>%
+  rownames_to_column("Variable") %>%
+  rename("SE" = "Std..Error",
+         "p" = "Pr...t..") %>%
+  # order things neatly
+  mutate(Variable = factor(Variable,
+                           levels = c("(Intercept)",
+                                      "richness",
+                                      "dominant_relative_abund_zero",
+                                      "evar",
+                                      "nitrogennutrients",
+                                      "spei9_categoryExtreme wet",
+                                      "richness:spei9_categoryExtreme wet",
+                                      "dominant_relative_abund_zero:nitrogennutrients",
+                                      "nitrogennutrients:evar"
+                           )),
+         # cosmetics in the names
+         Variable_labels = factor(case_when(Variable %in% "(Intercept)" ~ "intercept",
+                                            Variable %in% "evar" ~ "evenness",
+                                            Variable %in% "dominant_relative_abund_zero" ~ "dominant",
+                                            Variable %in% "nitrogennutrients" ~ "nutrients",
+                                            Variable %in% "spei9_categoryExtreme wet" ~ "extreme wet",
+                                            Variable %in% "richness:spei9_categoryExtreme wet" ~ "richness:extreme wet",
+                                            Variable %in% "dominant_relative_abund_zero:nitrogennutrients" ~ "dominant:nutrients",
+                                            Variable %in% "nitrogennutrients:evar" ~ "evenness:nutrients",
+                                            .default = Variable)),
+         Variable_labels = fct_reorder(Variable_labels, as.numeric(Variable)),
+         # get significances and their plotting location (perhaps necessary to play with the +/- offset)
+         stars = case_when(p < 0.001 ~ "***",
+                           p > 0.001 & p <0.01 ~ "**",
+                           p > 0.01  & p < 0.05 ~ "*",
+                           p > 0.05 & p <0.1 ~ ".",
+                           .default = ""),
+         stars_location = case_when(Estimate < 0 ~ Estimate - SE - 0.1,
+                                    Estimate > 0 ~ Estimate + SE + 0.1)
+  ) %>%
+  filter(Variable!="(Intercept)")%>%
+  
+  ggplot(aes(y = Variable_labels, x = Estimate))+
+  theme_bw() +
+  theme(axis.title.y = element_blank()) +
+  labs(title = "log(resilience)",
+       x = "estimate \u00B1 se") +
+  scale_y_discrete(limits = rev) +
+  geom_vline(xintercept = 0) +
+  geom_point(col = "#A020F0", size =3)+
+  geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2,col = "#A020F0") +
+  geom_text(aes(x = stars_location, label = stars))#+
+scale_x_continuous(limits = -0.8:0.8)
+#####combine full model figure####
+resis_full_estim+resil_full_estim& plot_annotation(tag_levels = 'A')
 ####split into wet and dry####
 plot_ece_9_cn_prior_rm_wet<-plot_ece_9_cn_prior_rm%>%
   filter(spei9_category=="Extreme wet")

@@ -1949,6 +1949,21 @@ plot_model(
   show.data = F
 ) + theme_bw()
 
+# Using ggpredict
+lrr.lm9sub_dom_norm.df <- predict_response(lrr.lm9sub_dom_norm, terms = c("spei9_category", "nitrogen"))
+
+dom_plot_norm_pred <- lrr.lm9sub_dom_norm.df %>%
+  mutate(group = relevel(as.factor(group), 'no_fertilizer', 'nitrogen')) %>%
+  drop_na() %>%
+  ggplot(aes(x, predicted, color = x)) +
+  geom_point(aes(shape = group), position = position_dodge(0.2), size = 3) +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high, group = group), width = 0.2, position = position_dodge(0.2)) +
+  geom_hline(yintercept=0, linetype='dashed', col = 'black')+
+  theme_bw() +
+  labs(x = "Event type", y = "Dominance LRR") +
+  scale_color_manual(values = cols) +
+  theme(legend.position="none")
+
 # Three way interaction (for supplement)
 lrr9sub_dom_norm$nitrogen <- fct_recode(lrr9sub_dom_norm$nitrogen, "nutrients" = "N", "no nutrients" = "no_fertilizer")
 lrr.lm9sub_dom_norm3 <- lmer(LRR ~ abs_spei9*spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr9sub_dom_norm)
@@ -2022,6 +2037,25 @@ plot_model(
   show.data = F
 ) + theme_bw()
 
+# Using ggpredict
+lrr.lm9sub_ev_norm.df <- predict_response(lrr.lm9sub_ev_norm, terms = c("spei9_category", "nitrogen"))
+
+ev_plot_norm_pred <- lrr.lm9sub_ev_norm.df %>%
+  mutate(group = relevel(as.factor(group), 'no_fertilizer', 'nitrogen')) %>%
+  drop_na() %>%
+  ggplot(aes(x, predicted, color = x, shape = group)) +
+  geom_point(position = position_dodge(0.2), size = 3) +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high, group = group), width = 0.2, position = position_dodge(0.2)) +
+  geom_hline(yintercept=0, linetype='dashed', col = 'black')+
+  theme_bw() +
+  labs(x = "Event type", y = "Evenness LRR") +
+  scale_color_manual(values = cols, guide = "none") +
+  scale_shape_manual(values = c(19, 17), labels = c('no nutrients', 'nutrients')) +
+  theme(legend.title=element_blank()) +
+  annotate(geom = "text", x=2, y=0.25, label= "**", color="black") +
+  geom_signif(map_signif_level = F, tip_length = 0, y_position = 0.6, xmin = 0.95, xmax = 1.95, annotations = "*", color = "black") +
+  geom_signif(map_signif_level = F, tip_length = 0, y_position = 0.68, xmin = 1.05, xmax = 2.05, annotations = "***", color = "black")
+
 # Three way interaction (for supplement)
 lrr9sub_ev_norm$nitrogen <- fct_recode(lrr9sub_ev_norm$nitrogen, "nutrients" = "N", "no nutrients" = "no_fertilizer")
 lrr.lm9sub_ev_norm3 <- lmer(LRR ~ abs_spei9*spei9_category*nitrogen + (1|site/experiment/uniqueid) + (1|year), data = lrr9sub_ev_norm)
@@ -2046,7 +2080,7 @@ ev_plot_norm3 <- plot_model(
 anpp_plot_norm + rich_plot_norm + dom_plot_norm + ev_plot_norm + plot_layout(guides = 'collect') & plot_annotation(tag_levels = 'A')
 
 # Final LRR plot NORMAL (model predictions)
-anpp_plot_norm + rich_plot_norm + dom_plot_norm + ev_plot_norm + plot_layout(guides = 'collect') & plot_annotation(tag_levels = 'A')
+anpp_plot_norm_pred + rich_plot_norm_pred + dom_plot_norm_pred + ev_plot_norm_pred + plot_layout(guides = 'collect') & plot_annotation(tag_levels = 'A')
 
 # Supplemental figure
 anpp_plot_norm3 + rich_plot_norm3 + dom_plot_norm3 + ev_plot_norm3 + plot_layout(guides = 'collect') & plot_annotation(tag_levels = 'A')

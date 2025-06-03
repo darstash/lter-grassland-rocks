@@ -1777,16 +1777,16 @@ anpp_plot_norm_pred <- lrr.lm9sub2_norm.df %>%
   drop_na() %>%
   ggplot(aes(x, predicted, color = x)) +
   geom_point(aes(shape = group), position = position_dodge(0.2), size = 3) +
-  geom_errorbar(aes(ymin = conf.low, ymax = conf.high, group = group), width = 0.2, position = position_dodge(0.2)) +
+  geom_errorbar(aes(ymin = (predicted - std.error), ymax = (predicted + std.error), group = group), width = 0.2, position = position_dodge(0.2)) +
   geom_hline(yintercept=0, linetype='dashed', col = 'black')+
   theme_bw() +
   labs(x = "Event type", y = "ANPP LRR") +
   scale_color_manual(values = cols) +
   theme(legend.position="none") +
-  geom_signif(map_signif_level = F, tip_length = 0, y_position = 0.4, xmin = 0.95, xmax = 1.95, annotations = "***", color = "black") +
-  geom_signif(map_signif_level = F, tip_length = 0, y_position = 0.6, xmin = 1.05, xmax = 2.05, annotations = "***", color = "black") +
-  annotate(geom = "text", x=1, y=0.125, label="***", color="black") +
-  annotate(geom = "text", x=2, y=0.5, label="**", color="black")
+  geom_signif(map_signif_level = F, tip_length = 0, y_position = 0.25, xmin = 0.95, xmax = 1.95, annotations = "***", color = "black") +
+  geom_signif(map_signif_level = F, tip_length = 0, y_position = 0.45, xmin = 1.05, xmax = 2.05, annotations = "***", color = "black") +
+  annotate(geom = "text", x=1, y = 0.05, label="***", color="black") +
+  annotate(geom = "text", x=2, y = 0.4, label="**", color="black")
 
 # Three way interaction (for supplement)
 lrr9sub_norm$nitrogen <- fct_recode(lrr9sub_norm$nitrogen, "nutrients" = "N", "no nutrients" = "no_fertilizer")
@@ -1868,14 +1868,14 @@ rich_plot_norm_pred <- lrr9sub_rich_norm.df %>%
   drop_na() %>%
   ggplot(aes(x, predicted, color = x)) +
   geom_point(aes(shape = group), position = position_dodge(0.2), size = 3) +
-  geom_errorbar(aes(ymin = conf.low, ymax = conf.high, group = group), width = 0.2, position = position_dodge(0.2)) +
+  geom_errorbar(aes(ymin = (predicted - std.error), ymax = (predicted + std.error), group = group), width = 0.2, position = position_dodge(0.2)) +
   geom_hline(yintercept=0, linetype='dashed', col = 'black')+
   theme_bw() +
   labs(x = "Event type", y = "Richness LRR") +
   scale_color_manual(values = cols) +
   theme(legend.position="none") +
-  annotate(geom = "text", x=1, y=0.16, label= "***", color="black") +
-  annotate(geom = "text", x=2, y=0.125, label= "+", color="black")
+  annotate(geom = "text", x=1, y = 0.1, label= "***", color="black") +
+  annotate(geom = "text", x=2, y = 0.05, label= "+", color="black")
 
 # Three way interaction (for supplement)
 lrr9sub_rich_norm$nitrogen <- fct_recode(lrr9sub_rich_norm$nitrogen, "nutrients" = "N", "no nutrients" = "no_fertilizer")
@@ -1957,7 +1957,7 @@ dom_plot_norm_pred <- lrr.lm9sub_dom_norm.df %>%
   drop_na() %>%
   ggplot(aes(x, predicted, color = x)) +
   geom_point(aes(shape = group), position = position_dodge(0.2), size = 3) +
-  geom_errorbar(aes(ymin = conf.low, ymax = conf.high, group = group), width = 0.2, position = position_dodge(0.2)) +
+  geom_errorbar(aes(ymin = (predicted - std.error), ymax = (predicted + std.error), group = group), width = 0.2, position = position_dodge(0.2)) +
   geom_hline(yintercept=0, linetype='dashed', col = 'black')+
   theme_bw() +
   labs(x = "Event type", y = "Dominance LRR") +
@@ -2045,16 +2045,16 @@ ev_plot_norm_pred <- lrr.lm9sub_ev_norm.df %>%
   drop_na() %>%
   ggplot(aes(x, predicted, color = x, shape = group)) +
   geom_point(position = position_dodge(0.2), size = 3) +
-  geom_errorbar(aes(ymin = conf.low, ymax = conf.high, group = group), width = 0.2, position = position_dodge(0.2)) +
+  geom_errorbar(aes(ymin = (predicted - std.error), ymax = (predicted + std.error), group = group), width = 0.2, position = position_dodge(0.2)) +
   geom_hline(yintercept=0, linetype='dashed', col = 'black')+
   theme_bw() +
   labs(x = "Event type", y = "Evenness LRR") +
   scale_color_manual(values = cols, guide = "none") +
   scale_shape_manual(values = c(19, 17), labels = c('no nutrients', 'nutrients')) +
   theme(legend.title=element_blank()) +
-  annotate(geom = "text", x=2, y=0.25, label= "**", color="black") +
-  geom_signif(map_signif_level = F, tip_length = 0, y_position = 0.6, xmin = 0.95, xmax = 1.95, annotations = "*", color = "black") +
-  geom_signif(map_signif_level = F, tip_length = 0, y_position = 0.68, xmin = 1.05, xmax = 2.05, annotations = "***", color = "black")
+  annotate(geom = "text", x=2, y=0.13, label= "**", color="black") +
+  geom_signif(map_signif_level = F, tip_length = 0, y_position = 0.45, xmin = 0.95, xmax = 1.95, annotations = "*", color = "black") +
+  geom_signif(map_signif_level = F, tip_length = 0, y_position = 0.5, xmin = 1.05, xmax = 2.05, annotations = "***", color = "black")
 
 # Three way interaction (for supplement)
 lrr9sub_ev_norm$nitrogen <- fct_recode(lrr9sub_ev_norm$nitrogen, "nutrients" = "N", "no nutrients" = "no_fertilizer")

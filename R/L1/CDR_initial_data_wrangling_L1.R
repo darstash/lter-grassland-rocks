@@ -1,5 +1,5 @@
 # TITLE:          LTER Grassland Rock: KBS ANPP biomass and plant composition cleanup
-# AUTHORS:        Seraina Cappelli
+# AUTHORS:        Seraina Cappelli & Max Zaret
 # COLLABORATORS:  LTER synthesis group
 # DATA INPUT:     Data imported as txt files from shared Google drive L0 folder*
 # DATA OUTPUT:    
@@ -53,17 +53,7 @@
 #       yearab:      Year when the field was abandonned from agriculture (between 1927 and 2015)  
 #       species:     unique species name
 #       biomass:     
-# e097: https://cedarcreek.umn.edu/research/experiments/e097
-#       Biomass Data Variables
-#       field:       
-#       exp:        
-#       plot:        
-#       date:        
-#       ntrt:        
-#       nadd:       
-#       ntrtreceived:
-#       species:    
-#       biomass:     
+# not anymore included, because subset of e001: e097: https://cedarcreek.umn.edu/research/experiments/e097
 # e245: https://cedarcreek.umn.edu/research/experiments/e245
 #       Biomass Data Variables
 #        year:        2008 - 2021
@@ -140,7 +130,7 @@ library(tidyverse) # tidyverse 2.0.0
 # lubridate 1.9.3     # tidyr     1.3.0
 # purrr     1.0.2     
 
-library(janitor)
+library(janitor) # 2.2.0
 
 # Set working directory 
 L0_dir <- Sys.getenv("L0DIR")
@@ -157,57 +147,8 @@ climate <- read.csv(paste(L0_dir, "CDR/e080_Daily climate summary.csv", sep="/")
 e001e002_anpp <- read.csv(paste(L0_dir, "CDR/E001 E002 Aboveground Biomass for ML through 2022.csv", sep = "/")) %>%
   mutate(Field = ifelse(Field %in% "a", "A", Field))
 
-#e001_anpp <-
-#  read.table(paste(L0_dir, "CDR/e001_Plant_aboveground_biomass_data.txt", sep = "/"), 
-#             sep  = "\t", 
-#             skip = 1
-#  ) %>%
-#  rename("exp"         = "V1", 
-#         "year"        = "V2", 
-#         "field"       = "V3",
-#         "plot"        = "V4",
-#         "n_trt"       = "V5", 
-#         "n_add"       = "V6", 
-#         "nitr_add"    = "V7", 
-#         "n_atm_n_add" = "V8",  
-#         "species"     = "V9", 
-#         "biomass"     = "V10"
-#  )
 
 e054_anpp <- read.csv(paste(L0_dir, "CDR/e54_biomass_1221_ML.csv", sep = "/")) 
-
-#e054_anpp <- 
-#  read.table(paste(L0_dir, "CDR/E001 E002 Aboveground Biomass for ML through 2022.csv", sep = "/"), 
-#             sep  = "\t",
-#             skip = 1
-#  ) %>%
-#  rename("exp"     = "V1", 
-#         "year"    = "V2", 
-#         "oldfield"= "V3",
-#         "plot"    = "V4",
-#         "transect"= "V5", 
-#         "yearab"  = "V6", 
-#         "species" = "V7", 
-#         "biomass" = "V8"
-#         )
-
-#no longer including this as it is a subset of e001/e002
-#e097_anpp <- 
-#  read.table(paste(L0_dir, "CDR/e097_Plant_aboveground_biomass_data.txt", sep = "/"), 
-#             sep  = "\t", 
-#             skip = 1
-#  ) %>%
-#  rename("field"       = "V1", 
-#         "exp"         = "V2", 
-#         "plot"        = "V3",
-#         "date"        = "V4",
-#         "ntrt"        = "V5", 
-#         "nadd"        = "V6", 
-#         "ntrtreceived"= "V7", 
-#         "species"     = "V8",  
-#         "biomass"     = "V9"
-#  )
-
 
 e245_anpp <- read.delim(paste(L0_dir, "CDR/e245_Plant_aboveground_biomass_data.txt", sep = "/"))
   

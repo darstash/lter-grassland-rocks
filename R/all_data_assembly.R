@@ -22,7 +22,7 @@ rm(list=ls())
 
 # site data cleaning ####
 #-----------------------#
-source("R/L1/CDR_explore_L1.R")
+source("R/L1/CDR_initial_data_wrangling_L1.R")
 knitr::knit("R/L1/KNZ_initial_data_wrangling.Rmd") # creates some csv and other funky stuff. only run it if you know you need it
 source("R/L1/KBS_clean_L1.R")
 

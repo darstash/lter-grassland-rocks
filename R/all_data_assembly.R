@@ -1,7 +1,7 @@
 # TITLE:        LTER Grassland Rock: All data assembly
 # AUTHORS:      Seraina Cappelli
 # COLLABORATORS:  
-# DATA INPUT:   CDR_explore_L1.R, 
+# DATA INPUT:   CDR_initial_data_wrangling_L1.R, 
 #               KNZ_initial_data_wrangling.Rmd, 
 #               KBS_clean_L1.R, 
 #               all_sites_dataset.R, 

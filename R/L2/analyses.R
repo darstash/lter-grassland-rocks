@@ -4,7 +4,7 @@
 # DATA INPUT:   Data imported as csv files from shared Google drive L2 folder
 # DATA OUTPUT:  Core analyses
 # PROJECT:      LTER Grassland Rock
-# DATE:         October 2024 , last updated: May 2025
+# DATE:         October 2024 , last updated: August 2025
 
 # Clear all existing data
 rm(list=ls())
@@ -294,6 +294,8 @@ anova(resis_norm8)
 summary(resis_norm8)
 simres <- simulateResiduals(resis_norm8)
 plot(simres)
+resis8<-plot(check_model(resis_norm8))
+resis8[[5]]
 ###figure for full resistance model####
 resis_full_std <- update(resis_norm8, 
                              data = plot_ece_9_cn_prior %>% 
@@ -343,7 +345,7 @@ resis_full_estim <-coef(summary(resis_full_std)) %>%
   labs(title = "log(resistance)",
        x = "estimate \u00B1 se") +
   scale_y_discrete(limits = rev) +
-  geom_vline(xintercept = 0) +
+  geom_vline(xintercept = 0,linetype=2) +
   geom_point(col = "#A020F0", size =3)+
   geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2,col = "#A020F0") +
   geom_text(aes(x = stars_location, label = stars))#+
@@ -459,7 +461,7 @@ resis_norm_estim_wet <-coef(summary(resis_norm_wet_std)) %>%
   labs(title = "log(resistance)",
        x = "estimate \u00B1 se") +
   scale_y_discrete(limits = rev) +
-  geom_vline(xintercept = 0) +
+  geom_vline(xintercept = 0, linetype=2) +
   geom_point(col = "#377EB8", size =3)+
   geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2,col = "#377EB8") +
   geom_text(aes(x = stars_location, label = stars))#+
@@ -510,7 +512,7 @@ resis_norm_estim_dry <-coef(summary(resis_norm_dry_std)) %>%
   labs(title = "log(resistance)",
        x = "estimate \u00B1 se") +
   scale_y_discrete(limits = rev) +
-  geom_vline(xintercept = 0) +
+  geom_vline(xintercept = 0, linetype=2) +
   geom_point(col = "#E41A1C", size =3)+
   geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2,col = "#E41A1C") +
   geom_text(aes(x = stars_location, label = stars))#+
@@ -646,7 +648,7 @@ resil_full_estim <-coef(summary(resil_full_std)) %>%
   labs(title = "log(resilience)",
        x = "estimate \u00B1 se") +
   scale_y_discrete(limits = rev) +
-  geom_vline(xintercept = 0) +
+  geom_vline(xintercept = 0, linetype=2) +
   geom_point(col = "#A020F0", size =3)+
   geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2,col = "#A020F0") +
   geom_text(aes(x = stars_location, label = stars))#+
@@ -727,7 +729,7 @@ resil_norm_estim_wet <-coef(summary(resil_norm_wet_std)) %>%
   labs(title = "log(resilience)",
        x = "estimate \u00B1 se") +
   scale_y_discrete(limits = rev) +
-  geom_vline(xintercept = 0) +
+  geom_vline(xintercept = 0, linetype=2) +
   geom_point(col = "#377EB8", size =3)+
   geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2,col = "#377EB8") +
   geom_text(aes(x = stars_location, label = stars))#+
@@ -782,7 +784,7 @@ resil_norm_estim_dry <-coef(summary(resil_norm_dry_std)) %>%
   labs(title = "log(resilience)",
        x = "estimate \u00B1 se") +
   scale_y_discrete(limits = rev) +
-  geom_vline(xintercept = 0) +
+  geom_vline(xintercept = 0, linetype=2) +
   geom_point(col = "#E41A1C", size =3)+
   geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2,col = "#E41A1C") +
   geom_text(aes(x = stars_location, label = stars))#+

@@ -298,6 +298,32 @@ ggplot(cdr.aug , aes (x = year, y = spei6)) +
             x = 1910, y = 2, size = 5, colour = "black") + 
   scale_color_manual(values = c("#F5191CFF", "#E78200FF", "#EAC728FF", "#81BB95FF", "#3B99B1FF"))
 
+
+# Plot SPEI9
+ggplot(kbs.aug , aes (x = year, y = spei9)) +
+  geom_line(alpha = 0.5) + 
+  geom_point( aes(color = spei9_category), size = 1.25) + theme_bw() +
+  scale_x_continuous(breaks = seq(1900, 2025, by = 10)) +
+  annotate( "text", label = "KBS",
+            x = 1910, y = 2, size = 5, colour = "black") + 
+  scale_color_manual(values = c("#F5191CFF", "#E78200FF", "#EAC728FF", "#81BB95FF", "#3B99B1FF"))
+
+ggplot(knz.aug , aes (x = year, y = spei9)) +
+  geom_line(alpha = 0.5) + 
+  geom_point( aes(color = spei9_category), size = 1.25) + theme_bw() +
+  scale_x_continuous(breaks = seq(1900, 2025, by = 10)) +
+  annotate( "text", label = "KNZ",
+            x = 1910, y = 2, size = 5, colour = "black") + 
+  scale_color_manual(values = c("#F5191CFF", "#E78200FF", "#EAC728FF", "#81BB95FF", "#3B99B1FF"))
+
+ggplot(cdr.aug , aes (x = year, y = spei9)) +
+  geom_line(alpha = 0.5) + 
+  geom_point( aes(color = spei9_category), size = 1.25) + theme_bw() +
+  scale_x_continuous(breaks = seq(1900, 2025, by = 10)) +
+  annotate( "text", label = "CDR",
+            x = 1910, y = 2, size = 5, colour = "black") + 
+  scale_color_manual(values = c("#F5191CFF", "#E78200FF", "#EAC728FF", "#81BB95FF", "#3B99B1FF"))
+
 # Plot SPEI12
 kbs_spei <- ggplot(kbs.aug , aes (x = year, y = spei12)) +
   geom_line(alpha = 0.5) + 

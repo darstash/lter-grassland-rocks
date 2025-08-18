@@ -32,19 +32,19 @@ list.files(L2_dir)
 
 # Read in CSV files
 plot <- read.csv(file.path(L2_dir, "plot_metrics_SPEI_diversity.csv"))
-ece <- read.csv(file.path(L2_dir, "ece_resist_resil.csv"))#based on SPEI6
+#ece <- read.csv(file.path(L2_dir, "ece_resist_resil.csv"))#based on SPEI6
 meta <- read.csv(file.path(L2_dir, "metadata.csv"))
-ece_9<-read.csv(file.path(L2_dir, "ece_resist_resil_spei9.csv"))#calculated based on SPEI9
+#ece_9<-read.csv(file.path(L2_dir, "ece_resist_resil_spei9.csv"))#calculated based on SPEI9
 ece_9_norm<-read.csv(file.path(L2_dir, "ece_resist_resil_spei9_norm.csv"))#calculated based on SPEI9 without including moderate events as part of the normal events 
 # Only keep distinct rows in ece
-ece <- distinct(ece)
-ece_9<-distinct(ece_9)
+#ece <- distinct(ece)
+#ece_9<-distinct(ece_9)
 ece_9_norm<-distinct(ece_9_norm)
 # Change ex_year to year
-ece <- ece %>%
-  rename(year = ex_year)
-ece_9<-ece_9%>%
-  rename(year = ex_year)
+#ece <- ece %>%
+  #rename(year = ex_year)
+#ece_9<-ece_9%>%
+ # rename(year = ex_year)
 ece_9_norm<-ece_9_norm%>%
   rename(year = ex_year,
          resistance_n=resistance,
@@ -52,18 +52,19 @@ ece_9_norm<-ece_9_norm%>%
   
 
 # Merge plot with resistance and resilience
-plot_ece <- left_join(plot, ece)
-plot_ece_9<-left_join(plot, ece_9)
-plot_ece_9<-left_join(plot_ece_9, ece_9_norm)
+#plot_ece <- left_join(plot, ece)
+#plot_ece_9<-left_join(plot, ece_9)
+#plot_ece_9<-left_join(plot_ece_9, ece_9_norm)
+plot_ece_9<-left_join(plot, ece_9_norm)
 # Make column with categories for high and low dominance
-plot_ece <- plot_ece %>%
-  mutate(dom_category = case_when(
-    Berger_Parker >= 0.5 ~ "high",
-    Berger_Parker < 0.5 ~ "low"
-  ))
+#plot_ece <- plot_ece %>%
+  #mutate(dom_category = case_when(
+   # Berger_Parker >= 0.5 ~ "high",
+    #Berger_Parker < 0.5 ~ "low"
+  #))
 
 # Standardize column names
-plot_ece <- clean_names(plot_ece)
+#plot_ece <- clean_names(plot_ece)
 plot_ece_9 <- clean_names(plot_ece_9)
 
 
@@ -72,50 +73,50 @@ plot_ece_9 <- clean_names(plot_ece_9)
 #plot_ece_9$resilience[plot_ece_9$resilience == Inf] <- NA#don't think this is necessary
 
 # Add experiment column_SPEI6####
-plot_ece$experiment <- sub("nutnet.*", "nutnet", plot_ece$higher_order_organization)
-plot_ece$experiment <- sub("glbrc_scaleup.*", "glbrc_scaleup", plot_ece$experiment)
-plot_ece$experiment <- sub("glbrc_G10.*", "glbrc", plot_ece$experiment)
-plot_ece$experiment <- sub("glbrc_G9.*", "glbrc", plot_ece$experiment)
-plot_ece$experiment <- sub("mcse.*", "mcse", plot_ece$experiment)
-plot_ece$experiment <- sub("microplots.*", "microplots", plot_ece$experiment)
-plot_ece$experiment <- sub("Experiment 1.*", "Experiment 1", plot_ece$experiment)
-plot_ece$experiment <- sub("001d_A_fl", "001d_fl", plot_ece$experiment)
-plot_ece$experiment <- sub("001d_B_fl", "001d_fl", plot_ece$experiment)
-plot_ece$experiment <- sub("001d_C_fl", "001d_fl", plot_ece$experiment)
-plot_ece$experiment <- sub("001d_D_fl", "001d_fl", plot_ece$experiment)
-plot_ece$experiment <- sub("001d_A_tu", "001d_tu", plot_ece$experiment)
-plot_ece$experiment <- sub("001d_B_tu", "001d_tu", plot_ece$experiment)
-plot_ece$experiment <- sub("001d_C_tu", "001d_tu", plot_ece$experiment)
-plot_ece$experiment <- sub("001d_D_tu", "001d_tu", plot_ece$experiment)
-plot_ece$experiment <- sub("004a_A_fl", "004a_fl", plot_ece$experiment)
-plot_ece$experiment <- sub("004a_B_fl", "004a_fl", plot_ece$experiment)
-plot_ece$experiment <- sub("004a_C_fl", "004a_fl", plot_ece$experiment)
-plot_ece$experiment <- sub("004a_D_fl", "004a_fl", plot_ece$experiment)
-plot_ece$experiment <- sub("004a_A_tu", "004a_tu", plot_ece$experiment)
-plot_ece$experiment <- sub("004a_B_tu", "004a_tu", plot_ece$experiment)
-plot_ece$experiment <- sub("004a_C_tu", "004a_tu", plot_ece$experiment)
-plot_ece$experiment <- sub("004a_D_tu", "004a_tu", plot_ece$experiment)
-plot_ece$experiment <- sub("004b_A_fl", "004b_fl", plot_ece$experiment)
-plot_ece$experiment <- sub("004b_B_fl", "004b_fl", plot_ece$experiment)
-plot_ece$experiment <- sub("004b_C_fl", "004b_fl", plot_ece$experiment)
-plot_ece$experiment <- sub("004b_D_fl", "004b_fl", plot_ece$experiment)
-plot_ece$experiment <- sub("004b_A_tu", "004b_tu", plot_ece$experiment)
-plot_ece$experiment <- sub("004b_B_tu", "004b_tu", plot_ece$experiment)
-plot_ece$experiment <- sub("004b_C_tu", "004b_tu", plot_ece$experiment)
-plot_ece$experiment <- sub("004b_D_tu", "004b_tu", plot_ece$experiment)
-plot_ece$experiment <- sub("002d.*", "002d", plot_ece$experiment)
-plot_ece$experiment <- sub("Experiment 54.*", "Experiment 54", plot_ece$experiment)
-plot_ece$experiment <- sub("KNZ_WAT01.*", "KNZ_WAT01", plot_ece$experiment)
-plot_ece$experiment <- sub("002c.*", "002c", plot_ece$experiment)
-plot_ece$experiment <- sub("e061.*", "e061", plot_ece$experiment)
-plot_ece$experiment <- sub("e247.*", "e247", plot_ece$experiment)
-plot_ece$experiment <- sub("e245.*", "e245", plot_ece$experiment)
-plot_ece$experiment[plot_ece$experiment == "A"] <- "NGE"
-plot_ece$experiment[plot_ece$experiment == "B"] <- "NGE"
-plot_ece$experiment[plot_ece$experiment == "C"] <- "NGE"
-plot_ece$experiment[plot_ece$experiment == "D"] <- "NGE"
-plot_ece$experiment[plot_ece$experiment == "E"] <- "NGE"
-plot_ece$experiment[plot_ece$experiment == "F"] <- "NGE"
+# plot_ece$experiment <- sub("nutnet.*", "nutnet", plot_ece$higher_order_organization)
+# plot_ece$experiment <- sub("glbrc_scaleup.*", "glbrc_scaleup", plot_ece$experiment)
+# plot_ece$experiment <- sub("glbrc_G10.*", "glbrc", plot_ece$experiment)
+# plot_ece$experiment <- sub("glbrc_G9.*", "glbrc", plot_ece$experiment)
+# plot_ece$experiment <- sub("mcse.*", "mcse", plot_ece$experiment)
+# plot_ece$experiment <- sub("microplots.*", "microplots", plot_ece$experiment)
+# plot_ece$experiment <- sub("Experiment 1.*", "Experiment 1", plot_ece$experiment)
+# plot_ece$experiment <- sub("001d_A_fl", "001d_fl", plot_ece$experiment)
+# plot_ece$experiment <- sub("001d_B_fl", "001d_fl", plot_ece$experiment)
+# plot_ece$experiment <- sub("001d_C_fl", "001d_fl", plot_ece$experiment)
+# plot_ece$experiment <- sub("001d_D_fl", "001d_fl", plot_ece$experiment)
+# plot_ece$experiment <- sub("001d_A_tu", "001d_tu", plot_ece$experiment)
+# plot_ece$experiment <- sub("001d_B_tu", "001d_tu", plot_ece$experiment)
+# plot_ece$experiment <- sub("001d_C_tu", "001d_tu", plot_ece$experiment)
+# plot_ece$experiment <- sub("001d_D_tu", "001d_tu", plot_ece$experiment)
+# plot_ece$experiment <- sub("004a_A_fl", "004a_fl", plot_ece$experiment)
+# plot_ece$experiment <- sub("004a_B_fl", "004a_fl", plot_ece$experiment)
+# plot_ece$experiment <- sub("004a_C_fl", "004a_fl", plot_ece$experiment)
+# plot_ece$experiment <- sub("004a_D_fl", "004a_fl", plot_ece$experiment)
+# plot_ece$experiment <- sub("004a_A_tu", "004a_tu", plot_ece$experiment)
+# plot_ece$experiment <- sub("004a_B_tu", "004a_tu", plot_ece$experiment)
+# plot_ece$experiment <- sub("004a_C_tu", "004a_tu", plot_ece$experiment)
+# plot_ece$experiment <- sub("004a_D_tu", "004a_tu", plot_ece$experiment)
+# plot_ece$experiment <- sub("004b_A_fl", "004b_fl", plot_ece$experiment)
+# plot_ece$experiment <- sub("004b_B_fl", "004b_fl", plot_ece$experiment)
+# plot_ece$experiment <- sub("004b_C_fl", "004b_fl", plot_ece$experiment)
+# plot_ece$experiment <- sub("004b_D_fl", "004b_fl", plot_ece$experiment)
+# plot_ece$experiment <- sub("004b_A_tu", "004b_tu", plot_ece$experiment)
+# plot_ece$experiment <- sub("004b_B_tu", "004b_tu", plot_ece$experiment)
+# plot_ece$experiment <- sub("004b_C_tu", "004b_tu", plot_ece$experiment)
+# plot_ece$experiment <- sub("004b_D_tu", "004b_tu", plot_ece$experiment)
+# plot_ece$experiment <- sub("002d.*", "002d", plot_ece$experiment)
+# plot_ece$experiment <- sub("Experiment 54.*", "Experiment 54", plot_ece$experiment)
+# plot_ece$experiment <- sub("KNZ_WAT01.*", "KNZ_WAT01", plot_ece$experiment)
+# plot_ece$experiment <- sub("002c.*", "002c", plot_ece$experiment)
+# plot_ece$experiment <- sub("e061.*", "e061", plot_ece$experiment)
+# plot_ece$experiment <- sub("e247.*", "e247", plot_ece$experiment)
+# plot_ece$experiment <- sub("e245.*", "e245", plot_ece$experiment)
+# plot_ece$experiment[plot_ece$experiment == "A"] <- "NGE"
+# plot_ece$experiment[plot_ece$experiment == "B"] <- "NGE"
+# plot_ece$experiment[plot_ece$experiment == "C"] <- "NGE"
+# plot_ece$experiment[plot_ece$experiment == "D"] <- "NGE"
+# plot_ece$experiment[plot_ece$experiment == "E"] <- "NGE"
+# plot_ece$experiment[plot_ece$experiment == "F"] <- "NGE"
 
 #define experiment column-SPEI9####
 plot_ece_9$experiment <- sub("nutnet.*", "nutnet", plot_ece_9$higher_order_organization)
@@ -164,26 +165,26 @@ plot_ece_9$experiment[plot_ece_9$experiment == "E"] <- "NGE"
 plot_ece_9$experiment[plot_ece_9$experiment == "F"] <- "NGE"
 
 # Merge with metadata
-plot_ece_meta <- left_join(plot_ece, meta)
-unique(plot_ece_meta$experiment)
+# plot_ece_meta <- left_join(plot_ece, meta)
+# unique(plot_ece_meta$experiment)
 plot_ece_9_meta <- left_join(plot_ece_9, meta)
 unique(plot_ece_9_meta$experiment)
 
 
 # Remove NAs for non-extreme years
-plot_ece_rm_na <- plot_ece_meta %>%
-  drop_na(resistance)
+# plot_ece_rm_na <- plot_ece_meta %>%
+#   drop_na(resistance)
 plot_ece_9_rm_na <- plot_ece_9_meta %>%
-  drop_na(resistance)
+  drop_na(resistance_n)
 #checking each experiment/study
-plot_filter<-plot_ece_rm_na%>%
+plot_filter<-plot_ece_9_rm_na%>%
   filter(experiment=="004b_fl")
 
 # Make year a factor
-str(plot_ece_rm_na)
+#str(plot_ece_rm_na)
 str(plot_ece_9_rm_na)
-plot_ece_rm_na$year <- as.factor(plot_ece_rm_na$year)
-plot_ece_rm_na$measurement_scale_cover <- as.factor(plot_ece_rm_na$measurement_scale_cover)
+# plot_ece_rm_na$year <- as.factor(plot_ece_rm_na$year)
+# plot_ece_rm_na$measurement_scale_cover <- as.factor(plot_ece_rm_na$measurement_scale_cover)
 plot_ece_9_rm_na$year <- as.factor(plot_ece_9_rm_na$year)
 plot_ece_9_rm_na$measurement_scale_cover <- as.factor(plot_ece_9_rm_na$measurement_scale_cover)
 
@@ -351,7 +352,8 @@ resis_full_estim <-coef(summary(resis_full_std)) %>%
   geom_text(aes(x = stars_location, label = stars))#+
 scale_x_continuous(limits = -0.8:0.8)
 
-
+#standardized coefficient for result table
+summary(resis_full_std)
 ####using emmeans and ggeffects to figure out best way to show result####
 # emtrends
 # library(emmeans)
@@ -401,7 +403,7 @@ plot_ece_9_cn_prior_dry<-plot_ece_9_cn_prior%>%
 resis_norm_wet<-lmer(log(resistance_n)~richness+dominant_relative_abund_zero+nitrogen+evar+
                     (1|site/experiment/uniqueid)
                   +(1|year), data=plot_ece_9_cn_prior_wet)
-anova(resis_norm_wet)
+anova(resis_norm_wet)#warning is due to site variance close to zero. similar output without convergence warning when site is removed
 summary(resis_norm_wet)
 simres <- simulateResiduals(resis_norm_wet)
 plot(simres)
@@ -466,7 +468,9 @@ resis_norm_estim_wet <-coef(summary(resis_norm_wet_std)) %>%
   geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2,col = "#377EB8") +
   geom_text(aes(x = stars_location, label = stars))#+
   scale_x_continuous(limits = -0.8:0.8)
-
+#standardized estimates
+summary(resis_norm_wet_std)
+  
 #dry
 resis_norm_dry_std <- update(resis_norm_dry, 
                              data = plot_ece_9_cn_prior_dry %>% 
@@ -517,7 +521,8 @@ resis_norm_estim_dry <-coef(summary(resis_norm_dry_std)) %>%
   geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2,col = "#E41A1C") +
   geom_text(aes(x = stars_location, label = stars))#+
   scale_x_continuous(limits=-0.8:0.8)
-
+#standardized estimates 
+summary(resis_norm_dry_std)
 
 ##using resilience based on excluding biomass form moderate events from the normal average####
 #effect of nitrogen, event type and their interactions
@@ -653,6 +658,9 @@ resil_full_estim <-coef(summary(resil_full_std)) %>%
   geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2,col = "#A020F0") +
   geom_text(aes(x = stars_location, label = stars))#+
 scale_x_continuous(limits = -0.8:0.8)
+#standardized estimates
+summary(resil_full_std)
+
 #####combine full model figure####
 resis_full_estim+resil_full_estim& plot_annotation(tag_levels = 'A')
 ####split into wet and dry####
@@ -734,7 +742,8 @@ resil_norm_estim_wet <-coef(summary(resil_norm_wet_std)) %>%
   geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2,col = "#377EB8") +
   geom_text(aes(x = stars_location, label = stars))#+
   scale_x_continuous(limits = -0.8:0.8)
-
+#standardized coefficient
+summary(resil_norm_wet_std)
 #dry
 resil_norm_dry_std <- update(resil_norm_dry, 
                              data = plot_ece_9_cn_prior_rm_dry %>% 
@@ -789,7 +798,9 @@ resil_norm_estim_dry <-coef(summary(resil_norm_dry_std)) %>%
   geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2,col = "#E41A1C") +
   geom_text(aes(x = stars_location, label = stars))#+
   scale_x_continuous(limits = -0.8:0.8)
-
+#standardized estimates 
+summary(resil_norm_dry_std)
+  
 ##combine figure for resistance and resileince wet and dry####
 #using patchwork
 resis_norm_estim_dry + resis_norm_estim_wet+resil_norm_estim_dry+resil_norm_estim_wet& plot_annotation(tag_levels = 'A')
@@ -2368,544 +2379,544 @@ plot_grid(resis_norm_estim_dry, resis_norm_estim_wet,resil_norm_estim_dry,resil_
 #control only model with all possible main effects and interactions
 #using berger parker as dominance metric####
 #using scaled predictors
-resis_random_model<-lmer(log(resistance) ~ richness_scaled+berger_parker_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
-                           richness_scaled:berger_parker_scaled+berger_parker_scaled:spei6_category+richness_scaled:berger_parker_scaled:spei6_category+
-                           evar_scaled:spei6_category+(1|year) + (1|site/experiment/uniqueid), data = plot_ece_control)
-summary(resis_random_model) 
-check_model(resis_random_model)#diagnostic visuals
-anova(resis_random_model)
-#remove site
-resis_random_model1<-lmer(log(resistance) ~ richness_scaled+berger_parker_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
-                            richness_scaled:berger_parker_scaled+berger_parker_scaled:spei6_category+richness_scaled:berger_parker_scaled:spei6_category+
-                            evar_scaled:spei6_category+(1|year) + (1|experiment/uniqueid), data = plot_ece_control)
-summary(resis_random_model1)
-check_model(resis_random_model1)
-anova(resis_random_model1)
-
-AIC(resis_random_model1,resis_random_model)#model without site and  has the lowest AIC
-
-#selecting fixed effects but retaining hypothesis
-#refit model with "ML"
-resis_fixed_model<-lmer(log(resistance) ~ richness_scaled+berger_parker_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
-                          richness_scaled:berger_parker_scaled+berger_parker_scaled:spei6_category+richness_scaled:berger_parker_scaled:spei6_category+
-                          evar_scaled:spei6_category+(1|year) + (1|experiment/uniqueid), data = plot_ece_control, REML = F)
-anova(resis_fixed_model)
-fixed_model1<-update(resis_fixed_model, .~.-richness_scaled:berger_parker_scaled:spei6_category)
-#determine the significance of the dropped term
-anova(resis_fixed_model,fixed_model1)#okay to drop term
-#drop more terms
-fixed_model2<-update(fixed_model1, .~.-berger_parker_scaled:spei6_category)
-anova(fixed_model1, fixed_model2)#okay to drop term
-anova(fixed_model2)
-
-#more terms to drop
-fixed_model3<-update(fixed_model2, .~.-richness_scaled:spei6_category)
-anova(fixed_model2, fixed_model3)
-anova(fixed_model3)
-check_model(fixed_model3)
-
-#model suggests dominance and richness interaction is not significant
-#dropping this interaction
-fixed_model4<-update(fixed_model3, .~.-berger_parker_scaled:richness_scaled)
-anova(fixed_model3,fixed_model4)#okay to drop
-anova(fixed_model4)
-check_model(fixed_model4)
-
-fixed_model5<-update(fixed_model4, .~.-evar_scaled:spei6_category)
-anova(fixed_model4, fixed_model5)
-anova(fixed_model5)
-check_model(fixed_model5)
-
-#left richness and dominance in the model since it relates to our hypothesis
-#Refit model with REML
-fixed_model6<-lmer(log(resistance)~richness_scaled+berger_parker_scaled+evar_scaled+spei6_category+
-                         (1|year)+(1|experiment/uniqueid), data=plot_ece_control)
-anova(fixed_model6)
-simres <- simulateResiduals(fixed_model6)
-plot(simres)
-check_model(fixed_model6)#some spread in variance and normality issue #need covariance structure?
-#can't set variance with lme4 so pivot to nlme
-library(nlme)
-fixed_model7<-lme(log(resistance)~richness_scaled+berger_parker_scaled+evar_scaled+spei6_category,
-                    random = ~1|experiment/uniqueid, method="REML", data=plot_ece_control, na.action = na.omit)
-#does anyone know a way around setting multiple random effect with lme? can't set year as random effect with another random effect already stated
-anova(fixed_model7)
-
-#setting a fixed variance_covariance structure
-vfix<-varFixed(~evar_scaled)
-fixed_model8<-lme(log(resistance)~richness_scaled+berger_parker_scaled+evar_scaled+spei6_category,
-                  random = ~1|experiment/uniqueid, method="REML", data=plot_ece_control, na.action = na.omit,weights= vfix, correlation = corCompSymm(form=~1|experiment/uniqueid))
-anova(fixed_model8)
-summary(fixed_model8)
-check_model(fixed_model8)#not better
-anova(fixed_model7,fixed_model8)
-
-AIC(fixed_model7, fixed_model8) #model with the original structure has lower AIC
-
-
-#runing the model with abundance of dominant species instead of berger parker####
-resis_rand_dom_model<-lmer(log(resistance) ~ richness_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
-                           richness_scaled:dominant_relative_abund_zero_scaled+dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
-                           evar_scaled:spei6_category+(1|year) + (1|site/experiment/uniqueid), data = plot_ece_control)
-summary(resis_rand_dom_model) 
-check_model(resis_rand_dom_model)#diagnostic visuals
-anova(resis_rand_dom_model)
-#remove site
-resis_rand_dom_model1<-lmer(log(resistance) ~ richness_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
-                            richness_scaled:dominant_relative_abund_zero_scaled+dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
-                            evar_scaled:spei6_category+(1|year) + (1|experiment/uniqueid), data = plot_ece_control)
-summary(resis_rand_dom_model1) 
-check_model(resis_rand_dom_model1)
-anova(resis_rand_dom_model1)
-#remove year
-resis_rand_dom_model2<-lmer(log(resistance) ~ richness_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
-                              richness_scaled:dominant_relative_abund_zero_scaled+dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
-                              evar_scaled:spei6_category+ (1|experiment/uniqueid), data = plot_ece_control)
-summary(resis_rand_dom_model2)  
-check_model(resis_rand_dom_model2)
-anova(resis_rand_dom_model2)
-
-AIC(resis_rand_dom_model,resis_rand_dom_model1,resis_rand_dom_model2)#model with year but without site and  has the lowest AIC
-
-#selecting fixed effects but retaining hypothesis
-#refit model with "ML", then proceed with stepwise selection
-resis_fixed_dom_model<-lmer(log(resistance) ~ richness_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
-                          richness_scaled:dominant_relative_abund_zero_scaled+dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
-                          evar_scaled:spei6_category+(1|year) + (1|experiment/uniqueid), data = plot_ece_control, REML = F)
-anova(resis_fixed_dom_model)
-fixed_dom_model1<-update(resis_fixed_dom_model, .~.-richness_scaled:dominant_relative_abund_zero_scaled:spei6_category)
-anova(fixed_dom_model1, resis_fixed_dom_model)#okay to proceed
-anova(fixed_dom_model1)
-
-fixed_dom_model2<-update(fixed_dom_model1, .~.-evar_scaled:spei6_category)
-anova(fixed_dom_model1, fixed_dom_model2)
-anova(fixed_dom_model2)
-
-
-
-fixed_dom_model3<-update(fixed_dom_model2, .~.-richness_scaled:dominant_relative_abund_zero_scaled)
-anova(fixed_dom_model3, fixed_dom_model2)
-anova(fixed_dom_model3)
-
-fixed_dom_model4<-update(fixed_dom_model3, .~.-dominant_relative_abund_zero_scaled:spei6_category)
-anova(fixed_dom_model3, fixed_dom_model4)
-anova(fixed_dom_model4)
-
-fixed_dom_model5<-update(fixed_dom_model4, .~.-richness_scaled:spei6_category)
-anova(fixed_dom_model5, fixed_dom_model4)
-anova(fixed_dom_model5)
-
-fixed_dom_model6<-update(fixed_dom_model5, .~.-dominant_relative_abund_zero_scaled)
-anova(fixed_dom_model5, fixed_dom_model6)#fixed_dom_model5 has lower AIC and dominance is part of our initial hypothesis
-anova(fixed_dom_model6)
-
-#refit model with REML
-fixed_dom_model5_update<-update(fixed_dom_model5, REML=T)
-anova(fixed_dom_model5_update)#lower AIC than model using berger parker
-summary(fixed_dom_model5_update)
-check_model(fixed_dom_model5_update)
-simres <- simulateResiduals(fixed_dom_model5_update)
-plot(simres)#not that bad, but not the best either-thoughts?
-
-
-
-#plot best model
-ggpredict(model = fixed_dom_model5_update, terms = c("evar_scaled", "spei6_category"), back_transform = F ) %>%
-  plot(show_data = TRUE)+
-  labs(x="evenness")
-ggpredict(model = fixed_dom_model5_update, terms = "evar_scaled", back_transform = F) %>%
-  plot(show_data = TRUE)+
-  labs(x="evenness")
-
-
-
-#####
-#runing resilience model using only control with abundance of dominant species instead of berger parker####
-resil_rand_dom_model<-lmer(log(resilience) ~ richness_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
-                             richness_scaled:dominant_relative_abund_zero_scaled+dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
-                             evar_scaled:spei6_category+(1|year) + (1|site/experiment/uniqueid), data = plot_ece_control)
-summary(resil_rand_dom_model) 
-check_model(resil_rand_dom_model)#diagnostic visuals
-simres <- simulateResiduals(resil_rand_dom_model)
-plot(simres)
-anova(resil_rand_dom_model)
-#remove site
-resil_rand_dom_model1<-lmer(log(resilience) ~ richness_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
-                              richness_scaled:dominant_relative_abund_zero_scaled+dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
-                              evar_scaled:spei6_category+(1|year) + (1|experiment), data = plot_ece_control)
-summary(resil_rand_dom_model1) 
-check_model(resil_rand_dom_model1)
-anova(resil_rand_dom_model1)
-#remove year
-resil_rand_dom_model2<-lmer(log(resilience) ~ richness_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
-                              richness_scaled:dominant_relative_abund_zero_scaled+dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
-                              evar_scaled:spei6_category+ (1|experiment), data = plot_ece_control)
-summary(resil_rand_dom_model2)  
-check_model(resil_rand_dom_model2)
-anova(resil_rand_dom_model2)
-
-AIC(resil_rand_dom_model2,resil_rand_dom_model1,resil_rand_dom_model)#model with year but without site and unique id  has the lowest AIC
-
-#selecting fixed effects but retaining hypothesis
-#refit model with "ML", then proceed with stepwise selection
-resil_fixed_dom_model<-lmer(log(resilience) ~ richness_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
-                                  richness_scaled:dominant_relative_abund_zero_scaled+dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
-                                  evar_scaled:spei6_category+(1|year) + (1|experiment), data = plot_ece_control)
-summary(resil_fixed_dom_model) 
-anova(resil_fixed_dom_model)
-resil_fixed_dom_model1<-update(resil_fixed_dom_model, .~.-dominant_relative_abund_zero_scaled:spei6_category)
-anova(resil_fixed_dom_model1, resil_fixed_dom_model)#okay to proceed
-anova(resil_fixed_dom_model1)
-
-resil_fixed_dom_model2<-update(resil_fixed_dom_model1, .~.-evar_scaled:spei6_category)
-anova(resil_fixed_dom_model1, resil_fixed_dom_model2)
-anova(resil_fixed_dom_model2)
-
-
-
-resil_fixed_dom_model3<-update(resil_fixed_dom_model2, .~.-richness_scaled:spei6_category)
-anova(resil_fixed_dom_model3, resil_fixed_dom_model2)
-anova(resil_fixed_dom_model3)
-
-resil_fixed_dom_model4<-update(resil_fixed_dom_model3, .~.-richness_scaled:dominant_relative_abund_zero_scaled)
-anova(resil_fixed_dom_model3, resil_fixed_dom_model4)
-anova(resil_fixed_dom_model4)
-
-resil_fixed_dom_model5<-update(resil_fixed_dom_model4, .~.-richness_scaled:dominant_relative_abund_zero_scaled:spei6_category)
-anova(resil_fixed_dom_model5, resil_fixed_dom_model4)
-anova(resil_fixed_dom_model5)
-
-resil_fixed_dom_model6<-update(resil_fixed_dom_model5, .~.-spei6_category)
-anova(resil_fixed_dom_model6, resil_fixed_dom_model5)#resil_fixed_dom_model6 has lower AIC and dominance is part of our initial hypothesis
-anova(resil_fixed_dom_model6)
-
-#refit model with REML
-resil_fixed_dom_model5_update<-update(resil_fixed_dom_model5, REML=T)
-anova(resil_fixed_dom_model5_update)
-summary(resil_fixed_dom_model5_update)
-check_model(resil_fixed_dom_model5_update)
-simres <- simulateResiduals(resil_fixed_dom_model5_update)
-plot(simres)#not that bad, but not the best either-thoughts?
-
-
-
-#plot best model
-ggpredict(model = resil_fixed_dom_model5_update, terms = c("evar_scaled", "spei6_category"), back_transform = F ) %>%
-  plot(show_data = TRUE)+
-  labs(x="evenness")
-ggpredict(model = resil_fixed_dom_model5_update, terms = "evar_scaled", back_transform = F) %>%
-  plot(show_data = TRUE)+
-  labs(x="evenness")
-ggpredict(model = resil_fixed_dom_model5_update, terms = c("richness_scaled", "spei6_category"), back_transform = F ) %>%
-  plot(show_data = TRUE)+
-  labs(x="richness")
-
-# Model with all variables (need to add experiment)
-resist.control.full <- lmer(log10(resistance) ~ scale(richness)*scale(berger_parker)*site*spei6_category + year + (1|site/uniqueid), data = plot_ece_control, na.action = na.fail) # failed to converge
-
-# Model with all variables (year and experiment as random effects)
-resist.control.fuller <- lmer(log10(resistance) ~ scale(richness)*scale(berger_parker)*site*spei6_category + (1|year) + (1|site/experiment/uniqueid), data = plot_ece_control, na.action = na.fail) # failed to converge
-
-# dredge(resist.control.full) # best model only has spei_category lol
-# dredge(resist.control.fuller) # best model has richness*spei_category
-
-# Additive only model
-resist.control.add <- lmer(log10(resistance) ~ richness + berger_parker + site + spei6_category + year + (1|site/uniqueid), data = plot_ece_control) # failed to converge
-
-# Three way interaction, drop site, scale richness and dominance
-resist.control.int <- lmer(log10(resistance) ~ scale(richness)*scale(berger_parker)*spei6_category + year + (1|site/uniqueid), data = plot_ece_control)
-summary(resist.control.int)
-simres <- simulateResiduals(resist.control.int)
-plot(simres) # Very bad!
-
-# Drop non significant interactions (need to compare AIC)
-resist.control <- lmer(log10(resistance) ~ scale(richness)*spei6_category + scale(berger_parker) + year + (1|site/uniqueid), data = plot_ece_control)
-summary(resist.control)
-simres <- simulateResiduals(resist.control)
-plot(simres) # Very bad!
-
-# Drop dominance (but it's in our hypothesis so we might want to include it)
-resist.control.rich <- lmer(log10(resistance) ~ scale(richness)*spei6_category + year + (1|site/uniqueid), data = plot_ece_control)
-summary(resist.control.rich)
-simres <- simulateResiduals(resist.control.rich)
-plot(simres) # Very bad!
-
-# Year as random effect
-resist.control.rich.ny <- lmer(log10(resistance) ~ scale(richness)*spei6_category + (1|year) + (1|site/uniqueid), data = plot_ece_control)
-summary(resist.control.rich.ny)
-simres <- simulateResiduals(resist.control.rich.ny)
-plot(simres) # Very bad!
-
-# Drop interaction (but it's in our hypothesis so we might want to include it)
-resist.control.rich.add <- lmer(log10(resistance) ~ scale(richness) + spei6_category + year + (1|site/uniqueid), data = plot_ece_control)
-summary(resist.control.rich.add)
-simres <- simulateResiduals(resist.control.rich.add)
-plot(simres) # Very bad!
-
-# Drop spei category
-resist.control.rich.nc <- lmer(log10(resistance) ~ scale(richness) + year + (1|site/uniqueid), data = plot_ece_control)
-summary(resist.control.rich.nc)
-simres <- simulateResiduals(resist.control.rich.nc)
-plot(simres) # Very bad!
-
-# Only spei category
-resist.control.spei <- lmer(log10(resistance) ~ spei6_category + year + (1|site/uniqueid), data = plot_ece_control) # singular fit, site explains zero variance
-summary(resist.control.spei)
-simres <- simulateResiduals(resist.control.spei)
-plot(simres) # Very bad!
-
-# Make a model based on hypotheses
-resist.control.hyp <- lmer(log10(resistance) ~ scale(richness)*spei6_category + scale(berger_parker)*scale(richness) + scale(berger_parker)*spei6_category + year + (1|site/uniqueid), data = plot_ece_control)
-summary(resist.control.hyp)
-simres <- simulateResiduals(resist.control.hyp)
-plot(simres) # Very bad!
-
-# Year as random effect (hypothesis)
-resist.control.hyp.y <- lmer(log10(resistance) ~ scale(richness)*spei6_category + scale(berger_parker)*scale(richness) + scale(berger_parker)*spei6_category + (1|year) + (1|site/experiment/uniqueid), data = plot_ece_control)
-summary(resist.control.hyp.y) 
-simres <- simulateResiduals(resist.control.hyp.y)
-plot(simres) # Very bad!
-vif(resist.control.hyp.y) # berger parker is bad
-plot_ece_control %>%
-  select(richness, berger_parker, resistance, resilience, spei6_category) %>%
-  ggpairs()
-D <- cooks.distance(resist.control.hyp.y)
-which(D > 0.5) # no influential outliers
-
-# Use richness and BP scaled at the experiment level
-# Year as random effect (hypothesis)
-resist.control.hyp.scale <- lmer(log10(resistance) ~ richness_scaled*spei6_category + berger_parker_scaled*richness_scaled + berger_parker_scaled*spei6_category + (1|year) + (1|site/experiment/uniqueid), data = plot_ece_control)
-summary(resist.control.hyp.scale)
-simres <- simulateResiduals(resist.control.hyp.scale)
-plot(simres) # Very bad!
-
-AICctab(resist.control.int, resist.control, resist.control.rich, resist.control.rich.add, resist.control.rich.nc, resist.control.spei, resist.control.hyp, resist.control.rich.ny)
-
-# Plot best model
-ggpredict(model = resist.control.rich.ny, terms = c("richness", "spei6_category"), back_transform = F) %>%
-  plot(show_data = TRUE)
-
-# Plot hypothesis model
-ggpredict(model = resist.control.hyp.scale, terms = c("richness_scaled", "spei6_category"), back_transform = F) %>%
-  plot(show_data = TRUE)
-ggpredict(model = resist.control.hyp.scale, terms = c("berger_parker_scaled", "spei6_category"), back_transform = F) %>%
-  plot(show_data = TRUE)
-ggpredict(model = resist.control.hyp.scale, terms = c("richness_scaled", "berger_parker_scaled"), back_transform = F) %>%
-  plot(show_data = TRUE)
-ggpredict(model = resist.control.hyp.scale, terms = c("richness_scaled", "berger_parker_scaled", "spei6_category"), back_transform = F) %>%
-  plot(show_data = TRUE, facet = T)
-
-
-
-## All plots ----
-# Model 1
-resist.lm <- lmer(resistance ~ richness + (1|site) + (1|site:plot) + (1|year), data = plot_ece)
-summary(resist.lm) # boundary singular fit, site explains 0 variance
-
-# Check residuals and QQplot
-simres <- simulateResiduals(resist.lm)
-plot(simres) # Very bad!
-
-# Model 2 - try logging resistance
-resist.lm.log <- lmer(log10(resistance) ~ richness + (1|site) + (1|site:plot) + (1|year), data = plot_ece)
-summary(resist.lm.log)
-
-# Check residuals and QQplot
-simres <- simulateResiduals(resist.lm.log)
-plot(simres) # Better, but not perfect
-
-# Model 3 - try logging richness
-resist.lm.log2 <- lmer(log10(resistance) ~ log10(richness) + (1|site) + (1|site:plot) + (1|year), data = plot_ece)
-summary(resist.lm.log2)
-
-# Check residuals and QQplot
-simres <- simulateResiduals(resist.lm.log2)
-plot(simres) # Didn't help
-
-# Model 4 - add wet vs dry event to model 2
-resist.lm.wd <- lmer(log10(resistance) ~ richness + spei6_category + (1|site) + (1|site:plot) + (1|year), data = plot_ece)
-summary(resist.lm.wd)
-resist.lm.wd.log <- lmer(log10(resistance) ~ log10(richness) + spei6_category + (1|site) + (1|site:plot) + (1|year), data = plot_ece)
-
-# Check residuals and QQplot
-simres <- simulateResiduals(resist.lm.wd)
-plot(simres) # Didn't help
-
-# Model 5 - try interaction with category
-resist.lm.wd.int <- lmer(log10(resistance) ~ richness*spei6_category + (1|site) + (1|site:plot) + (1|year), data = plot_ece)
-summary(resist.lm.wd.int)
-resist.lm.wd.int.log <- lmer(log10(resistance) ~ log10(richness)*spei6_category + (1|site) + (1|site:plot) + (1|year), data = plot_ece)
-
-# Check residuals and QQplot
-simres <- simulateResiduals(resist.lm.wd.int)
-plot(simres) # Didn't help
-
-# Model 6 - add dominance
-resist.lm.dom <- lmer(log10(resistance) ~ richness*spei6_category + berger_parker + (1|site) + (1|site:plot) + (1|year), data = plot_ece)
-summary(resist.lm.dom)
-resist.lm.dom.log <- lmer(log10(resistance) ~ log10(richness)*spei6_category + berger_parker + (1|site) + (1|site:plot) + (1|year), data = plot_ece)
-
-# Check residuals and QQplot
-simres <- simulateResiduals(resist.lm.dom)
-plot(simres) # Didn't help
-
-# Model 7 - add dominance interaction with richness
-resist.lm.dom.int <- lmer(log10(resistance) ~ richness*spei6_category + berger_parker*richness + (1|site) + (1|site:plot) + (1|year), data = plot_ece)
-summary(resist.lm.dom.int)
-resist.lm.dom.int.log <- lmer(log10(resistance) ~ log10(richness)*spei6_category + berger_parker*log10(richness) + (1|site) + (1|site:plot) + (1|year), data = plot_ece)
-
-# Check residuals and QQplot
-simres <- simulateResiduals(resist.lm.dom.int)
-plot(simres) # Didn't help
-
-# Compare models # Depends on how/if you log richness
-AICctab(resist.lm.log, resist.lm.log2, resist.lm.wd, resist.lm.wd.log, resist.lm.wd.int, resist.lm.wd.int.log, resist.lm.dom, resist.lm.dom.log, resist.lm.dom.int, resist.lm.dom.int.log)
-
-# Plot best model
-ggpredict(model = resist.lm.log2, terms = c("richness"), back_transform = F) %>%
-  plot(show_data = TRUE)
-
-# Random effects like Isbell # Not sure if this is right
-resist.lm.r <- lmer(log10(resistance) ~ richness*spei6_category + (1|site:richness:year) + (1|site:richness) + (1|site:year) + (1|site:plot) + (1|site), data = plot_ece, na.action=na.omit)
-summary(resist.lm.r)
-
-resist.lm.r2 <- lmer(log10(resistance) ~ richness + spei6_category + (1|site:richness:year) + (1|site:richness) + (1|site:year) + (1|site:plot) + (1|site), data = plot_ece, na.action=na.omit)
-resist.lm.r2.log <- lmer(log10(resistance) ~ log10(richness) + spei6_category + (1|site:richness:year) + (1|site:richness) + (1|site:year) + (1|site:plot) + (1|site), data = plot_ece, na.action=na.omit)
-resist.lm.r2.log2 <- lmer(log2(resistance) ~ log2(richness) + spei6_category + (1|site:richness:year) + (1|site:richness) + (1|site:year) + (1|site:plot) + (1|site), data = plot_ece, na.action=na.omit)
-resist.lm.r3 <- lmer(log10(resistance) ~ richness + spei6_category + berger_parker + (1|site:richness:year) + (1|site:richness) + (1|site:year) + (1|site:plot) + (1|site), data = plot_ece, na.action=na.omit)
-resist.lm.r4 <- lmer(log10(resistance) ~ richness*spei6_category + berger_parker + (1|site:richness:year) + (1|site:richness) + (1|site:year) + (1|site:plot) + (1|site), data = plot_ece, na.action=na.omit)
-resist.lm.r5 <- lmer(log10(resistance) ~ richness*spei6_category + berger_parker*spei6_category + (1|site:richness:year) + (1|site:richness) + (1|site:year) + (1|site:plot) + (1|site), data = plot_ece, na.action=na.omit)
-
-# Compare models with Isbell random effects
-AICctab(resist.lm.r, resist.lm.r2, resist.lm.r2.log, resist.lm.r2.log2, resist.lm.r3, resist.lm.r4, resist.lm.r5)
-
-# Look at model stats
-summary(resist.lm.r2.log)
-simres <- simulateResiduals(resist.lm.r2.log)
-plot(simres) # Not great
-
-# Plot best model
-ggpredict(model = resist.lm.r2.log, terms = c("richness", "spei6_category"), back_transform = F) %>%
-  plot(show_data = TRUE)
-
-
-# Analysis 2 - resilience ----
-## Control plots only ----
-# Model with all variables (need to add experiment)
-resil.control.full <- lmer(log10(resilience) ~ scale(richness)*scale(berger_parker)*site*spei6_category + year + (1|site/uniqueid), data = plot_ece_control, na.action = na.fail) # singular fit
-
-# Model with all variables (year and experiment random effects)
-resil.control.fuller <- lmer(log10(resilience) ~ scale(richness)*scale(berger_parker)*site*spei6_category + (1|year) + (1|site/experiment/uniqueid), data = plot_ece_control, na.action = na.fail) # failed to converge
-
-# dredge(resil.control.full) # best model has richness*spei_cat, second best adds year
-# dredge(resil.control.fuller) # best model has site*spei_cat
-
-# Best model as predicted by dredge function (but including year)
-resil.control.rich <- lmer(log10(resilience) ~ scale(richness)*spei6_category + year + (1|site/uniqueid), data = plot_ece_control) # singular fit
-summary(resil.control.rich)
-simres <- simulateResiduals(resil.control.rich)
-plot(simres) # Very bad!
-
-# Move year to random effects
-resil.control.rich.ny <- lmer(log10(resilience) ~ scale(richness)*spei6_category + (1|year) + (1|site/uniqueid), data = plot_ece_control) # singular fit
-summary(resil.control.rich.ny)
-simres <- simulateResiduals(resil.control.rich.ny)
-plot(simres) # Very bad!
-
-# Additive only model
-resil.control.add <- lmer(log10(resilience) ~ richness + berger_parker + site + spei6_category + year + (1|site/uniqueid), data = plot_ece_control) #singular fit
-
-# Additive only model (year as random effect)
-resil.control.add.ny <- lmer(log10(resilience) ~ richness + berger_parker + site + spei6_category + (1|year) + (1|site/uniqueid), data = plot_ece_control) #singular fit
-
-# Three way interaction, drop site, scale richness and dominance
-resil.control.int <- lmer(log10(resilience) ~ scale(richness)*scale(berger_parker)*spei6_category + year + (1|site/uniqueid), data = plot_ece_control)
-summary(resil.control.int)
-
-# Three way interaction (year as random effect)
-resil.control.int.ny <- lmer(log10(resilience) ~ scale(richness)*scale(berger_parker)*spei6_category + (1|year) + (1|site/uniqueid), data = plot_ece_control)
-summary(resil.control.int)
-
-# Drop non significant interactions (need to compare AIC)
-resil.control <- lmer(log10(resilience) ~ scale(richness)*spei6_category + scale(berger_parker)*spei6_category + year + (1|site/uniqueid), data = plot_ece_control)
-summary(resil.control)
-simres <- simulateResiduals(resil.control)
-plot(simres) # Very bad!
-
-# Drop non significant interactions (year as random effect)
-resil.control.ny <- lmer(log10(resilience) ~ scale(richness)*spei6_category + scale(berger_parker)*spei6_category + (1|year) + (1|site/uniqueid), data = plot_ece_control)
-
-# Add site
-resil.control.rich.site <- lmer(log10(resilience) ~ scale(richness)*spei6_category + site + (1|year) + (1|site/uniqueid), data = plot_ece_control) # failed to converge
-
-# Drop interaction, keep site
-resil.control.rich.site.add <- lmer(log10(resilience) ~ scale(richness) + spei6_category + site + (1|year) + (1|site/uniqueid), data = plot_ece_control) # singular fit
-summary(resil.control.rich.site.add)
-simres <- simulateResiduals(resil.control.rich.site.add)
-plot(simres) # Very bad!
-
-# Site and spei interaction
-resil.control.site.int <- lmer(log10(resilience) ~ scale(richness) + spei6_category*site + (1|year) + (1|site/uniqueid), data = plot_ece_control) # failed to converge
-
-# Drop richness
-resil.control.site.int.nr <- lmer(log10(resilience) ~ spei6_category*site + (1|year) + (1|site/uniqueid), data = plot_ece_control) # failed to converge
-
-
-AICctab(resil.control.rich, resil.control.rich.ny, resil.control.rich.site.add, resil.control.add.ny, resil.control, resil.control.int, resil.control.int.ny, resil.control.add, resil.control.ny)
-
-# Plot best model
-ggpredict(model = resil.control.rich.ny, terms = c("richness", "spei6_category"), back_transform = F) %>%
-  plot(show_data = TRUE)
-
-
-
-## All plots ----
-# Model 1
-resil.lm <- lmer(resilience ~ richness + (1|site) + (1|site:plot), data = plot_ece)
-summary(resil.lm) # boundary singular fit, site and plot explain 0 variance
-
-# Check residuals and QQplot
-simres <- simulateResiduals(resil.lm)
-plot(simres) # Very bad!
-
-# Model 2 - try logging resistance
-resil.lm.log <- lmer(log10(resilience) ~ richness + (1|site) + (1|site:plot), data = plot_ece)
-summary(resil.lm.log) # boundary singular fit
-
-# Check residuals and QQplot
-simres <- simulateResiduals(resil.lm.log)
-plot(simres) # Better, but not perfect
-
-# Model 3 - try logging richness
-resil.lm.log2 <- lmer(log10(resilience) ~ log10(richness) + (1|site) + (1|site:plot), data = plot_ece)
-summary(resil.lm.log2)
-
-# Check residuals and QQplot
-simres <- simulateResiduals(resil.lm.log2)
-plot(simres) # Didn't help
-
-# Model 4 - add wet vs dry event to model 2
-resil.lm.wd <- lmer(log10(resilience) ~ richness + spei6_category + (1|site) + (1|site:plot), data = plot_ece)
-summary(resil.lm.wd)
-
-# Model 5 - try interaction with category
-resil.lm.wd.int <- lmer(log10(resilience) ~ richness*spei6_category + (1|site) + (1|site:plot), data = plot_ece)
-summary(resil.lm.wd.int)
-
-# Model 6 - add dominance
-resil.lm.dom <- lmer(log10(resilience) ~ richness*spei6_category + berger_parker + (1|site) + (1|site:plot), data = plot_ece)
-summary(resil.lm.dom)
-
-# Model 7 - add dominance interaction with richness
-resil.lm.dom.int <- lmer(log10(resilience) ~ richness*spei6_category + berger_parker*richness + (1|site) + (1|site:plot), data = plot_ece)
-summary(resil.lm.dom.int)
-
-# Compare models 
-AICctab(resil.lm.log, resil.lm.wd, resil.lm.wd.int, resil.lm.dom, resil.lm.dom.int)
-
-# Plot best model
-ggpredict(model = resil.lm.log, terms = c("richness"), back_transform = F) %>%
-  plot(show_data = TRUE)
+# resis_random_model<-lmer(log(resistance) ~ richness_scaled+berger_parker_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
+#                            richness_scaled:berger_parker_scaled+berger_parker_scaled:spei6_category+richness_scaled:berger_parker_scaled:spei6_category+
+#                            evar_scaled:spei6_category+(1|year) + (1|site/experiment/uniqueid), data = plot_ece_control)
+# summary(resis_random_model) 
+# check_model(resis_random_model)#diagnostic visuals
+# anova(resis_random_model)
+# #remove site
+# resis_random_model1<-lmer(log(resistance) ~ richness_scaled+berger_parker_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
+#                             richness_scaled:berger_parker_scaled+berger_parker_scaled:spei6_category+richness_scaled:berger_parker_scaled:spei6_category+
+#                             evar_scaled:spei6_category+(1|year) + (1|experiment/uniqueid), data = plot_ece_control)
+# summary(resis_random_model1)
+# check_model(resis_random_model1)
+# anova(resis_random_model1)
+# 
+# AIC(resis_random_model1,resis_random_model)#model without site and  has the lowest AIC
+# 
+# #selecting fixed effects but retaining hypothesis
+# #refit model with "ML"
+# resis_fixed_model<-lmer(log(resistance) ~ richness_scaled+berger_parker_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
+#                           richness_scaled:berger_parker_scaled+berger_parker_scaled:spei6_category+richness_scaled:berger_parker_scaled:spei6_category+
+#                           evar_scaled:spei6_category+(1|year) + (1|experiment/uniqueid), data = plot_ece_control, REML = F)
+# anova(resis_fixed_model)
+# fixed_model1<-update(resis_fixed_model, .~.-richness_scaled:berger_parker_scaled:spei6_category)
+# #determine the significance of the dropped term
+# anova(resis_fixed_model,fixed_model1)#okay to drop term
+# #drop more terms
+# fixed_model2<-update(fixed_model1, .~.-berger_parker_scaled:spei6_category)
+# anova(fixed_model1, fixed_model2)#okay to drop term
+# anova(fixed_model2)
+# 
+# #more terms to drop
+# fixed_model3<-update(fixed_model2, .~.-richness_scaled:spei6_category)
+# anova(fixed_model2, fixed_model3)
+# anova(fixed_model3)
+# check_model(fixed_model3)
+# 
+# #model suggests dominance and richness interaction is not significant
+# #dropping this interaction
+# fixed_model4<-update(fixed_model3, .~.-berger_parker_scaled:richness_scaled)
+# anova(fixed_model3,fixed_model4)#okay to drop
+# anova(fixed_model4)
+# check_model(fixed_model4)
+# 
+# fixed_model5<-update(fixed_model4, .~.-evar_scaled:spei6_category)
+# anova(fixed_model4, fixed_model5)
+# anova(fixed_model5)
+# check_model(fixed_model5)
+# 
+# #left richness and dominance in the model since it relates to our hypothesis
+# #Refit model with REML
+# fixed_model6<-lmer(log(resistance)~richness_scaled+berger_parker_scaled+evar_scaled+spei6_category+
+#                          (1|year)+(1|experiment/uniqueid), data=plot_ece_control)
+# anova(fixed_model6)
+# simres <- simulateResiduals(fixed_model6)
+# plot(simres)
+# check_model(fixed_model6)#some spread in variance and normality issue #need covariance structure?
+# #can't set variance with lme4 so pivot to nlme
+# library(nlme)
+# fixed_model7<-lme(log(resistance)~richness_scaled+berger_parker_scaled+evar_scaled+spei6_category,
+#                     random = ~1|experiment/uniqueid, method="REML", data=plot_ece_control, na.action = na.omit)
+# #does anyone know a way around setting multiple random effect with lme? can't set year as random effect with another random effect already stated
+# anova(fixed_model7)
+# 
+# #setting a fixed variance_covariance structure
+# vfix<-varFixed(~evar_scaled)
+# fixed_model8<-lme(log(resistance)~richness_scaled+berger_parker_scaled+evar_scaled+spei6_category,
+#                   random = ~1|experiment/uniqueid, method="REML", data=plot_ece_control, na.action = na.omit,weights= vfix, correlation = corCompSymm(form=~1|experiment/uniqueid))
+# anova(fixed_model8)
+# summary(fixed_model8)
+# check_model(fixed_model8)#not better
+# anova(fixed_model7,fixed_model8)
+# 
+# AIC(fixed_model7, fixed_model8) #model with the original structure has lower AIC
+# 
+# 
+# #runing the model with abundance of dominant species instead of berger parker####
+# resis_rand_dom_model<-lmer(log(resistance) ~ richness_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
+#                            richness_scaled:dominant_relative_abund_zero_scaled+dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
+#                            evar_scaled:spei6_category+(1|year) + (1|site/experiment/uniqueid), data = plot_ece_control)
+# summary(resis_rand_dom_model) 
+# check_model(resis_rand_dom_model)#diagnostic visuals
+# anova(resis_rand_dom_model)
+# #remove site
+# resis_rand_dom_model1<-lmer(log(resistance) ~ richness_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
+#                             richness_scaled:dominant_relative_abund_zero_scaled+dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
+#                             evar_scaled:spei6_category+(1|year) + (1|experiment/uniqueid), data = plot_ece_control)
+# summary(resis_rand_dom_model1) 
+# check_model(resis_rand_dom_model1)
+# anova(resis_rand_dom_model1)
+# #remove year
+# resis_rand_dom_model2<-lmer(log(resistance) ~ richness_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
+#                               richness_scaled:dominant_relative_abund_zero_scaled+dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
+#                               evar_scaled:spei6_category+ (1|experiment/uniqueid), data = plot_ece_control)
+# summary(resis_rand_dom_model2)  
+# check_model(resis_rand_dom_model2)
+# anova(resis_rand_dom_model2)
+# 
+# AIC(resis_rand_dom_model,resis_rand_dom_model1,resis_rand_dom_model2)#model with year but without site and  has the lowest AIC
+# 
+# #selecting fixed effects but retaining hypothesis
+# #refit model with "ML", then proceed with stepwise selection
+# resis_fixed_dom_model<-lmer(log(resistance) ~ richness_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
+#                           richness_scaled:dominant_relative_abund_zero_scaled+dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
+#                           evar_scaled:spei6_category+(1|year) + (1|experiment/uniqueid), data = plot_ece_control, REML = F)
+# anova(resis_fixed_dom_model)
+# fixed_dom_model1<-update(resis_fixed_dom_model, .~.-richness_scaled:dominant_relative_abund_zero_scaled:spei6_category)
+# anova(fixed_dom_model1, resis_fixed_dom_model)#okay to proceed
+# anova(fixed_dom_model1)
+# 
+# fixed_dom_model2<-update(fixed_dom_model1, .~.-evar_scaled:spei6_category)
+# anova(fixed_dom_model1, fixed_dom_model2)
+# anova(fixed_dom_model2)
+# 
+# 
+# 
+# fixed_dom_model3<-update(fixed_dom_model2, .~.-richness_scaled:dominant_relative_abund_zero_scaled)
+# anova(fixed_dom_model3, fixed_dom_model2)
+# anova(fixed_dom_model3)
+# 
+# fixed_dom_model4<-update(fixed_dom_model3, .~.-dominant_relative_abund_zero_scaled:spei6_category)
+# anova(fixed_dom_model3, fixed_dom_model4)
+# anova(fixed_dom_model4)
+# 
+# fixed_dom_model5<-update(fixed_dom_model4, .~.-richness_scaled:spei6_category)
+# anova(fixed_dom_model5, fixed_dom_model4)
+# anova(fixed_dom_model5)
+# 
+# fixed_dom_model6<-update(fixed_dom_model5, .~.-dominant_relative_abund_zero_scaled)
+# anova(fixed_dom_model5, fixed_dom_model6)#fixed_dom_model5 has lower AIC and dominance is part of our initial hypothesis
+# anova(fixed_dom_model6)
+# 
+# #refit model with REML
+# fixed_dom_model5_update<-update(fixed_dom_model5, REML=T)
+# anova(fixed_dom_model5_update)#lower AIC than model using berger parker
+# summary(fixed_dom_model5_update)
+# check_model(fixed_dom_model5_update)
+# simres <- simulateResiduals(fixed_dom_model5_update)
+# plot(simres)#not that bad, but not the best either-thoughts?
+# 
+# 
+# 
+# #plot best model
+# ggpredict(model = fixed_dom_model5_update, terms = c("evar_scaled", "spei6_category"), back_transform = F ) %>%
+#   plot(show_data = TRUE)+
+#   labs(x="evenness")
+# ggpredict(model = fixed_dom_model5_update, terms = "evar_scaled", back_transform = F) %>%
+#   plot(show_data = TRUE)+
+#   labs(x="evenness")
+# 
+# 
+# 
+# #####
+# #runing resilience model using only control with abundance of dominant species instead of berger parker####
+# resil_rand_dom_model<-lmer(log(resilience) ~ richness_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
+#                              richness_scaled:dominant_relative_abund_zero_scaled+dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
+#                              evar_scaled:spei6_category+(1|year) + (1|site/experiment/uniqueid), data = plot_ece_control)
+# summary(resil_rand_dom_model) 
+# check_model(resil_rand_dom_model)#diagnostic visuals
+# simres <- simulateResiduals(resil_rand_dom_model)
+# plot(simres)
+# anova(resil_rand_dom_model)
+# #remove site
+# resil_rand_dom_model1<-lmer(log(resilience) ~ richness_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
+#                               richness_scaled:dominant_relative_abund_zero_scaled+dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
+#                               evar_scaled:spei6_category+(1|year) + (1|experiment), data = plot_ece_control)
+# summary(resil_rand_dom_model1) 
+# check_model(resil_rand_dom_model1)
+# anova(resil_rand_dom_model1)
+# #remove year
+# resil_rand_dom_model2<-lmer(log(resilience) ~ richness_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
+#                               richness_scaled:dominant_relative_abund_zero_scaled+dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
+#                               evar_scaled:spei6_category+ (1|experiment), data = plot_ece_control)
+# summary(resil_rand_dom_model2)  
+# check_model(resil_rand_dom_model2)
+# anova(resil_rand_dom_model2)
+# 
+# AIC(resil_rand_dom_model2,resil_rand_dom_model1,resil_rand_dom_model)#model with year but without site and unique id  has the lowest AIC
+# 
+# #selecting fixed effects but retaining hypothesis
+# #refit model with "ML", then proceed with stepwise selection
+# resil_fixed_dom_model<-lmer(log(resilience) ~ richness_scaled+dominant_relative_abund_zero_scaled+evar_scaled+spei6_category+richness_scaled:spei6_category+
+#                                   richness_scaled:dominant_relative_abund_zero_scaled+dominant_relative_abund_zero_scaled:spei6_category+richness_scaled:dominant_relative_abund_zero_scaled:spei6_category+
+#                                   evar_scaled:spei6_category+(1|year) + (1|experiment), data = plot_ece_control)
+# summary(resil_fixed_dom_model) 
+# anova(resil_fixed_dom_model)
+# resil_fixed_dom_model1<-update(resil_fixed_dom_model, .~.-dominant_relative_abund_zero_scaled:spei6_category)
+# anova(resil_fixed_dom_model1, resil_fixed_dom_model)#okay to proceed
+# anova(resil_fixed_dom_model1)
+# 
+# resil_fixed_dom_model2<-update(resil_fixed_dom_model1, .~.-evar_scaled:spei6_category)
+# anova(resil_fixed_dom_model1, resil_fixed_dom_model2)
+# anova(resil_fixed_dom_model2)
+# 
+# 
+# 
+# resil_fixed_dom_model3<-update(resil_fixed_dom_model2, .~.-richness_scaled:spei6_category)
+# anova(resil_fixed_dom_model3, resil_fixed_dom_model2)
+# anova(resil_fixed_dom_model3)
+# 
+# resil_fixed_dom_model4<-update(resil_fixed_dom_model3, .~.-richness_scaled:dominant_relative_abund_zero_scaled)
+# anova(resil_fixed_dom_model3, resil_fixed_dom_model4)
+# anova(resil_fixed_dom_model4)
+# 
+# resil_fixed_dom_model5<-update(resil_fixed_dom_model4, .~.-richness_scaled:dominant_relative_abund_zero_scaled:spei6_category)
+# anova(resil_fixed_dom_model5, resil_fixed_dom_model4)
+# anova(resil_fixed_dom_model5)
+# 
+# resil_fixed_dom_model6<-update(resil_fixed_dom_model5, .~.-spei6_category)
+# anova(resil_fixed_dom_model6, resil_fixed_dom_model5)#resil_fixed_dom_model6 has lower AIC and dominance is part of our initial hypothesis
+# anova(resil_fixed_dom_model6)
+# 
+# #refit model with REML
+# resil_fixed_dom_model5_update<-update(resil_fixed_dom_model5, REML=T)
+# anova(resil_fixed_dom_model5_update)
+# summary(resil_fixed_dom_model5_update)
+# check_model(resil_fixed_dom_model5_update)
+# simres <- simulateResiduals(resil_fixed_dom_model5_update)
+# plot(simres)#not that bad, but not the best either-thoughts?
+# 
+# 
+# 
+# #plot best model
+# ggpredict(model = resil_fixed_dom_model5_update, terms = c("evar_scaled", "spei6_category"), back_transform = F ) %>%
+#   plot(show_data = TRUE)+
+#   labs(x="evenness")
+# ggpredict(model = resil_fixed_dom_model5_update, terms = "evar_scaled", back_transform = F) %>%
+#   plot(show_data = TRUE)+
+#   labs(x="evenness")
+# ggpredict(model = resil_fixed_dom_model5_update, terms = c("richness_scaled", "spei6_category"), back_transform = F ) %>%
+#   plot(show_data = TRUE)+
+#   labs(x="richness")
+# 
+# # Model with all variables (need to add experiment)
+# resist.control.full <- lmer(log10(resistance) ~ scale(richness)*scale(berger_parker)*site*spei6_category + year + (1|site/uniqueid), data = plot_ece_control, na.action = na.fail) # failed to converge
+# 
+# # Model with all variables (year and experiment as random effects)
+# resist.control.fuller <- lmer(log10(resistance) ~ scale(richness)*scale(berger_parker)*site*spei6_category + (1|year) + (1|site/experiment/uniqueid), data = plot_ece_control, na.action = na.fail) # failed to converge
+# 
+# # dredge(resist.control.full) # best model only has spei_category lol
+# # dredge(resist.control.fuller) # best model has richness*spei_category
+# 
+# # Additive only model
+# resist.control.add <- lmer(log10(resistance) ~ richness + berger_parker + site + spei6_category + year + (1|site/uniqueid), data = plot_ece_control) # failed to converge
+# 
+# # Three way interaction, drop site, scale richness and dominance
+# resist.control.int <- lmer(log10(resistance) ~ scale(richness)*scale(berger_parker)*spei6_category + year + (1|site/uniqueid), data = plot_ece_control)
+# summary(resist.control.int)
+# simres <- simulateResiduals(resist.control.int)
+# plot(simres) # Very bad!
+# 
+# # Drop non significant interactions (need to compare AIC)
+# resist.control <- lmer(log10(resistance) ~ scale(richness)*spei6_category + scale(berger_parker) + year + (1|site/uniqueid), data = plot_ece_control)
+# summary(resist.control)
+# simres <- simulateResiduals(resist.control)
+# plot(simres) # Very bad!
+# 
+# # Drop dominance (but it's in our hypothesis so we might want to include it)
+# resist.control.rich <- lmer(log10(resistance) ~ scale(richness)*spei6_category + year + (1|site/uniqueid), data = plot_ece_control)
+# summary(resist.control.rich)
+# simres <- simulateResiduals(resist.control.rich)
+# plot(simres) # Very bad!
+# 
+# # Year as random effect
+# resist.control.rich.ny <- lmer(log10(resistance) ~ scale(richness)*spei6_category + (1|year) + (1|site/uniqueid), data = plot_ece_control)
+# summary(resist.control.rich.ny)
+# simres <- simulateResiduals(resist.control.rich.ny)
+# plot(simres) # Very bad!
+# 
+# # Drop interaction (but it's in our hypothesis so we might want to include it)
+# resist.control.rich.add <- lmer(log10(resistance) ~ scale(richness) + spei6_category + year + (1|site/uniqueid), data = plot_ece_control)
+# summary(resist.control.rich.add)
+# simres <- simulateResiduals(resist.control.rich.add)
+# plot(simres) # Very bad!
+# 
+# # Drop spei category
+# resist.control.rich.nc <- lmer(log10(resistance) ~ scale(richness) + year + (1|site/uniqueid), data = plot_ece_control)
+# summary(resist.control.rich.nc)
+# simres <- simulateResiduals(resist.control.rich.nc)
+# plot(simres) # Very bad!
+# 
+# # Only spei category
+# resist.control.spei <- lmer(log10(resistance) ~ spei6_category + year + (1|site/uniqueid), data = plot_ece_control) # singular fit, site explains zero variance
+# summary(resist.control.spei)
+# simres <- simulateResiduals(resist.control.spei)
+# plot(simres) # Very bad!
+# 
+# # Make a model based on hypotheses
+# resist.control.hyp <- lmer(log10(resistance) ~ scale(richness)*spei6_category + scale(berger_parker)*scale(richness) + scale(berger_parker)*spei6_category + year + (1|site/uniqueid), data = plot_ece_control)
+# summary(resist.control.hyp)
+# simres <- simulateResiduals(resist.control.hyp)
+# plot(simres) # Very bad!
+# 
+# # Year as random effect (hypothesis)
+# resist.control.hyp.y <- lmer(log10(resistance) ~ scale(richness)*spei6_category + scale(berger_parker)*scale(richness) + scale(berger_parker)*spei6_category + (1|year) + (1|site/experiment/uniqueid), data = plot_ece_control)
+# summary(resist.control.hyp.y) 
+# simres <- simulateResiduals(resist.control.hyp.y)
+# plot(simres) # Very bad!
+# vif(resist.control.hyp.y) # berger parker is bad
+# plot_ece_control %>%
+#   select(richness, berger_parker, resistance, resilience, spei6_category) %>%
+#   ggpairs()
+# D <- cooks.distance(resist.control.hyp.y)
+# which(D > 0.5) # no influential outliers
+# 
+# # Use richness and BP scaled at the experiment level
+# # Year as random effect (hypothesis)
+# resist.control.hyp.scale <- lmer(log10(resistance) ~ richness_scaled*spei6_category + berger_parker_scaled*richness_scaled + berger_parker_scaled*spei6_category + (1|year) + (1|site/experiment/uniqueid), data = plot_ece_control)
+# summary(resist.control.hyp.scale)
+# simres <- simulateResiduals(resist.control.hyp.scale)
+# plot(simres) # Very bad!
+# 
+# AICctab(resist.control.int, resist.control, resist.control.rich, resist.control.rich.add, resist.control.rich.nc, resist.control.spei, resist.control.hyp, resist.control.rich.ny)
+# 
+# # Plot best model
+# ggpredict(model = resist.control.rich.ny, terms = c("richness", "spei6_category"), back_transform = F) %>%
+#   plot(show_data = TRUE)
+# 
+# # Plot hypothesis model
+# ggpredict(model = resist.control.hyp.scale, terms = c("richness_scaled", "spei6_category"), back_transform = F) %>%
+#   plot(show_data = TRUE)
+# ggpredict(model = resist.control.hyp.scale, terms = c("berger_parker_scaled", "spei6_category"), back_transform = F) %>%
+#   plot(show_data = TRUE)
+# ggpredict(model = resist.control.hyp.scale, terms = c("richness_scaled", "berger_parker_scaled"), back_transform = F) %>%
+#   plot(show_data = TRUE)
+# ggpredict(model = resist.control.hyp.scale, terms = c("richness_scaled", "berger_parker_scaled", "spei6_category"), back_transform = F) %>%
+#   plot(show_data = TRUE, facet = T)
+# 
+# 
+# 
+# ## All plots ----
+# # Model 1
+# resist.lm <- lmer(resistance ~ richness + (1|site) + (1|site:plot) + (1|year), data = plot_ece)
+# summary(resist.lm) # boundary singular fit, site explains 0 variance
+# 
+# # Check residuals and QQplot
+# simres <- simulateResiduals(resist.lm)
+# plot(simres) # Very bad!
+# 
+# # Model 2 - try logging resistance
+# resist.lm.log <- lmer(log10(resistance) ~ richness + (1|site) + (1|site:plot) + (1|year), data = plot_ece)
+# summary(resist.lm.log)
+# 
+# # Check residuals and QQplot
+# simres <- simulateResiduals(resist.lm.log)
+# plot(simres) # Better, but not perfect
+# 
+# # Model 3 - try logging richness
+# resist.lm.log2 <- lmer(log10(resistance) ~ log10(richness) + (1|site) + (1|site:plot) + (1|year), data = plot_ece)
+# summary(resist.lm.log2)
+# 
+# # Check residuals and QQplot
+# simres <- simulateResiduals(resist.lm.log2)
+# plot(simres) # Didn't help
+# 
+# # Model 4 - add wet vs dry event to model 2
+# resist.lm.wd <- lmer(log10(resistance) ~ richness + spei6_category + (1|site) + (1|site:plot) + (1|year), data = plot_ece)
+# summary(resist.lm.wd)
+# resist.lm.wd.log <- lmer(log10(resistance) ~ log10(richness) + spei6_category + (1|site) + (1|site:plot) + (1|year), data = plot_ece)
+# 
+# # Check residuals and QQplot
+# simres <- simulateResiduals(resist.lm.wd)
+# plot(simres) # Didn't help
+# 
+# # Model 5 - try interaction with category
+# resist.lm.wd.int <- lmer(log10(resistance) ~ richness*spei6_category + (1|site) + (1|site:plot) + (1|year), data = plot_ece)
+# summary(resist.lm.wd.int)
+# resist.lm.wd.int.log <- lmer(log10(resistance) ~ log10(richness)*spei6_category + (1|site) + (1|site:plot) + (1|year), data = plot_ece)
+# 
+# # Check residuals and QQplot
+# simres <- simulateResiduals(resist.lm.wd.int)
+# plot(simres) # Didn't help
+# 
+# # Model 6 - add dominance
+# resist.lm.dom <- lmer(log10(resistance) ~ richness*spei6_category + berger_parker + (1|site) + (1|site:plot) + (1|year), data = plot_ece)
+# summary(resist.lm.dom)
+# resist.lm.dom.log <- lmer(log10(resistance) ~ log10(richness)*spei6_category + berger_parker + (1|site) + (1|site:plot) + (1|year), data = plot_ece)
+# 
+# # Check residuals and QQplot
+# simres <- simulateResiduals(resist.lm.dom)
+# plot(simres) # Didn't help
+# 
+# # Model 7 - add dominance interaction with richness
+# resist.lm.dom.int <- lmer(log10(resistance) ~ richness*spei6_category + berger_parker*richness + (1|site) + (1|site:plot) + (1|year), data = plot_ece)
+# summary(resist.lm.dom.int)
+# resist.lm.dom.int.log <- lmer(log10(resistance) ~ log10(richness)*spei6_category + berger_parker*log10(richness) + (1|site) + (1|site:plot) + (1|year), data = plot_ece)
+# 
+# # Check residuals and QQplot
+# simres <- simulateResiduals(resist.lm.dom.int)
+# plot(simres) # Didn't help
+# 
+# # Compare models # Depends on how/if you log richness
+# AICctab(resist.lm.log, resist.lm.log2, resist.lm.wd, resist.lm.wd.log, resist.lm.wd.int, resist.lm.wd.int.log, resist.lm.dom, resist.lm.dom.log, resist.lm.dom.int, resist.lm.dom.int.log)
+# 
+# # Plot best model
+# ggpredict(model = resist.lm.log2, terms = c("richness"), back_transform = F) %>%
+#   plot(show_data = TRUE)
+# 
+# # Random effects like Isbell # Not sure if this is right
+# resist.lm.r <- lmer(log10(resistance) ~ richness*spei6_category + (1|site:richness:year) + (1|site:richness) + (1|site:year) + (1|site:plot) + (1|site), data = plot_ece, na.action=na.omit)
+# summary(resist.lm.r)
+# 
+# resist.lm.r2 <- lmer(log10(resistance) ~ richness + spei6_category + (1|site:richness:year) + (1|site:richness) + (1|site:year) + (1|site:plot) + (1|site), data = plot_ece, na.action=na.omit)
+# resist.lm.r2.log <- lmer(log10(resistance) ~ log10(richness) + spei6_category + (1|site:richness:year) + (1|site:richness) + (1|site:year) + (1|site:plot) + (1|site), data = plot_ece, na.action=na.omit)
+# resist.lm.r2.log2 <- lmer(log2(resistance) ~ log2(richness) + spei6_category + (1|site:richness:year) + (1|site:richness) + (1|site:year) + (1|site:plot) + (1|site), data = plot_ece, na.action=na.omit)
+# resist.lm.r3 <- lmer(log10(resistance) ~ richness + spei6_category + berger_parker + (1|site:richness:year) + (1|site:richness) + (1|site:year) + (1|site:plot) + (1|site), data = plot_ece, na.action=na.omit)
+# resist.lm.r4 <- lmer(log10(resistance) ~ richness*spei6_category + berger_parker + (1|site:richness:year) + (1|site:richness) + (1|site:year) + (1|site:plot) + (1|site), data = plot_ece, na.action=na.omit)
+# resist.lm.r5 <- lmer(log10(resistance) ~ richness*spei6_category + berger_parker*spei6_category + (1|site:richness:year) + (1|site:richness) + (1|site:year) + (1|site:plot) + (1|site), data = plot_ece, na.action=na.omit)
+# 
+# # Compare models with Isbell random effects
+# AICctab(resist.lm.r, resist.lm.r2, resist.lm.r2.log, resist.lm.r2.log2, resist.lm.r3, resist.lm.r4, resist.lm.r5)
+# 
+# # Look at model stats
+# summary(resist.lm.r2.log)
+# simres <- simulateResiduals(resist.lm.r2.log)
+# plot(simres) # Not great
+# 
+# # Plot best model
+# ggpredict(model = resist.lm.r2.log, terms = c("richness", "spei6_category"), back_transform = F) %>%
+#   plot(show_data = TRUE)
+# 
+# 
+# # Analysis 2 - resilience ----
+# ## Control plots only ----
+# # Model with all variables (need to add experiment)
+# resil.control.full <- lmer(log10(resilience) ~ scale(richness)*scale(berger_parker)*site*spei6_category + year + (1|site/uniqueid), data = plot_ece_control, na.action = na.fail) # singular fit
+# 
+# # Model with all variables (year and experiment random effects)
+# resil.control.fuller <- lmer(log10(resilience) ~ scale(richness)*scale(berger_parker)*site*spei6_category + (1|year) + (1|site/experiment/uniqueid), data = plot_ece_control, na.action = na.fail) # failed to converge
+# 
+# # dredge(resil.control.full) # best model has richness*spei_cat, second best adds year
+# # dredge(resil.control.fuller) # best model has site*spei_cat
+# 
+# # Best model as predicted by dredge function (but including year)
+# resil.control.rich <- lmer(log10(resilience) ~ scale(richness)*spei6_category + year + (1|site/uniqueid), data = plot_ece_control) # singular fit
+# summary(resil.control.rich)
+# simres <- simulateResiduals(resil.control.rich)
+# plot(simres) # Very bad!
+# 
+# # Move year to random effects
+# resil.control.rich.ny <- lmer(log10(resilience) ~ scale(richness)*spei6_category + (1|year) + (1|site/uniqueid), data = plot_ece_control) # singular fit
+# summary(resil.control.rich.ny)
+# simres <- simulateResiduals(resil.control.rich.ny)
+# plot(simres) # Very bad!
+# 
+# # Additive only model
+# resil.control.add <- lmer(log10(resilience) ~ richness + berger_parker + site + spei6_category + year + (1|site/uniqueid), data = plot_ece_control) #singular fit
+# 
+# # Additive only model (year as random effect)
+# resil.control.add.ny <- lmer(log10(resilience) ~ richness + berger_parker + site + spei6_category + (1|year) + (1|site/uniqueid), data = plot_ece_control) #singular fit
+# 
+# # Three way interaction, drop site, scale richness and dominance
+# resil.control.int <- lmer(log10(resilience) ~ scale(richness)*scale(berger_parker)*spei6_category + year + (1|site/uniqueid), data = plot_ece_control)
+# summary(resil.control.int)
+# 
+# # Three way interaction (year as random effect)
+# resil.control.int.ny <- lmer(log10(resilience) ~ scale(richness)*scale(berger_parker)*spei6_category + (1|year) + (1|site/uniqueid), data = plot_ece_control)
+# summary(resil.control.int)
+# 
+# # Drop non significant interactions (need to compare AIC)
+# resil.control <- lmer(log10(resilience) ~ scale(richness)*spei6_category + scale(berger_parker)*spei6_category + year + (1|site/uniqueid), data = plot_ece_control)
+# summary(resil.control)
+# simres <- simulateResiduals(resil.control)
+# plot(simres) # Very bad!
+# 
+# # Drop non significant interactions (year as random effect)
+# resil.control.ny <- lmer(log10(resilience) ~ scale(richness)*spei6_category + scale(berger_parker)*spei6_category + (1|year) + (1|site/uniqueid), data = plot_ece_control)
+# 
+# # Add site
+# resil.control.rich.site <- lmer(log10(resilience) ~ scale(richness)*spei6_category + site + (1|year) + (1|site/uniqueid), data = plot_ece_control) # failed to converge
+# 
+# # Drop interaction, keep site
+# resil.control.rich.site.add <- lmer(log10(resilience) ~ scale(richness) + spei6_category + site + (1|year) + (1|site/uniqueid), data = plot_ece_control) # singular fit
+# summary(resil.control.rich.site.add)
+# simres <- simulateResiduals(resil.control.rich.site.add)
+# plot(simres) # Very bad!
+# 
+# # Site and spei interaction
+# resil.control.site.int <- lmer(log10(resilience) ~ scale(richness) + spei6_category*site + (1|year) + (1|site/uniqueid), data = plot_ece_control) # failed to converge
+# 
+# # Drop richness
+# resil.control.site.int.nr <- lmer(log10(resilience) ~ spei6_category*site + (1|year) + (1|site/uniqueid), data = plot_ece_control) # failed to converge
+# 
+# 
+# AICctab(resil.control.rich, resil.control.rich.ny, resil.control.rich.site.add, resil.control.add.ny, resil.control, resil.control.int, resil.control.int.ny, resil.control.add, resil.control.ny)
+# 
+# # Plot best model
+# ggpredict(model = resil.control.rich.ny, terms = c("richness", "spei6_category"), back_transform = F) %>%
+#   plot(show_data = TRUE)
+# 
+# 
+# 
+# ## All plots ----
+# # Model 1
+# resil.lm <- lmer(resilience ~ richness + (1|site) + (1|site:plot), data = plot_ece)
+# summary(resil.lm) # boundary singular fit, site and plot explain 0 variance
+# 
+# # Check residuals and QQplot
+# simres <- simulateResiduals(resil.lm)
+# plot(simres) # Very bad!
+# 
+# # Model 2 - try logging resistance
+# resil.lm.log <- lmer(log10(resilience) ~ richness + (1|site) + (1|site:plot), data = plot_ece)
+# summary(resil.lm.log) # boundary singular fit
+# 
+# # Check residuals and QQplot
+# simres <- simulateResiduals(resil.lm.log)
+# plot(simres) # Better, but not perfect
+# 
+# # Model 3 - try logging richness
+# resil.lm.log2 <- lmer(log10(resilience) ~ log10(richness) + (1|site) + (1|site:plot), data = plot_ece)
+# summary(resil.lm.log2)
+# 
+# # Check residuals and QQplot
+# simres <- simulateResiduals(resil.lm.log2)
+# plot(simres) # Didn't help
+# 
+# # Model 4 - add wet vs dry event to model 2
+# resil.lm.wd <- lmer(log10(resilience) ~ richness + spei6_category + (1|site) + (1|site:plot), data = plot_ece)
+# summary(resil.lm.wd)
+# 
+# # Model 5 - try interaction with category
+# resil.lm.wd.int <- lmer(log10(resilience) ~ richness*spei6_category + (1|site) + (1|site:plot), data = plot_ece)
+# summary(resil.lm.wd.int)
+# 
+# # Model 6 - add dominance
+# resil.lm.dom <- lmer(log10(resilience) ~ richness*spei6_category + berger_parker + (1|site) + (1|site:plot), data = plot_ece)
+# summary(resil.lm.dom)
+# 
+# # Model 7 - add dominance interaction with richness
+# resil.lm.dom.int <- lmer(log10(resilience) ~ richness*spei6_category + berger_parker*richness + (1|site) + (1|site:plot), data = plot_ece)
+# summary(resil.lm.dom.int)
+# 
+# # Compare models 
+# AICctab(resil.lm.log, resil.lm.wd, resil.lm.wd.int, resil.lm.dom, resil.lm.dom.int)
+# 
+# # Plot best model
+# ggpredict(model = resil.lm.log, terms = c("richness"), back_transform = F) %>%
+#   plot(show_data = TRUE)
 
 ##### SEM #####
 library(piecewiseSEM)

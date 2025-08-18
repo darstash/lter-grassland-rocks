@@ -808,6 +808,14 @@ resis_norm_estim_dry + resis_norm_estim_wet+resil_norm_estim_dry+resil_norm_esti
 plot_grid(resis_norm_estim_dry, resis_norm_estim_wet,resil_norm_estim_dry,resil_norm_estim_wet, labels = c('A','B','C','D'))
 #still dropping elements
 
+
+#calculating Mean annual temp and precipitation for each site####
+precip_temp<-meta%>%
+  group_by(site)%>%
+  summarise(meantemp=(mean(meantemp, na.rm=T)),
+            meanprecip=(mean(annualprecip, na.rm=T)))
+
+
 # #analysis of nutrient and climate event category on resistance calculated with moderate event biomass as part of normal biomass avergae####
 # resis_nitro<-lmer(log(resistance)~nitrogen*spei9_category+(1|site/experiment/uniqueid)
 #                   +(1|year), data=plot_ece_9_cn)

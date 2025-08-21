@@ -2,12 +2,12 @@
 # AUTHORS:      Seraina Cappelli
 # COLLABORATORS:  
 # DATA INPUT:   CDR_initial_data_wrangling_L1.R, 
-#               KNZ_initial_data_wrangling.Rmd, 
-#               KBS_clean_L1.R, 
+#               KNZ_initial_data_wrangling_L1.Rmd, 
+#               KBS_initial_data_wrangling_L1.R, 
 #               all_sites_dataset.R, 
-#               Combined_data_plus_spei.R,
-#               DominanceRichnessCalculation.R, 
-#               all_sites_resistance_resilience.R
+#               all_sites_data_plus_spei.R,
+#               dominance_diversity_calculation.R, 
+#               resistance_resilience_calculation.R
 # DATA OUTPUT:    
 # PROJECT:      LTER Grassland Rock
 # DATE:         July 2024

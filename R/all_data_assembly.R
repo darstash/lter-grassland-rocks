@@ -5,7 +5,7 @@
 #               KNZ_initial_data_wrangling_L1.Rmd, 
 #               KBS_initial_data_wrangling_L1.R, 
 #               all_sites_dataset.R, 
-#               all_sites_data_plus_spei.R,
+#               all_sites_dataset_plus_spei.R,
 #               dominance_diversity_calculation.R, 
 #               resistance_resilience_calculation.R
 # DATA OUTPUT:    
@@ -30,10 +30,10 @@ source("R/L1/KBS_initial_data_wrangling_L1.R")
 # combine data together and add SPEI ####
 #---------------------------------------#
 source("R/L1/all_sites_dataset.R")
-source("R/L1/Combined_data_plus_spei.R")
+source("R/L1/all_sites_dataset_plus_spei.R")
 
 
-# calculate dominance, richness, resistance and resilience ####
+# calculate dominance, diversity (richness and evenness), resistance and resilience ####
 #-------------------------------------------------------------#
 source("R/L2/dominance_diversity_calculation.R")
-source("R/L2/all_sites_resistance_resilience.R") # be patient. the loop to calculate resistance and resilience is not the fastest.
+source("R/L2/resistance_resilience_calculation.R") # be patient. the loop to calculate resistance and resilience is not the fastest.

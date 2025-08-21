@@ -24,10 +24,7 @@ list.files(L1_dir)
 list.files(L2_dir)
 
 # want to combine with plot metrics, and species abundance
-
-spei <- read.csv(file.path(L1_dir, "SPEI_12_allsites.csv"), stringsAsFactors = FALSE)
-
-spei <- read.csv(file.path(L1_dir, "SPEI_12_allsites.csv"), stringsAsFactors = FALSE)
+spei <- read.csv(file.path(L1_dir, "all_sites_SPEI.csv"), stringsAsFactors = FALSE)
 plot <- read.csv(file.path(L2_dir, "plot_metrics.csv"), stringsAsFactors = FALSE)
 sp <- read.csv(file.path(L2_dir, "species_abundance.csv"), stringsAsFactors = FALSE)
 

@@ -1,12 +1,15 @@
-# lter-grassland-rocks
+## lter-grassland-rocks
 
 # Introduction
 This repository contains R scripts that organize, clean, harmonize, analyze, and plot data from a synthesis working group between three Long-Term Ecological Research (LTER) sites: Cedar Creek (CDR), Kellogg Biological Station (KBS), and Konza Prairie (KNZ). We looked at how the resistance and resilience of aboveground biomass to extreme climate events and anthropogenic drivers are shaped by multiple properties of plant community structure, including species richness, evenness, and dominant species.
 
 # Workflow
-L1: Each LTER site has its own R script for initial merging of datasets across that site that fit our criteria and cleaning. There is a script that pulls in SPEI 3, 6, 9, and 12, for each site and combines them into one file. Following these, there is a script to combine all the sites' data into one file and another script that combines all the sites' data with the SPEI data into one file.
+## L1 Folder
 
-L2: There is a script to calculate dominance and diversity (richness and evenness) and another to calculate resistance and resilience. For each analysis we carried out, there is a separate script (e.g. analyses_LMM_L2.R, analyses_sem_L2.R). 
+Each LTER site has its own R script for initial merging of datasets across that site that fit our criteria and cleaning. There is a script that pulls in SPEI 3, 6, 9, and 12, for each site and combines them into one file. Following these, there is a script to combine all the sites' data into one file and another script that combines all the sites' data with the SPEI data into one file.
+
+## L2 Folder
+There is a script to calculate dominance and diversity (richness and evenness) and another to calculate resistance and resilience. For each analysis we carried out, there is a separate script (e.g. analyses_LMM_L2.R, analyses_sem_L2.R). 
 
 # Location of data
 Some L1 data and all L2 data that are processed in the scripts in this repository are published as an EDI package (URL HERE). In some scripts, the header may state that the data was input from Google Drive, which is an artifact of our data processing steps.
@@ -20,13 +23,13 @@ We compiled data that contained at least five consecutive years of plant abovegr
 All analyses were conducted using R (R Core Team 2021).
 
 # File naming conventions
-Scripts are organized into two folders: L1 and L2.
+### Scripts are organized into two folders: L1 and L2.
 
 •	L1 scripts clean and harmonize raw site-level data, then combine them into standardized datasets. Script names indicate the site or step in the wrangling process (e.g., CDR_initial_data_wrangling_L1.R, all_sites_dataset_plus_spei_L1.R).
 
 •	L2 scripts use the cleaned and merged data to calculate ecological metrics (diversity, dominance, resistance, resilience), run analyses (LMM, SEM), and produce summary tables or figures. These are named for the calculation or analysis they perform (e.g., dominance_diversity_calculations_L2.R, analyses_LMM_L2.R).
 
-Data files are organized into two folders: L1 and L2.
+### Data files are organized into two folders: L1 and L2.
 
 •	L1 holds cleaned, site-level and combined datasets, named for their contents (e.g., species_abundance_L1.csv, site_years_with_SPEI.csv).
 
@@ -39,5 +42,5 @@ Joshua Ajowele, Rachael Brenneman, Caitlin Broderick, Seraina Cappelli, Ashley D
 # Contact Information
 For inquiries related to the data and scripts, please contact Ashley Darst @ @darstash@msu.edu or Joshua Ajowele @jaajowele@uncg.edu
 
-## Funding
+# Funding
 The long-term experiments and data collections at KNZ, CDR, and KBS were made possible by funding from the U.S. National Science Foundation Long-Term Ecological Research Program, including DEB-1234162, DEB-1831944, DEB-1440484, DEB-2025849, DEB-1832042, and DEB-2224712.

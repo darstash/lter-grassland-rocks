@@ -15,10 +15,8 @@
 This repository contains R scripts that organize, clean, harmonize, analyze, and plot data from a synthesis working group between three Long-Term Ecological Research (LTER) sites: Cedar Creek (CDR), Kellogg Biological Station (KBS), and Konza Prairie (KNZ). We looked at how the resistance and resilience of aboveground biomass to extreme climate events and anthropogenic drivers are shaped by multiple properties of plant community structure, including species richness, evenness, and dominant species.
 
 ## Workflow
-L1
-Each LTER site has its own R script for initial merging of datasets across that site that fit our criteria and cleaning. There is a script that pulls in SPEI 3, 6, 9, and 12, for each site and combines them into one file. Following these, there is a script to combine all the sites' data into one file and another script that combines all the sites' data with the SPEI data into one file.
-L2
-There is a script to calculate dominance and diversity (richness and evenness) and another to calculate resistance and resilience. For each analysis we carried out, there is a separate script (e.g. analyses_LMM_L2.R, analyses_sem_L2.R). 
+L1: Each LTER site has its own R script for initial merging of datasets across that site that fit our criteria and cleaning. There is a script that pulls in SPEI 3, 6, 9, and 12, for each site and combines them into one file. Following these, there is a script to combine all the sites' data into one file and another script that combines all the sites' data with the SPEI data into one file.
+L2: There is a script to calculate dominance and diversity (richness and evenness) and another to calculate resistance and resilience. For each analysis we carried out, there is a separate script (e.g. analyses_LMM_L2.R, analyses_sem_L2.R). 
 
 ## Location of data
 Some L1 data and all L2 data that are processed in the scripts in this repository are published as an EDI package (URL HERE). In some scripts, the header may state that the data was input from Google Drive, which is an artifact of our data processing steps.

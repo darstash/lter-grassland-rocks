@@ -951,7 +951,7 @@ kbs_plot_level_metrics_sel <- rename(kbs_plot_level_metrics_sel, measurement_sca
 kbs_plot_level_metrics_sel <- rename(kbs_plot_level_metrics_sel, measurement_scale_cover = area_sampled_cover)
 
 
-write.csv(kbs_plot_level_metrics_sel, file.path(L1_dir, "./KBS_plot_level_metrics.csv"), row.names=F)
+write.csv(kbs_plot_level_metrics_sel, file.path(L1_dir, "./KBS_plotlevel_metrics_L1.csv"), row.names=F)
 
 
 cols_metadata <- c("year", "site", "experiment", "plot_id", "higher_level_organization" , "unique_id", 
@@ -978,7 +978,7 @@ kbs_meta$treatment[kbs_meta$treatment == "T7" & kbs_meta$nutrients_added == "N" 
 kbs_meta$treatment[kbs_meta$treatment == "T7" & kbs_meta$nutrients_added != "N" & kbs_meta$disturbance == "disturbed"] <- "tilled"
 kbs_meta$treatment[kbs_meta$treatment == "T7" & kbs_meta$nutrients_added != "N" & kbs_meta$disturbance != "disturbed"] <- "control"
 
-write.csv(kbs_meta, file.path(L1_dir, "./KBS_metadata.csv"), row.names=F)
+write.csv(kbs_meta, file.path(L1_dir, "./KBS_metadata_L1.csv"), row.names=F)
 
 
 names(allkbsdata_spcomp_tp)
@@ -998,5 +998,5 @@ kbs_species_level_abundance$original_measurement_unit <- "g_m2"
 kbs_species_level_abundance <- kbs_species_level_abundance %>%
   select(-c(area_sampled_bio, area_sampled_cover))
 
-write.csv(kbs_species_level_abundance, file.path(L1_dir, "./KBS_species_level_abundance.csv"), row.names=F)
+write.csv(kbs_species_level_abundance, file.path(L1_dir, "./KBS_specieslevel_abundance_L1.csv"), row.names=F)
 

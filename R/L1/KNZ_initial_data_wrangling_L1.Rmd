@@ -1430,7 +1430,7 @@ KNZ_specieslevel_abundance<-df_E1_KNZ_species_level%>%
 
   
 #upload to google drive
-write.csv(KNZ_specieslevel_abundance,file.path(L1_dir,"/KNZ_specieslevel_abundance.csv"))
+write.csv(KNZ_specieslevel_abundance,file.path(L1_dir,"/KNZ_specieslevel_abundance_L1.csv"))
 
 #checking abundance duplicate
 species_check<-read.csv(file.path(L1_dir, "KNZ_specieslevel_abundance.csv")) %>%
@@ -1486,7 +1486,7 @@ KNZ_plotlevel_metrics<-df_E1_E2_KNZ_clean_plot_metrics%>%
 summary(KNZ_plotlevel_metrics)
 
 #upload to google drive
-write.csv(KNZ_plotlevel_metrics,file.path(L1_dir,"/KNZ_plotlevel_metrics.csv"))
+write.csv(KNZ_plotlevel_metrics,file.path(L1_dir,"/KNZ_plotlevel_metrics_L1.csv"))
 
 #mop up of metadata
 df_E1_E2_metadata$plot=as.factor(df_E1_E2_metadata$plot)
@@ -1521,7 +1521,7 @@ KNZ_metadata<-df_E1_E2_metadata%>%
 summary(KNZ_metadata)
 
 #upload to google drive
-write.csv(KNZ_metadata,file.path(L1_dir,"/KNZ_metadata.csv"))
+write.csv(KNZ_metadata,file.path(L1_dir,"/KNZ_metadata_L1.csv"))
 
 
 ```

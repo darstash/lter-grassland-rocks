@@ -1042,6 +1042,6 @@ cdr_metadata <- e001e002_metadata %>% mutate(dataset = "e001_e002") %>%
 
 
 #SAVE####
-write.csv(cdr_data,     paste(L1_dir, "CDR_plotlevel_metrics.csv", sep = "/"))
-write.csv(cdr_sp_data,  paste(L1_dir, "CDR_specieslevel_abundance.csv", sep = "/"))
-write.csv(cdr_metadata, paste(L1_dir, "CDR_metadata.csv", sep = "/"))
+write.csv(cdr_data,     paste(L1_dir, "CDR_plotlevel_metrics_L1.csv", sep = "/"))
+write.csv(cdr_sp_data,  paste(L1_dir, "CDR_specieslevel_abundance_L1.csv", sep = "/"))
+write.csv(cdr_metadata, paste(L1_dir, "CDR_metadata_L1.csv", sep = "/"))

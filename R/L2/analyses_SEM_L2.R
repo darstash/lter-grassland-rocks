@@ -30,11 +30,11 @@ L2_dir <- Sys.getenv("L2DIR")
 list.files(L2_dir)
 
 # Read in CSV files
-plot <- read.csv(file.path(L2_dir, "plot_metrics_SPEI_diversity.csv"))
-ece <- read.csv(file.path(L2_dir, "ece_resist_resil.csv"))#based on SPEI6
-meta <- read.csv(file.path(L2_dir, "metadata.csv"))
-ece_9<-read.csv(file.path(L2_dir, "ece_resist_resil_spei9.csv"))#calculated based on SPEI9
-ece_9_norm<-read.csv(file.path(L2_dir, "ece_resist_resil_spei9_norm.csv"))#calculated based on SPEI9 without including moderate events as part of the normal events 
+plot <- read.csv(file.path(L2_dir, "plot_metrics_SPEI_diversity_L2.csv"))
+ece <- read.csv(file.path(L2_dir, "ece_resist_resil_L2.csv"))#based on SPEI6
+meta <- read.csv(file.path(L1_dir, "metadata_L1.csv"))
+ece_9<-read.csv(file.path(L2_dir, "ece_resist_resil_spei9_L2.csv"))#calculated based on SPEI9
+ece_9_norm<-read.csv(file.path(L2_dir, "ece_resist_resil_spei9_norm_L2.csv"))#calculated based on SPEI9 without including moderate events as part of the normal events 
 
 names(plot)
 
@@ -238,7 +238,7 @@ plot_ece_9_cn_rm <- plot_ece_9_cn %>%
 
 ##### SEM #####
 library(piecewiseSEM, lavaan)
-source( paste(getwd(), "/R/L2/SEM custom functions.R", sep = ""))
+source( paste(getwd(), "/R/L2/SEM_custom_functions_L2.R", sep = ""))
 
 names(plot_ece_9_cn_rm)
 

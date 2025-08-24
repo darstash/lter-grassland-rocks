@@ -31,9 +31,9 @@ L2_dir <- Sys.getenv("L2DIR")
 list.files(L2_dir)
 
 # Read in CSV files ----
-plot_spei <- read.csv(file.path(L2_dir, "plot_metrics_SPEI_diversity.csv")) # why are there more plots than spei without diversity?
-metadata <- read.csv(file.path(L2_dir, "metadata.csv"))
-ece <- read.csv(file.path(L2_dir, "ece_resist_resil_spei9.csv"))
+plot_spei <- read.csv(file.path(L2_dir, "plot_metrics_SPEI_diversity_L2.csv")) # why are there more plots than spei without diversity?
+metadata <- read.csv(file.path(L1_dir, "metadata_L1.csv"))
+ece <- read.csv(file.path(L2_dir, "ece_resist_resil_spei9_L2.csv"))
 
 # Make sure spei category is a factor
 str(plot_spei)

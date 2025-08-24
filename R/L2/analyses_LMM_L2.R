@@ -31,11 +31,11 @@ L2_dir <- Sys.getenv("L2DIR")
 list.files(L2_dir)
 
 # Read in CSV files
-plot <- read.csv(file.path(L2_dir, "plot_metrics_SPEI_diversity.csv"))
+plot <- read.csv(file.path(L2_dir, "plot_metrics_SPEI_diversity_L2.csv"))
 #ece <- read.csv(file.path(L2_dir, "ece_resist_resil.csv"))#based on SPEI6
-meta <- read.csv(file.path(L2_dir, "metadata.csv"))
+meta <- read.csv(file.path(L1_dir, "metadata_L1.csv"))
 #ece_9<-read.csv(file.path(L2_dir, "ece_resist_resil_spei9.csv"))#calculated based on SPEI9
-ece_9_norm<-read.csv(file.path(L2_dir, "ece_resist_resil_spei9_norm.csv"))#calculated based on SPEI9 without including moderate events as part of the normal events 
+ece_9_norm<-read.csv(file.path(L2_dir, "ece_resist_resil_spei9_norm_L2.csv"))#calculated based on SPEI9 without including moderate events as part of the normal events 
 # Only keep distinct rows in ece
 #ece <- distinct(ece)
 #ece_9<-distinct(ece_9)

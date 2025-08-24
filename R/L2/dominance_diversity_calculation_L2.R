@@ -14,13 +14,12 @@ rm(list=ls())
 library(codyn)
 library(tidyverse)
 
-
+L1_dir <- Sys.getenv("L1DIR")
 L2_dir <- Sys.getenv("L2DIR")
-
 list.files(L2_dir)
 
-species_abundance_SPEI <- read.csv(file.path(L2_dir, "species_abundance_SPEI.csv"), stringsAsFactors = F)
-plot_metrics_SPEI <- read.csv(file.path(L2_dir, "plot_metrics_SPEI.csv"), stringsAsFactors = F)
+species_abundance_SPEI <- read.csv(file.path(L1_dir, "species_abundance_SPEI_L1.csv"), stringsAsFactors = F)
+plot_metrics_SPEI <- read.csv(file.path(L1_dir, "plot_metrics_SPEI_L1.csv"), stringsAsFactors = F)
 
 species_abundance_SPEI_Metric <- species_abundance_SPEI %>% 
   filter(relative_abundance > 0) %>% 
@@ -91,7 +90,7 @@ plot_metrics_SPEI_diversity <- plot_metrics_SPEI %>%
          prior_year_spei9=lag(spei9))
 
 
-write.csv(plot_metrics_SPEI_diversity, file.path(L2_dir, "./plot_metrics_SPEI_diversity.csv"), row.names=F)
+write.csv(plot_metrics_SPEI_diversity, file.path(L2_dir, "./plot_metrics_SPEI_diversity_L2.csv"), row.names=F)
 
 #investigating NAs in dominant species abundance
 plot_Na<-plot_metrics_SPEI_diversity%>%

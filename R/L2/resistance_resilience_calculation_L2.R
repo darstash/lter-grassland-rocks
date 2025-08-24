@@ -19,7 +19,7 @@ L2_dir <- Sys.getenv("L2DIR")
 list.files(L2_dir)
 
 # Read in CSV files
-plot_metrics <- read.csv(file.path(L2_dir, "plot_metrics_SPEI_diversity.csv"), stringsAsFactors = FALSE)
+plot_metrics <- read.csv(file.path(L2_dir, "plot_metrics_SPEI_diversity_L2.csv"), stringsAsFactors = FALSE)
 
 # SPEI6 ----
 # Create dataframe that contains extreme years at each site
@@ -55,7 +55,7 @@ for(i in 1:nrow(extreme_per_site)) {
 }
 
 # save dataframe of plot resistance and resilience to ECEs as .csv in Google Drive L2 folder
-write.csv(df, file.path(L2_dir, "./ece_resist_resil.csv"), row.names=F)
+write.csv(df, file.path(L2_dir, "./ece_resist_resil_L2.csv"), row.names=F)
 
 
 # SPEI9 ----
@@ -92,7 +92,7 @@ for(i in 1:nrow(extreme_per_site9)) {
 }
 
 # save dataframe of plot resistance and resilience to ECEs as .csv in Google Drive L2 folder
-write.csv(df9, file.path(L2_dir, "./ece_resist_resil_spei9.csv"), row.names=F)
+write.csv(df9, file.path(L2_dir, "./ece_resist_resil_spei9_L2.csv"), row.names=F)
 
 
 ## ONLY normal years ----
@@ -129,7 +129,7 @@ for(i in 1:nrow(extreme_per_site9)) {
 }
 
 # save dataframe of plot resistance and resilience to ECEs as .csv in Google Drive L2 folder
-write.csv(df9_norm, file.path(L2_dir, "./ece_resist_resil_spei9_norm.csv"), row.names=F)
+write.csv(df9_norm, file.path(L2_dir, "./ece_resist_resil_spei9_norm_L2.csv"), row.names=F)
 
 
 ### troubleshooting loop and calculations

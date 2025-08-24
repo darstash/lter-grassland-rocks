@@ -1433,7 +1433,7 @@ KNZ_specieslevel_abundance<-df_E1_KNZ_species_level%>%
 write.csv(KNZ_specieslevel_abundance,file.path(L1_dir,"/KNZ_specieslevel_abundance_L1.csv"))
 
 #checking abundance duplicate
-species_check<-read.csv(file.path(L1_dir, "KNZ_specieslevel_abundance.csv")) %>%
+species_check<-read.csv(file.path(L1_dir, "KNZ_specieslevel_abundance_L1.csv")) %>%
   group_by(uniqueid, year,plot, higher_order_organization,species,site)%>%
   mutate(sum=n())
 

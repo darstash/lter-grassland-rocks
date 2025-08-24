@@ -25,19 +25,19 @@ list.files(L1_dir)
 
 # Read in CSV files ----
 # CDR
-CDR_metadata <- read.csv(file.path(L1_dir, "CDR_metadata.csv"))
-CDR_species_abundance <- read.csv(file.path(L1_dir, "CDR_specieslevel_abundance.csv"))
-CDR_plot_metrics <- read.csv(file.path(L1_dir, "CDR_plotlevel_metrics.csv"))
+CDR_metadata <- read.csv(file.path(L1_dir, "CDR_metadata_L1.csv"))
+CDR_species_abundance <- read.csv(file.path(L1_dir, "CDR_specieslevel_abundance_L1.csv"))
+CDR_plot_metrics <- read.csv(file.path(L1_dir, "CDR_plotlevel_metrics_L1.csv"))
 
 # KBS
-KBS_metadata <- read.csv(file.path(L1_dir, "KBS_metadata.csv"))
-KBS_species_abundance <- read.csv(file.path(L1_dir, "KBS_species_level_abundance.csv"))
-KBS_plot_metrics <- read.csv(file.path(L1_dir, "KBS_plot_level_metrics.csv"))
+KBS_metadata <- read.csv(file.path(L1_dir, "KBS_metadata_L1.csv"))
+KBS_species_abundance <- read.csv(file.path(L1_dir, "KBS_specieslevel_abundance_L1.csv"))
+KBS_plot_metrics <- read.csv(file.path(L1_dir, "KBS_plotlevel_metrics_L1.csv"))
 
 # KNZ 
-KNZ_metadata <- read.csv(file.path(L1_dir, "KNZ_metadata.csv"))
-KNZ_species_abundance <- read.csv(file.path(L1_dir, "KNZ_specieslevel_abundance.csv"))
-KNZ_plot_metrics <- read.csv(file.path(L1_dir, "KNZ_plotlevel_metrics.csv"))
+KNZ_metadata <- read.csv(file.path(L1_dir, "KNZ_metadata_L1.csv"))
+KNZ_species_abundance <- read.csv(file.path(L1_dir, "KNZ_specieslevel_abundance_L1.csv"))
+KNZ_plot_metrics <- read.csv(file.path(L1_dir, "KNZ_plotlevel_metrics_L1.csv"))
 
 # Merge datasets ----
 # Plot metrics
@@ -56,7 +56,7 @@ plot_metrics <- full_join(plot_metrics, KNZ_plot_metrics)
 plot_metrics <- plot_metrics %>%
   select(-c(source, shannon, evenness, richness, X, dataset))
 
-write.csv(plot_metrics, file.path(L2_dir, "./plot_metrics.csv"), row.names=F)
+write.csv(plot_metrics, file.path(L1_dir, "./plot_metrics_L1.csv"), row.names=F)
 
 # Metadata
 
@@ -78,7 +78,7 @@ metadata <- metadata %>%
   mutate(growprecip = coalesce(growprecip, growing_precipitation)) %>%
   select(-c(growing_precipitation, X))
   
-write.csv(metadata, file.path(L2_dir, "./metadata.csv"), row.names=F)
+write.csv(metadata, file.path(L1_dir, "./metadata_L1.csv"), row.names=F)
 
 # Species abundance
 
@@ -479,5 +479,5 @@ species_abundance <- species_abundance %>%
         by.x = "species",
         by.y = "species_raw") 
 
-write.csv(species_abundance, file.path(L2_dir, "./species_abundance_L1.csv"), row.names=F)
-write.csv(species_name_match_list, file.path(L2_dir, "./species_name_list_L1.csv"), row.names=F) 
+write.csv(species_abundance, file.path(L1_dir, "./species_abundance_L1.csv"), row.names=F)
+write.csv(species_name_match_list, file.path(L1_dir, "./species_name_list_L1.csv"), row.names=F) 

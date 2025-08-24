@@ -24,9 +24,9 @@ list.files(L1_dir)
 list.files(L2_dir)
 
 # want to combine with plot metrics, and species abundance
-spei <- read.csv(file.path(L1_dir, "all_sites_SPEI.csv"), stringsAsFactors = FALSE)
-plot <- read.csv(file.path(L2_dir, "plot_metrics.csv"), stringsAsFactors = FALSE)
-sp <- read.csv(file.path(L2_dir, "species_abundance.csv"), stringsAsFactors = FALSE)
+spei <- read.csv(file.path(L1_dir, "all_sites_SPEI_L1.csv"), stringsAsFactors = FALSE)
+plot <- read.csv(file.path(L1_dir, "plot_metrics_L1.csv"), stringsAsFactors = FALSE)
+sp <- read.csv(file.path(L1_dir, "species_abundance_L1.csv"), stringsAsFactors = FALSE)
 
 range(spei$year)
 range(plot$year) # something wrong with KNZ years
@@ -34,5 +34,5 @@ plot_spei <- merge(plot, spei, by = c("year", "site")) # # hmm why losing observ
   # losing observations from 2023 and some KNZ rows with bad years
 sp_spei <- merge(sp, spei, by = c("year", "site")) # # hmm why losing observations....
 
-write.csv(plot_spei, file.path(L2_dir, "./plot_metrics_SPEI_L1.csv"), row.names=F)
-write.csv(sp_spei, file.path(L2_dir, "./species_abundance_SPEI_L1.csv"), row.names=F)
+write.csv(plot_spei, file.path(L1_dir, "./plot_metrics_SPEI_L1.csv"), row.names=F)
+write.csv(sp_spei, file.path(L1_dir, "./species_abundance_SPEI_L1.csv"), row.names=F)

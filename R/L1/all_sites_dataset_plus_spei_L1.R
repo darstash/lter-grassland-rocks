@@ -34,5 +34,5 @@ plot_spei <- merge(plot, spei, by = c("year", "site")) # # hmm why losing observ
   # losing observations from 2023 and some KNZ rows with bad years
 sp_spei <- merge(sp, spei, by = c("year", "site")) # # hmm why losing observations....
 
-write.csv(plot_spei, file.path(L2_dir, "./plot_metrics_SPEI.csv"), row.names=F)
-write.csv(sp_spei, file.path(L2_dir, "./species_abundance_SPEI.csv"), row.names=F)
+write.csv(plot_spei, file.path(L2_dir, "./plot_metrics_SPEI_L1.csv"), row.names=F)
+write.csv(sp_spei, file.path(L2_dir, "./species_abundance_SPEI_L1.csv"), row.names=F)

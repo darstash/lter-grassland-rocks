@@ -479,5 +479,5 @@ species_abundance <- species_abundance %>%
         by.x = "species",
         by.y = "species_raw") 
 
-write.csv(species_abundance, file.path(L2_dir, "./species_abundance.csv"), row.names=F)
-write.csv(species_name_match_list, file.path(L2_dir, "./species_name_list.csv"), row.names=F) 
+write.csv(species_abundance, file.path(L2_dir, "./species_abundance_L1.csv"), row.names=F)
+write.csv(species_name_match_list, file.path(L2_dir, "./species_name_list_L1.csv"), row.names=F) 

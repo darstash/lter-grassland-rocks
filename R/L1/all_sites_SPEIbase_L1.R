@@ -376,4 +376,4 @@ head(allsite.aug )
 
 
 
-write.csv(allsite.aug, file.path(L1_dir, "./all_sites_SPEI.csv"), row.names=F)
+write.csv(allsite.aug, file.path(L1_dir, "./all_sites_SPEI_L1.csv"), row.names=F)

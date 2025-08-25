@@ -32,11 +32,11 @@ All analyses were conducted using R (R Core Team 2021).
 
 •	L2 scripts use the cleaned and merged data to calculate ecological metrics (diversity, dominance, resistance, resilience), run analyses (LMM, SEM), and produce summary tables or figures. These are named for the calculation or analysis they perform (e.g., dominance_diversity_calculations_L2.R, analyses_LMM_L2.R).
 
-### Data files are organized into two folders: L1 and L2.
+### Data files are organized into two groups: L1 and L2.
 
-•	L1 holds cleaned, site-level and combined datasets, named for their contents (e.g., species_abundance_L1.csv, site_years_with_SPEI.csv).
+•	L1 files are cleaned, site-level and combined datasets, named for their contents (e.g., species_abundance_L1.csv, site_years_with_SPEI.csv).
 
-•	L2 holds analysis outputs, named after the metric or model (e.g., plot_metrics_SPEI_diversity_L2.csv, ece_resist_resil_spei9_norm_L2.csv).
+•	L2 files are analysis outputs, named after the metric or model (e.g., plot_metrics_SPEI_diversity_L2.csv, ece_resist_resil_spei9_norm_L2.csv).
 
 # Contributers
 

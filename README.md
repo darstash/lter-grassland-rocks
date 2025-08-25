@@ -6,7 +6,7 @@ This repository contains R scripts that organize, clean, harmonize, analyze, and
 # Workflow
 ## L1 Folder
 
-Each LTER site has its own R script for initial merging of datasets across that site that fit our criteria and cleaning. There is a script that pulls in SPEI 3, 6, 9, and 12, for each site and combines them into one file. Following these, there is a script to combine all the sites' data into one file and another script that combines all the sites' data with the SPEI data into one file.
+Each LTER site has its own R script for initial merging and cleaning of datasets across that site that fit our criteria. There is a separate script that pulls in SPEI 3, 6, 9, and 12 for each site and combines them into one file. Following these, there is a script to combine all the sites' data into one file and another script that combines all the sites' data with the SPEI data into one file.
 
 ## L2 Folder
 There is a script to calculate dominance and diversity (richness and evenness) and another to calculate resistance and resilience. For each analysis we carried out, there is a separate script (e.g. analyses_LMM_L2.R, analyses_sem_L2.R). 
@@ -18,9 +18,15 @@ There is a script to calculate dominance and diversity (richness and evenness) a
 Some L1 data and all L2 data that are processed in the scripts in this repository are published as an EDI package (URL HERE). In some scripts, the header may state that the data was input from Google Drive, which is an artifact of our data processing steps.
 
 # Spatiotemporal extent and resolution
-Spatial extent: Three Long-Term Ecological Sites (LTER): Cedar Creek (East Bethel, Minnesota, USA; 45° 24' 3.6" N, 93° 12' 3.599" W), Kellogg Biological Station (Hickory Corners, Michigan, USA; 42° 23' 60" N, 85° 24' 0" W), Konza Prairie (Manhattan, Kansas, USA; 39° 5' 34.8" N, 96° 34' 30" W).
-Temporal extent: 1982-2023
-We compiled data that contained at least five consecutive years of plant aboveground biomass and community composition data from the three LTER sites mentioned above.
+### Spatial extent: 
+
+•	Three Long-Term Ecological Sites (LTER): Cedar Creek (East Bethel, Minnesota, USA; 45° 24' 3.6" N, 93° 12' 3.599" W), Kellogg Biological Station (Hickory Corners, Michigan, USA; 42° 23' 60" N, 85° 24' 0" W), Konza Prairie (Manhattan, Kansas, USA; 39° 5' 34.8" N, 96° 34' 30" W).
+
+### Temporal extent: 
+
+•	Years: 1982-2023
+
+•	We compiled data that contained at least five consecutive years of plant aboveground biomass and community composition data from the three LTER sites mentioned above.
 
 # Usage
 All analyses were conducted using R (R Core Team 2021).

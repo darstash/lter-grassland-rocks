@@ -34,7 +34,7 @@ All analyses were conducted using R (R Core Team 2021).
 
 ### Data files are organized into two groups: L1 and L2.
 
-•	L1 files are cleaned, site-level and combined datasets, named for their contents (e.g., species_abundance_L1.csv, site_years_with_SPEI.csv).
+•	L1 files are cleaned, site-level, and combined datasets, named for their contents (e.g., species_abundance_L1.csv, plot_metrics_SPEI_L1.csv). If a file does not specify a specific site, then that means all sites are included in that file. 
 
 •	L2 files are analysis outputs, named after the metric or model (e.g., plot_metrics_SPEI_diversity_L2.csv, ece_resist_resil_spei9_norm_L2.csv).
 

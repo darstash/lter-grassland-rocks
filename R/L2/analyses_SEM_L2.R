@@ -692,7 +692,7 @@ final = cbind (meta_semtable, alloutput_order_round,stars_semtable) %>% as.data.
 names(final)
 names(final)[10] <- "Stars"
 getwd()
-#write.csv(final, file.path(L2_dir, "./SEM_coefficients_output.csv"), row.names=F)
+#write.csv(final, file.path(L2_dir, "./SEM_coefficients_output_L2.csv"), row.names=F)
 
 
 allpath = rbind (model1_all_sum_paths, model1_dry_sum_paths, model1_wet_sum_paths, 
@@ -701,7 +701,7 @@ head(allpath)
 allpath_order = allpath  %>% relocate(model) 
 names(allpath_order)[7] <- "Stars"
 allpath_final = allpath_order %>% mutate(across(where(is.numeric), round, 3))
-#write.csv(allpath_final, file.path(L2_dir, "./SEM_coefficients_paths.csv"), row.names=F)
+#write.csv(allpath_final, file.path(L2_dir, "./SEM_coefficients_paths_L2.csv"), row.names=F)
 
 ## lavaan ####
 #------------#

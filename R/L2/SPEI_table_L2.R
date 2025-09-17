@@ -1,8 +1,8 @@
-# TITLE:        LTER Grassland Rock: Tabulate extreme events and sequences 
+# TITLE:        LTER Grassland Rock: SPEI exploration and LRR analyses 
 # AUTHORS:      Ashley Darst
 # COLLABORATORS:  
 # DATA INPUT:   Data imported as csv files from shared Google drive L2 (plot_metrics_SPEI) folder
-# DATA OUTPUT:  Table with number of extreme events by type
+# DATA OUTPUT:  SPEI figures, analyses to choose SPEI duration, and LRR analyses
 # PROJECT:      LTER Grassland Rock
 # DATE:         September 2024
 
@@ -31,16 +31,16 @@ L2_dir <- Sys.getenv("L2DIR")
 list.files(L2_dir)
 
 # Read in CSV files ----
-plot_spei <- read.csv(file.path(L2_dir, "plot_metrics_SPEI_diversity_L2.csv")) # why are there more plots than spei without diversity?
+plot_spei <- read.csv(file.path(L2_dir, "plot_metrics_SPEI_diversity_L2.csv"))
 metadata <- read.csv(file.path(L1_dir, "metadata_L1.csv"))
 ece <- read.csv(file.path(L2_dir, "ece_resist_resil_spei9_L2.csv"))
 
-# Make sure spei category is a factor
+# Make sure SPEI category is a factor
 str(plot_spei)
 plot_spei$spei12_category <- factor(plot_spei$spei12_category, levels = c("Extreme dry", "Moderate dry", "Normal", "Moderate wet", "Extreme wet"))
 plot_spei$spei9_category <- factor(plot_spei$spei9_category, levels = c("Extreme dry", "Moderate dry", "Normal", "Moderate wet", "Extreme wet"))
 
-# Summarize spei by year
+# Summarize SPEI by year
 spei_summary <- plot_spei %>%
   group_by(year, spei12_category, site) %>%
   summarize(spei12 = mean(spei12),
@@ -52,7 +52,7 @@ spei9_summary <- plot_spei %>%
   group_by(year, spei9_category, site) %>%
   summarize(spei9 = mean(spei9))
 
-# Merge metadata with spei to get treatment column
+# Merge metadata with SPEI to get treatment column
 metadata_filter <- metadata %>%
   drop_na(uniqueid)
 plot_filter <- plot_spei %>%
@@ -60,7 +60,6 @@ plot_filter <- plot_spei %>%
   filter(higher_order_organization != "RaMPs_Block1",
          higher_order_organization != "RaMPs_Block2",
          higher_order_organization != "RaMPs_Block3")
-x <- plot_filter %>% group_by(site, year, uniqueid, higher_order_organization) %>% summarize(count = n())
 plot_trt <- left_join(plot_filter, metadata_filter)
 
 
@@ -107,9 +106,13 @@ knz_spei <- spei9_summary %>%
   geom_hline(yintercept = 1.28, col = "#3B99B1FF", linetype = "dashed") +
   labs(x = "Year", y = "SPEI-9", color = "Event Type")
 
+# FIGURE S2 ----
 cdr_spei + kbs_spei + knz_spei + plot_layout(guides = 'collect', axes = 'collect_y') & plot_annotation(tag_levels = 'A') 
 
 # Choosing SPEI ----
+# What duration of SPEI best explains plot biomass?
+
+# Separate out control plots
 plot_control <- plot_trt %>%
   filter(treatment == "control")
 
@@ -217,11 +220,12 @@ r.squaredGLMM(control_spei9.lm.ln)  # second best R2m
 r.squaredGLMM(control_spei12.lm2.ln)
 r.squaredGLMM(control_spei12.lm.ln)
 
+# FIGURE S1 ----
 # Plot the SPEI9 model
 plot_model(
   control_spei9.lm2.ln,
   type = "pred",
-  terms="spei9",
+  terms="spei9  [all]",
   show.data = TRUE,
   title = "",
   axis.title = c("SPEI-9", "Aboveground biomass")) +
@@ -229,8 +233,7 @@ plot_model(
 
 
 # LRR ----
-# Nitrogen biomass to choose SPEI ----
-# Add experiment column
+# Add experiment column to all plots
 plot_trt$experiment <- sub("nutnet.*", "nutnet", plot_trt$higher_order_organization)
 plot_trt$experiment <- sub("glbrc_scaleup.*", "glbrc_scaleup", plot_trt$experiment)
 plot_trt$experiment <- sub("glbrc_G10.*", "glbrc", plot_trt$experiment)
@@ -276,6 +279,7 @@ plot_trt$experiment[plot_trt$experiment == "D"] <- "NGE"
 plot_trt$experiment[plot_trt$experiment == "E"] <- "NGE"
 plot_trt$experiment[plot_trt$experiment == "F"] <- "NGE"
 
+# Subset nitrogen fertilized plots and control plots
 plot_n_sub <- plot_trt %>%
   filter(nutrients_added == "NPK+" | nutrients_added == "N" | nutrients_added == "NP" | nutrients_added == "NPK" | nutrients_added == "NK" | nutrients_added == "NPK+Fence" | nutrients_added == "none" | nutrients_added == "no_fertilizer")
 
@@ -314,8 +318,7 @@ plot_n %>%
   theme_bw()
 
 
-# ONLY normal biomass ----
-## ANPP with ONLY normal ----
+## ANPP ----
 plot_sub_lrr9 <- plot_n_sub %>%
   group_by(uniqueid) %>%
   arrange(uniqueid, year) %>%
@@ -324,7 +327,7 @@ plot_sub_lrr9 <- plot_n_sub %>%
   ungroup()
 normal_biomass9sub_norm <- plot_sub_lrr9  %>%
   group_by(uniqueid) %>%
-  filter(spei9_category == "Normal") %>%
+  filter(spei9_category == "Normal") %>% # ONLY normal year biomass
   summarize(average_normal_biomass = mean(plot_biomass, na.rm=T))
 plot_sub_lrr9_norm <- left_join(plot_sub_lrr9, normal_biomass9sub_norm)
 
@@ -419,7 +422,7 @@ anpp_plot_norm3 <- plot_model(
   geom_hline(yintercept=0, linetype='dashed', col = 'black')
 
 
-## Richness with ONLY normal ----
+## Richness ----
 plot_sub_lrr9_rich <- plot_n_sub %>%
   group_by(uniqueid) %>%
   arrange(uniqueid, year) %>%
@@ -513,7 +516,8 @@ rich_plot_norm3 <- plot_model(
   geom_hline(yintercept=0, linetype='dashed', col = 'black')
 
 
-## Dominance with ONLY normal (NO ZEROS!!!) ----
+## Dominance ----
+# Zeros were not used in these analyses, similar to when treated as NA
 plot_sub_lrr9_dom <- plot_n_sub %>%
   group_by(uniqueid) %>%
   arrange(uniqueid, year) %>%
@@ -606,7 +610,7 @@ dom_plot_norm3 <- plot_model(
   geom_hline(yintercept=0, linetype='dashed', col = 'black')
 
 
-## Evenness with ONLY normal ----
+## Evenness ----
 plot_sub_lrr9_ev <- plot_n_sub %>%
   group_by(uniqueid) %>%
   arrange(uniqueid, year) %>%
@@ -702,15 +706,18 @@ ev_plot_norm3 <- plot_model(
   geom_hline(yintercept=0, linetype='dashed', col = 'black')
 
 
-## Final LRR plot NORMAL ----
+## Final LRR plot NORMAL
 anpp_plot_norm + rich_plot_norm + dom_plot_norm + ev_plot_norm + plot_layout(guides = 'collect') & plot_annotation(tag_levels = 'A')
 
-# Final LRR plot NORMAL (model predictions)
+## FIGURE 3 ----
 anpp_plot_norm_pred + rich_plot_norm_pred + dom_plot_norm_pred + ev_plot_norm_pred + plot_layout(guides = 'collect') & plot_annotation(tag_levels = 'A')
 
-# Supplemental figure
+## FIGURE S3 ----
 anpp_plot_norm3 + rich_plot_norm3 + dom_plot_norm3 + ev_plot_norm3 + plot_layout(guides = 'collect') & plot_annotation(tag_levels = 'A')
 
+
+
+# ARCHIVED CODE ----
 # # Calculate the number of extreme wet years
 # CDR_ew <- length(which(spei_summary$site == "CDR" & spei_summary$spei12_category == "Extreme wet"))
 # KBS_ew <- length(which(spei_summary$site == "KBS" & spei_summary$spei12_category == "Extreme wet"))

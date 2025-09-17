@@ -8,8 +8,6 @@
 
 # this code is to clean MCSE (and microplot treatment) data, merge them, and link with temp/precip
 # 1-17-24 - added GLBRC BCSE and scale-up code. 
-# To do: check columns - what do we want to add? Also, we did not yet match up
-# "Treatment" and "Replicate" columns, since dif sampling schemes, etc.
 
 # Clear all existing data
 rm(list=ls())
@@ -115,7 +113,7 @@ t7$nitrogen_amount <- NA
 t7$disturbance <- "undisturbed"
 t7$grazing <- "ungrazed"
 t7$fire_frequency <- 1
-t7$time_since_fire <- with(t7, ifelse(year == 2007, 2, 1)) # not really true, only a few months since fire # not burned in 2007
+t7$time_since_fire <- with(t7, ifelse(year == 2007, 2, 1)) # only a few months since fire # not burned in 2007
 t7$experiment <- "mcse"
 t7$cover_method <- "pseudo percent cover from mass"
 

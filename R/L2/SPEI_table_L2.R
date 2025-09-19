@@ -33,7 +33,7 @@ list.files(L2_dir)
 # Read in CSV files ----
 plot_spei <- read.csv(file.path(L2_dir, "plot_metrics_SPEI_diversity_L2.csv"))
 metadata <- read.csv(file.path(L1_dir, "metadata_L1.csv"))
-ece <- read.csv(file.path(L2_dir, "ece_resist_resil_spei9_L2.csv"))
+# ece <- read.csv(file.path(L2_dir, "ece_resist_resil_spei9_L2.csv"))
 
 # Make sure SPEI category is a factor
 str(plot_spei)

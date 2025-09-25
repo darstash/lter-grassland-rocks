@@ -1,3 +1,7 @@
+[![DOI](https://zenodo.org/badge/696404724.svg)](https://doi.org/10.5281/zenodo.17202949)
+
+Open research: The data from this study are openly available in the Environmental Data Initiative data repository at .
+
 ## lter-grassland-rocks
 
 # Introduction

@@ -151,8 +151,14 @@ resis_norm<-lmer(log(resistance_n)~richness*dominant_relative_abund_zero+nitroge
                  dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
                  evar:nitrogen+evar:spei9_category+spei9_category+nitrogen:spei9_category+(1|site/experiment/uniqueid)
                +(1|year), data=plot_ece_9_cn_prior, REML=F)
-summary(resis_norm)#warning due to site having zero variance, left it in for consistency since result same with or without
+summary(resis_norm)#singular due to site having zero variance, left it in for consistency since result same with or without
 anova(resis_norm)
+#same model but with site removed from random effect structure
+# resis_norm_site<-lmer(log(resistance_n)~richness*dominant_relative_abund_zero+nitrogen+richness:nitrogen+evar+
+#                    dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
+#                    evar:nitrogen+evar:spei9_category+spei9_category+nitrogen:spei9_category+(1|experiment/uniqueid)
+#                  +(1|year), data=plot_ece_9_cn_prior, REML=F)
+# summary(resis_norm_site)
 #model update
 resis_norm1<-lmer(log(resistance_n)~richness*dominant_relative_abund_zero+nitrogen+richness:nitrogen+evar+
                    dominant_relative_abund_zero:nitrogen+richness:spei9_category+dominant_relative_abund_zero:spei9_category+
@@ -257,11 +263,10 @@ resis_full_estim <-coef(summary(resis_full_std)) %>%
                                     Estimate > 0 ~ Estimate + SE + 0.1)
   ) %>%
   filter(Variable!="(Intercept)")%>%
-  
   ggplot(aes(y = Variable_labels, x = Estimate))+
   theme_bw() +
   theme(axis.title.y = element_blank()) +
-  labs(title = "log(resistance)",
+  labs(title = "ln(resistance)",
        x = "estimate \u00B1 se") +
   scale_y_discrete(limits = rev) +
   geom_vline(xintercept = 0,linetype=2) +
@@ -269,6 +274,8 @@ resis_full_estim <-coef(summary(resis_full_std)) %>%
   geom_errorbarh(aes(xmin = Estimate-SE, xmax = Estimate+SE), height = 0.2,col = "#A020F0") +
   geom_text(aes(x = stars_location, label = stars))
 
+#view figure
+print(resis_full_estim)
 #standardized coefficient for result table
 summary(resis_full_std)
 
@@ -283,7 +290,7 @@ plot_ece_9_cn_prior_dry<-plot_ece_9_cn_prior%>%
 resis_norm_wet<-lmer(log(resistance_n)~richness+dominant_relative_abund_zero+nitrogen+evar+
                     (1|site/experiment/uniqueid)
                   +(1|year), data=plot_ece_9_cn_prior_wet)
-anova(resis_norm_wet)#warning is due to site variance close to zero. similar output without convergence warning when site is removed
+anova(resis_norm_wet)#warning is due to site variance being low. similar output without convergence warning when site is removed
 summary(resis_norm_wet)
 simres <- simulateResiduals(resis_norm_wet)
 plot(simres)
@@ -335,11 +342,12 @@ resis_norm_estim_wet <-coef(summary(resis_norm_wet_std)) %>%
                                     Estimate > 0 ~ Estimate + SE + 0.01)
   ) %>%
   filter(Variable!="(Intercept)")%>%
+  mutate(event="wet")%>%
   
-  ggplot(aes(y = Variable_labels, x = Estimate))+
+  ggplot(aes(y = Variable_labels, x = Estimate, fill=event))+
   theme_bw() +
   theme(axis.title.y = element_blank()) +
-  labs(title = "log(resistance)",
+  labs(title = "ln(resistance)",
        x = "estimate \u00B1 se") +
   scale_y_discrete(limits = rev) +
   geom_vline(xintercept = 0, linetype=2) +
@@ -348,6 +356,8 @@ resis_norm_estim_wet <-coef(summary(resis_norm_wet_std)) %>%
   geom_text(aes(x = stars_location, label = stars))
 #standardized estimates
 summary(resis_norm_wet_std)
+#view
+print(resis_norm_estim_wet)
   
 #dry
 resis_norm_dry_std <- update(resis_norm_dry, 
@@ -387,11 +397,12 @@ resis_norm_estim_dry <-coef(summary(resis_norm_dry_std)) %>%
                                     Estimate > 0 ~ Estimate + SE + 0.01)
   ) %>%
   filter(Variable!="(Intercept)")%>%
+  mutate(event="dry")%>%
   
-  ggplot(aes(y = Variable_labels, x = Estimate))+
+  ggplot(aes(y = Variable_labels, x = Estimate, fill=event))+
   theme_bw() +
   theme(axis.title.y = element_blank()) +
-  labs(title = "log(resistance)",
+  labs(title = "ln(resistance)",
        x = "estimate \u00B1 se") +
   scale_y_discrete(limits = rev) +
   geom_vline(xintercept = 0, linetype=2) +
@@ -400,7 +411,8 @@ resis_norm_estim_dry <-coef(summary(resis_norm_dry_std)) %>%
   geom_text(aes(x = stars_location, label = stars))
 #standardized estimates 
 summary(resis_norm_dry_std)
-
+#view
+print(resis_norm_estim_dry)
 
 #remove resilience values where extreme event occured after an extreme event####
 plot_ece_9_cn_prior_rm<-plot_ece_9_cn_prior%>%
@@ -512,7 +524,7 @@ resil_full_estim <-coef(summary(resil_full_std)) %>%
   ggplot(aes(y = Variable_labels, x = Estimate))+
   theme_bw() +
   theme(axis.title.y = element_blank()) +
-  labs(title = "log(resilience)",
+  labs(title = "ln(resilience)",
        x = "estimate \u00B1 se") +
   scale_y_discrete(limits = rev) +
   geom_vline(xintercept = 0, linetype=2) +
@@ -521,7 +533,8 @@ resil_full_estim <-coef(summary(resil_full_std)) %>%
   geom_text(aes(x = stars_location, label = stars))
 #standardized estimates
 summary(resil_full_std)
-
+#view
+print(resil_full_estim)
 #####combine full model figure####
 resis_full_estim+resil_full_estim& plot_annotation(tag_levels = 'A')
 ####split into wet and dry####
@@ -595,7 +608,7 @@ resil_norm_estim_wet <-coef(summary(resil_norm_wet_std)) %>%
   ggplot(aes(y = Variable_labels, x = Estimate))+
   theme_bw() +
   theme(axis.title.y = element_blank()) +
-  labs(title = "log(resilience)",
+  labs(title = "ln(resilience)",
        x = "estimate \u00B1 se") +
   scale_y_discrete(limits = rev) +
   geom_vline(xintercept = 0, linetype=2) +
@@ -604,6 +617,8 @@ resil_norm_estim_wet <-coef(summary(resil_norm_wet_std)) %>%
   geom_text(aes(x = stars_location, label = stars))
 #standardized coefficient
 summary(resil_norm_wet_std)
+#view
+print(resil_norm_estim_wet)
 #dry
 resil_norm_dry_std <- update(resil_norm_dry, 
                              data = plot_ece_9_cn_prior_rm_dry %>% 
@@ -650,7 +665,7 @@ resil_norm_estim_dry <-coef(summary(resil_norm_dry_std)) %>%
   ggplot(aes(y = Variable_labels, x = Estimate))+
   theme_bw() +
   theme(axis.title.y = element_blank()) +
-  labs(title = "log(resilience)",
+  labs(title = "ln(resilience)",
        x = "estimate \u00B1 se") +
   scale_y_discrete(limits = rev) +
   geom_vline(xintercept = 0, linetype=2) +
@@ -659,10 +674,12 @@ resil_norm_estim_dry <-coef(summary(resil_norm_dry_std)) %>%
   geom_text(aes(x = stars_location, label = stars))
 #standardized estimates 
 summary(resil_norm_dry_std)
-  
+#view
+print(resil_norm_estim_dry)
 ##combine figure for resistance and resilience wet and dry####
 #using patchwork
-resis_norm_estim_dry + resis_norm_estim_wet+resil_norm_estim_dry+resil_norm_estim_wet& plot_annotation(tag_levels = 'A')
+resis_norm_estim_dry + resis_norm_estim_wet+ plot_layout(guides = "collect")+resil_norm_estim_dry+resil_norm_estim_wet& plot_annotation(tag_levels = 'A')&theme(legend.position = "bottom")
+#&scale_fill_discrete(limits =c(resis_norm_estim_dry$event_type, resis_norm_estim_wet$event_type))
 
 
 #calculating Mean annual temp and precipitation for each site####

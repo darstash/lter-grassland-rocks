@@ -534,6 +534,8 @@ test_constraints(fit = model1_lavaan_fit, groups_constrain = c(1,2)) %>%
                            pValue > 0.05 & pValue < 0.1 ~".",
                            .default =""))
 
+
+
 model1_lavaan_c <- '
 # effects
 log_resistance               ~ c("rs_nu", "rs_nu") * nut_dummy +                       spei9_abs + c("rs_sr", "rs_sr") * richness + c("rs_do", "rs_do") * dominant_relative_abund_zero + c("rs_ev", "rs_ev") * evar
@@ -560,6 +562,24 @@ fitmeasures(model1_lavaan_fit,  c("df", "AIC", "pvalue", "RMSEA", "CFI", "SRMR",
 # srmr    < 0.08
 
 summary(model1_lavaan_fit_c, rsquare=T)
+
+
+
+
+# add survey design to lavaan model to account for sampling structure. Note: it is not as fancy as the nested structure
+
+library(lavaan.survey)
+
+site.survey <- svydesign(ids=~uniqueid, prob=~1, data=df)
+fit.survey   <- lavaan.survey(model1_lavaan_fit, survey.design=site.survey)
+fit.survey_c <- lavaan.survey(model1_lavaan_fit_c, survey.design=site.survey)
+
+
+anova(fit.survey, fit.survey_c)
+
+fitmeasures(fit.survey_c,  c("df", "AIC", "pvalue", "RMSEA", "CFI", "SRMR", "IFI")) 
+
+
 
 
 ################################## #

@@ -571,6 +571,7 @@ summary(model1_lavaan_fit_c, rsquare=T)
 library(lavaan.survey)
 
 site.survey <- svydesign(ids=~uniqueid, prob=~1, data=df)
+site.survey <- svydesign(ids=~experiment + uniqueid, nest = TRUE, data=df)
 fit.survey   <- lavaan.survey(model1_lavaan_fit, survey.design=site.survey)
 fit.survey_c <- lavaan.survey(model1_lavaan_fit_c, survey.design=site.survey)
 

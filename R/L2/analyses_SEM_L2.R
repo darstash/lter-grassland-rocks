@@ -427,16 +427,16 @@ piecewise$group.coefs %>%
   mutate(P_print = gsub(P_print,
                         pattern = '<span style=" font-weight: bold; " >0</span>',
                         replacement = '<span style=" font-weight: bold;    " ><0.001</span>')) %>%
-  select(EventType, Response, Predictor, Estimate, Std.Error_print, Std.Estimate_print, DF_print, P_print, stars) %>%
+  select(EventType, Response, Predictor, Estimate_print, Std.Error_print, Std.Estimate_print, DF_print, P_print, stars) %>%
   pivot_wider(id_cols = c(Response, Predictor),
-              values_from = c(Estimate, Std.Error_print, Std.Estimate_print, DF_print, P_print, stars),
+              values_from = c(Estimate_print, Std.Error_print, Std.Estimate_print, DF_print, P_print, stars),
               names_from = EventType) %>%
   select("Response", "Predictor",
-         "Estimate_Extreme dry",  "Std.Error_print_Extreme dry", 
+         "Estimate_print_Extreme dry",  "Std.Error_print_Extreme dry", 
          "Std.Estimate_print_Extreme dry", "DF_print_Extreme dry",
          "P_print_Extreme dry", "stars_Extreme dry",
          
-         "Estimate_Extreme wet", "Std.Error_print_Extreme wet", 
+         "Estimate_print_Extreme wet", "Std.Error_print_Extreme wet", 
          "Std.Estimate_print_Extreme wet", "DF_print_Extreme wet",
          "P_print_Extreme wet",  "stars_Extreme wet") %>%
   arrange(Response, Predictor) %>%
@@ -686,16 +686,16 @@ parameterEstimates(fit.survey_c) %>%
   mutate(P_print = gsub(P_print,
                         pattern = '<span style=" font-weight: bold; " >0</span>',
                         replacement = '<span style=" font-weight: bold;    " ><0.001</span>')) %>%
-  select(EventType, Response, Constrained, Predictor, Estimate, Std.Error_print, z_print, P_print, stars) %>%
+  select(EventType, Response, Constrained, Predictor, Estimate_print, Std.Error_print, z_print, P_print, stars) %>%
   pivot_wider(id_cols = c(Response, Predictor, Constrained),
-              values_from = c(Estimate, Std.Error_print, z_print, P_print, stars),
+              values_from = c(Estimate_print, Std.Error_print, z_print, P_print, stars),
               names_from = EventType) %>%
   select("Response", "Predictor", "Constrained",
-         "Estimate_Extreme dry",  "Std.Error_print_Extreme dry", 
+         "Estimate_print_Extreme dry",  "Std.Error_print_Extreme dry", 
          "z_print_Extreme dry",
          "P_print_Extreme dry", "stars_Extreme dry",
          
-         "Estimate_Extreme wet", "Std.Error_print_Extreme wet", 
+         "Estimate_print_Extreme wet", "Std.Error_print_Extreme wet", 
          "z_print_Extreme wet",
          "P_print_Extreme wet",  "stars_Extreme wet") %>%
   arrange(Response, Predictor) %>%

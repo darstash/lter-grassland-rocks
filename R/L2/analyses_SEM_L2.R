@@ -419,7 +419,9 @@ piecewise$group.coefs %>%
                                Predictor %in% "richness"                     ~ "Richness",
                                Predictor %in% "dominant_relative_abund_zero" ~ "Dominance",
                                Predictor %in% "evar"                         ~ "Evenness",
-                               Predictor %in% "nut_dummy"                    ~ "Nutrient addition"))  %>%
+                               Predictor %in% "nut_dummy"                    ~ "Nutrient addition"),
+         Response = factor(Response, levels = c("Resistance", "Resilience", "Richness", "Dominance", "Evenness")),
+         Predictor = factor(Predictor, levels = c("Event strength", "Richness", "Dominance", "Evenness", "Nutrient addition")))  %>%
   
   mutate(P_print = cell_spec(P_print, bold = ifelse(P.Value < 0.05, TRUE, FALSE)) ) %>%
   mutate(P_print = gsub(P_print,
@@ -437,6 +439,7 @@ piecewise$group.coefs %>%
          "Estimate_Extreme wet", "Std.Error_print_Extreme wet", 
          "Std.Estimate_print_Extreme wet", "DF_print_Extreme wet",
          "P_print_Extreme wet",  "stars_Extreme wet") %>%
+  arrange(Response, Predictor) %>%
   kbl(escape = F,
       caption = "Piecewise SEM",
       col.names = c("Response", "Predictor", rep(c("Est.", "Std. Err.", "Std. Est.", "DF", "P-value", " "), 2))) %>%
@@ -675,6 +678,8 @@ parameterEstimates(fit.survey_c) %>%
                                Predictor %in% "dominant_relative_abund_zero" ~ "Dominance",
                                Predictor %in% "evar"                         ~ "Evenness",
                                Predictor %in% "nut_dummy"                    ~ "Nutrient addition"),
+         Response = factor(Response, levels = c("Resistance", "Resilience", "Richness", "Dominance", "Evenness")),
+         Predictor = factor(Predictor, levels = c("Event strength", "Richness", "Dominance", "Evenness", "Nutrient addition")),
          Constrained = case_when(Constrained %in% "" ~ "", .default = "c"))  %>%
   
   mutate(P_print = cell_spec(P_print, bold = ifelse(P.Value < 0.05, TRUE, FALSE)) ) %>%
@@ -693,6 +698,7 @@ parameterEstimates(fit.survey_c) %>%
          "Estimate_Extreme wet", "Std.Error_print_Extreme wet", 
          "z_print_Extreme wet",
          "P_print_Extreme wet",  "stars_Extreme wet") %>%
+  arrange(Response, Predictor) %>%
   kbl(escape = F,
       caption = "lavaan SEM",
       col.names = c("Response", "Predictor", "", rep(c("Est.", "Std. Err.", "z-value", "P-value", " "), 2))) %>%

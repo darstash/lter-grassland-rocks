@@ -647,7 +647,7 @@ anova(fit.survey, fit.survey_c)
 fitmeasures(fit.survey_c,  c("df", "AIC", "pvalue", "RMSEA", "CFI", "SRMR", "IFI")) 
 summary(fit.survey_c)
 
-# lavaan table for export
+# constrained lavaan table for export
 parameterEstimates(fit.survey_c) %>%
   filter(op %in% "~") %>%
   rename("Response" = "lhs",
@@ -700,7 +700,66 @@ parameterEstimates(fit.survey_c) %>%
          "P_print_Extreme wet",  "stars_Extreme wet") %>%
   arrange(Response, Predictor) %>%
   kbl(escape = F,
-      caption = "lavaan SEM",
+      caption = "lavaan SEM constrained",
+      col.names = c("Response", "Predictor", "", rep(c("Est.", "Std. Err.", "z-value", "P-value", " "), 2))) %>%
+  add_header_above(c(" " = 3, "Extreme dry" = 5, "Extreme wet" = 5)) %>%
+  kable_paper()
+
+
+# unconstrained lavaan table for export
+parameterEstimates(fit.survey) %>%
+  filter(op %in% "~") %>%
+  rename("Response" = "lhs",
+         "Predictor" = "rhs",
+         "P.Value" = "pvalue",
+         "Estimate" = "est", 
+         "Std.Error" = "se",
+         "EventType" = "group",
+         "Constrained" = "label") %>%
+  mutate(EventType = case_when(EventType == 1 ~ "Extreme dry",
+                               EventType == 2 ~ "Extreme wet"))%>% 
+  mutate(P_print = case_when(P.Value < 0.001 ~ "<0.001", .default = paste(round(P.Value, digits = 3))),
+         Estimate_print = round(Estimate, digits = 4),
+         Std.Error_print = round(Std.Error, digits = 4),
+         z_print = round(z, digits = 4),
+         stars = case_when(P.Value < 0.001 ~ "***",
+                           P.Value > 0.001 & P.Value <0.01 ~ "**",
+                           P.Value > 0.01  & P.Value < 0.05 ~ "*",
+                           P.Value > 0.05 & P.Value <0.1 ~ ".",
+                           .default = ""),
+         Response = case_when(Response %in% "log_resistance"               ~ "Resistance",
+                              Response %in% "log_resilience"               ~ "Resilience",
+                              Response %in% "richness"                     ~ "Richness",
+                              Response %in% "dominant_relative_abund_zero" ~ "Dominance",
+                              Response %in% "evar"                         ~ "Evenness"),
+         Predictor = case_when(Predictor %in% "spei9_abs"                    ~ "Event strength",
+                               Predictor %in% "richness"                     ~ "Richness",
+                               Predictor %in% "dominant_relative_abund_zero" ~ "Dominance",
+                               Predictor %in% "evar"                         ~ "Evenness",
+                               Predictor %in% "nut_dummy"                    ~ "Nutrient addition"),
+         Response = factor(Response, levels = c("Resistance", "Resilience", "Richness", "Dominance", "Evenness")),
+         Predictor = factor(Predictor, levels = c("Event strength", "Richness", "Dominance", "Evenness", "Nutrient addition")),
+         Constrained = case_when(Constrained %in% "" ~ "", .default = "c"))  %>%
+  
+  mutate(P_print = cell_spec(P_print, bold = ifelse(P.Value < 0.05, TRUE, FALSE)) ) %>%
+  mutate(P_print = gsub(P_print,
+                        pattern = '<span style=" font-weight: bold; " >0</span>',
+                        replacement = '<span style=" font-weight: bold;    " ><0.001</span>')) %>%
+  select(EventType, Response, Constrained, Predictor, Estimate_print, Std.Error_print, z_print, P_print, stars) %>%
+  pivot_wider(id_cols = c(Response, Predictor, Constrained),
+              values_from = c(Estimate_print, Std.Error_print, z_print, P_print, stars),
+              names_from = EventType) %>%
+  select("Response", "Predictor", "Constrained",
+         "Estimate_print_Extreme dry",  "Std.Error_print_Extreme dry", 
+         "z_print_Extreme dry",
+         "P_print_Extreme dry", "stars_Extreme dry",
+         
+         "Estimate_print_Extreme wet", "Std.Error_print_Extreme wet", 
+         "z_print_Extreme wet",
+         "P_print_Extreme wet",  "stars_Extreme wet") %>%
+  arrange(Response, Predictor) %>%
+  kbl(escape = F,
+      caption = "lavaan SEM unconstrained",
       col.names = c("Response", "Predictor", "", rep(c("Est.", "Std. Err.", "z-value", "P-value", " "), 2))) %>%
   add_header_above(c(" " = 3, "Extreme dry" = 5, "Extreme wet" = 5)) %>%
   kable_paper()

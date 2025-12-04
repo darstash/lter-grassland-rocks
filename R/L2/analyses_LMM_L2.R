@@ -4,7 +4,7 @@
 # DATA INPUT:   Data imported as csv files from shared Google drive L2 folder
 # DATA OUTPUT:  Core analyses
 # PROJECT:      LTER Grassland Rock
-# DATE:         October 2024 , last updated: September 2025
+# DATE:         October 2024 , last updated: December 2025
 
 # Clear all existing data
 rm(list=ls())
@@ -294,7 +294,7 @@ anova(resis_norm_wet)#warning is due to site variance being low. similar output 
 summary(resis_norm_wet)
 simres <- simulateResiduals(resis_norm_wet)
 plot(simres)
-
+check_model(resis_norm_wet)
 #model for extreme dry
 resis_norm_dry<-lmer(log(resistance_n)~richness+dominant_relative_abund_zero+nitrogen+evar+
                        (1|site/experiment/uniqueid)
@@ -303,7 +303,7 @@ anova(resis_norm_dry)
 summary(resis_norm_dry)
 simres <- simulateResiduals(resis_norm_dry)
 plot(simres)
-
+check_model(resis_norm_dry)
 #####create figure for resistance extreme dry and extreme wet####
 resis_norm_wet_std <- update(resis_norm_wet, 
                         data = plot_ece_9_cn_prior_wet %>% 
@@ -551,7 +551,7 @@ resil_norm_wet<-lmer(log(resilience_n)~richness+dominant_relative_abund_zero+nit
 summary(resil_norm_wet)
 simres <- simulateResiduals(resil_norm_wet)
 plot(simres)
-
+check_model(resil_norm_wet)
 #model for extreme dry
 resil_norm_dry<-lmer(log(resilience_n)~richness+dominant_relative_abund_zero+nitrogen+evar+
                        dominant_relative_abund_zero:nitrogen+
@@ -560,7 +560,7 @@ resil_norm_dry<-lmer(log(resilience_n)~richness+dominant_relative_abund_zero+nit
 summary(resil_norm_dry)
 simres <- simulateResiduals(resil_norm_dry)
 plot(simres)
-
+check_model(resil_norm_dry)
 
 ####create figure for resiience wet and dry####
 resil_norm_wet_std <- update(resil_norm_wet, 

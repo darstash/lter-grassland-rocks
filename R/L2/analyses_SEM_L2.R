@@ -577,15 +577,15 @@ model1_lavaan <- '
 # effects
 log_resistance               ~ nut_dummy + spei9_abs + richness + dominant_relative_abund_zero + evar
 log_resilience               ~ nut_dummy + spei9_abs + richness + dominant_relative_abund_zero + evar
-richness                     ~ c("sr_nu")*nut_dummy 
-dominant_relative_abund_zero ~ c("do_nu")*nut_dummy 
-evar                         ~ c("ev_nu")*nut_dummy 
+richness                     ~ nut_dummy 
+dominant_relative_abund_zero ~ nut_dummy 
+evar                         ~ nut_dummy 
 
 # correlations (by default constrained)
 richness                     ~~ c("sr_ev", "sr_ev") * evar
 evar                         ~~ c("ev_do", "ev_do") * dominant_relative_abund_zero
 dominant_relative_abund_zero ~~ c("do_sr", "do_sr") * richness
-log_resistance               ~~ log_resilience'
+log_resistance               ~~ c("rs_rl", "rs_rl") * log_resilience'
 
 
 model1_lavaan_fit <- sem(model1_lavaan, data = df, group = "spei9_category")
@@ -605,9 +605,9 @@ model1_lavaan_c <- '
 # effects
 log_resistance               ~ c("rs_nu", "rs_nu") * nut_dummy + c("rs_sp", "rs_sp") * spei9_abs +                       richness + c("rs_do", "rs_do") * dominant_relative_abund_zero + c("rs_ev", "rs_ev") * evar
 log_resilience               ~ c("rl_nu", "rl_nu") * nut_dummy +                       spei9_abs +                       richness + c("rl_do", "rl_do") * dominant_relative_abund_zero + c("rl_ev", "rl_ev") * evar # resilience ~ spei is marginally significant, but if I constrain it, there is a difference between the final constrained and fully unconstrained model
-richness                     ~ c("sr_nu", "sr_nu") * nut_dummy 
+richness                     ~                       nut_dummy 
 dominant_relative_abund_zero ~ c("do_nu", "do_nu") * nut_dummy 
-evar                         ~ c("ev_nu", "ev_nu") * nut_dummy 
+evar                         ~                       nut_dummy 
 
 # correlations (by default constrained)
 richness                     ~~ c("sr_ev", "sr_ev") * evar

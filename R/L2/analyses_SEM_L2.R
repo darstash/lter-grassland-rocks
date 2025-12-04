@@ -22,6 +22,7 @@ library(car)
 library(GGally)
 library(performance)
 library(sjPlot)
+library(kableExtra)
 
 # Set working directory 
 L0_dir <- Sys.getenv("L0DIR")
@@ -388,6 +389,65 @@ model1.1_all_sum_table = model1.1_all_sum$coefficients %>% as.data.frame()
 model1.1_all_sum_table$model = "All_no_legacy"
 model1.1_all_sum_paths$model = "All_no_legacy"
 
+
+
+
+# Piecewise table for export
+piecewise <- multigroup2(model1.1,  group = "spei9_category")
+
+piecewise$group.coefs %>%
+  bind_rows(.,.id = "EventType") %>%
+  select(EventType, Response, Predictor, Estimate, Std.Error, Std.Estimate, DF, P.Value) %>%
+  
+  mutate(across(c(Estimate, Std.Error, Std.Estimate, DF, P.Value), as.numeric)) %>% 
+  mutate(P_print = case_when(P.Value < 0.001 ~ "<0.001", .default = paste(round(P.Value, digits = 3))),
+         Estimate_print = round(Estimate, digits = 4),
+         Std.Error_print = round(Std.Error, digits = 4),
+         Std.Estimate_print = round(Std.Estimate, digits = 4),
+         DF_print = round(DF, digits = 4),
+         stars = case_when(P.Value < 0.001 ~ "***",
+                           P.Value > 0.001 & P.Value <0.01 ~ "**",
+                           P.Value > 0.01  & P.Value < 0.05 ~ "*",
+                           P.Value > 0.05 & P.Value <0.1 ~ ".",
+                           .default = ""),
+         Response = case_when(Response %in% "log_resistance"               ~ "Resistance",
+                              Response %in% "log_resilience"               ~ "Resilience",
+                              Response %in% "richness"                     ~ "Richness",
+                              Response %in% "dominant_relative_abund_zero" ~ "Dominance",
+                              Response %in% "evar"                         ~ "Evenness"),
+         Predictor = case_when(Predictor %in% "spei9_abs"                    ~ "Event strength",
+                               Predictor %in% "richness"                     ~ "Richness",
+                               Predictor %in% "dominant_relative_abund_zero" ~ "Dominance",
+                               Predictor %in% "evar"                         ~ "Evenness",
+                               Predictor %in% "nut_dummy"                    ~ "Nutrient addition"))  %>%
+  
+  mutate(P_print = cell_spec(P_print, bold = ifelse(P.Value < 0.05, TRUE, FALSE)) ) %>%
+  mutate(P_print = gsub(P_print,
+                        pattern = '<span style=" font-weight: bold; " >0</span>',
+                        replacement = '<span style=" font-weight: bold;    " ><0.001</span>')) %>%
+  select(EventType, Response, Predictor, Estimate, Std.Error_print, Std.Estimate_print, DF_print, P_print, stars) %>%
+  pivot_wider(id_cols = c(Response, Predictor),
+              values_from = c(Estimate, Std.Error_print, Std.Estimate_print, DF_print, P_print, stars),
+              names_from = EventType) %>%
+  select("Response", "Predictor",
+         "Estimate_Extreme dry",  "Std.Error_print_Extreme dry", 
+         "Std.Estimate_print_Extreme dry", "DF_print_Extreme dry",
+         "P_print_Extreme dry", "stars_Extreme dry",
+         
+         "Estimate_Extreme wet", "Std.Error_print_Extreme wet", 
+         "Std.Estimate_print_Extreme wet", "DF_print_Extreme wet",
+         "P_print_Extreme wet",  "stars_Extreme wet") %>%
+  kbl(escape = F,
+      caption = "Piecewise SEM",
+      col.names = c("Response", "Predictor", rep(c("Est.", "Std. Err.", "Std. Est.", "DF", "P-value", " "), 2))) %>%
+  add_header_above(c(" " = 2, "Extreme dry" = 6, "Extreme wet" = 6)) %>%
+  kable_paper()
+
+
+
+
+
+
 ### dry ####
 # this is the same model as model 1, but fitted to the dry subset of the data
 # this is done to get the R2 and the covariances
@@ -527,6 +587,8 @@ log_resistance               ~~ log_resilience'
 
 model1_lavaan_fit <- sem(model1_lavaan, data = df, group = "spei9_category")
 
+fitmeasures(model1_lavaan_fit,  c("df", "AIC", "pvalue", "RMSEA", "CFI", "SRMR", "IFI")) 
+
 test_constraints(fit = model1_lavaan_fit, groups_constrain = c(1,2)) %>%
   mutate(stars = case_when(pValue < 0.001 ~ "***",
                            pValue > 0.001 & pValue < 0.01 ~ "**",
@@ -538,23 +600,23 @@ test_constraints(fit = model1_lavaan_fit, groups_constrain = c(1,2)) %>%
 
 model1_lavaan_c <- '
 # effects
-log_resistance               ~ c("rs_nu", "rs_nu") * nut_dummy +                       spei9_abs + c("rs_sr", "rs_sr") * richness + c("rs_do", "rs_do") * dominant_relative_abund_zero + c("rs_ev", "rs_ev") * evar
-log_resilience               ~                       nut_dummy +                       spei9_abs + c("rl_sr", "rl_sr") * richness + c("rl_do", "rl_do") * dominant_relative_abund_zero + c("rl_ev", "rl_ev") * evar # resilience ~ spei is marginally significant, but if I constrain it, there is a difference between the final constrained and fully unconstrained model
-richness                     ~ c("sr_nu")*nut_dummy 
-dominant_relative_abund_zero ~ c("do_nu")*nut_dummy 
-evar                         ~ c("ev_nu")*nut_dummy 
+log_resistance               ~ c("rs_nu", "rs_nu") * nut_dummy + c("rs_sp", "rs_sp") * spei9_abs +                       richness + c("rs_do", "rs_do") * dominant_relative_abund_zero + c("rs_ev", "rs_ev") * evar
+log_resilience               ~ c("rl_nu", "rl_nu") * nut_dummy +                       spei9_abs +                       richness + c("rl_do", "rl_do") * dominant_relative_abund_zero + c("rl_ev", "rl_ev") * evar # resilience ~ spei is marginally significant, but if I constrain it, there is a difference between the final constrained and fully unconstrained model
+richness                     ~ c("sr_nu", "sr_nu") * nut_dummy 
+dominant_relative_abund_zero ~ c("do_nu", "do_nu") * nut_dummy 
+evar                         ~ c("ev_nu", "ev_nu") * nut_dummy 
 
 # correlations (by default constrained)
 richness                     ~~ c("sr_ev", "sr_ev") * evar
 evar                         ~~ c("ev_do", "ev_do") * dominant_relative_abund_zero
 dominant_relative_abund_zero ~~ c("do_sr", "do_sr") * richness
-log_resistance               ~~ log_resilience' 
+log_resistance               ~~ c("rs_rl", "rs_rl") * log_resilience' 
 
 model1_lavaan_fit_c <- sem(model1_lavaan_c, data = df, group = "spei9_category")
 
 anova(model1_lavaan_fit, model1_lavaan_fit_c) 
 
-fitmeasures(model1_lavaan_fit,  c("df", "AIC", "pvalue", "RMSEA", "CFI", "SRMR", "IFI")) 
+fitmeasures(model1_lavaan_fit_c,  c("df", "AIC", "pvalue", "RMSEA", "CFI", "SRMR", "IFI")) 
 # good fit when
 # p value > 0.05
 # rmsea   < 0.05
@@ -571,7 +633,8 @@ summary(model1_lavaan_fit_c, rsquare=T)
 library(lavaan.survey)
 
 site.survey <- svydesign(ids=~uniqueid, prob=~1, data=df)
-site.survey <- svydesign(ids=~experiment + uniqueid, nest = TRUE, data=df)
+# site.survey <- svydesign(ids=~experiment + uniqueid, nest = TRUE, data=df) # convergence issues like with piecewise if the nested structure is used
+
 fit.survey   <- lavaan.survey(model1_lavaan_fit, survey.design=site.survey)
 fit.survey_c <- lavaan.survey(model1_lavaan_fit_c, survey.design=site.survey)
 
@@ -579,8 +642,62 @@ fit.survey_c <- lavaan.survey(model1_lavaan_fit_c, survey.design=site.survey)
 anova(fit.survey, fit.survey_c)
 
 fitmeasures(fit.survey_c,  c("df", "AIC", "pvalue", "RMSEA", "CFI", "SRMR", "IFI")) 
+summary(fit.survey_c)
 
-
+# lavaan table for export
+parameterEstimates(fit.survey_c) %>%
+  filter(op %in% "~") %>%
+  rename("Response" = "lhs",
+         "Predictor" = "rhs",
+         "P.Value" = "pvalue",
+         "Estimate" = "est", 
+         "Std.Error" = "se",
+         "EventType" = "group",
+         "Constrained" = "label") %>%
+  mutate(EventType = case_when(EventType == 1 ~ "Extreme dry",
+                               EventType == 2 ~ "Extreme wet"))%>% 
+  mutate(P_print = case_when(P.Value < 0.001 ~ "<0.001", .default = paste(round(P.Value, digits = 3))),
+         Estimate_print = round(Estimate, digits = 4),
+         Std.Error_print = round(Std.Error, digits = 4),
+         z_print = round(z, digits = 4),
+         stars = case_when(P.Value < 0.001 ~ "***",
+                           P.Value > 0.001 & P.Value <0.01 ~ "**",
+                           P.Value > 0.01  & P.Value < 0.05 ~ "*",
+                           P.Value > 0.05 & P.Value <0.1 ~ ".",
+                           .default = ""),
+         Response = case_when(Response %in% "log_resistance"               ~ "Resistance",
+                              Response %in% "log_resilience"               ~ "Resilience",
+                              Response %in% "richness"                     ~ "Richness",
+                              Response %in% "dominant_relative_abund_zero" ~ "Dominance",
+                              Response %in% "evar"                         ~ "Evenness"),
+         Predictor = case_when(Predictor %in% "spei9_abs"                    ~ "Event strength",
+                               Predictor %in% "richness"                     ~ "Richness",
+                               Predictor %in% "dominant_relative_abund_zero" ~ "Dominance",
+                               Predictor %in% "evar"                         ~ "Evenness",
+                               Predictor %in% "nut_dummy"                    ~ "Nutrient addition"),
+         Constrained = case_when(Constrained %in% "" ~ "", .default = "c"))  %>%
+  
+  mutate(P_print = cell_spec(P_print, bold = ifelse(P.Value < 0.05, TRUE, FALSE)) ) %>%
+  mutate(P_print = gsub(P_print,
+                        pattern = '<span style=" font-weight: bold; " >0</span>',
+                        replacement = '<span style=" font-weight: bold;    " ><0.001</span>')) %>%
+  select(EventType, Response, Constrained, Predictor, Estimate, Std.Error_print, z_print, P_print, stars) %>%
+  pivot_wider(id_cols = c(Response, Predictor, Constrained),
+              values_from = c(Estimate, Std.Error_print, z_print, P_print, stars),
+              names_from = EventType) %>%
+  select("Response", "Predictor", "Constrained",
+         "Estimate_Extreme dry",  "Std.Error_print_Extreme dry", 
+         "z_print_Extreme dry",
+         "P_print_Extreme dry", "stars_Extreme dry",
+         
+         "Estimate_Extreme wet", "Std.Error_print_Extreme wet", 
+         "z_print_Extreme wet",
+         "P_print_Extreme wet",  "stars_Extreme wet") %>%
+  kbl(escape = F,
+      caption = "lavaan SEM",
+      col.names = c("Response", "Predictor", "", rep(c("Est.", "Std. Err.", "z-value", "P-value", " "), 2))) %>%
+  add_header_above(c(" " = 3, "Extreme dry" = 5, "Extreme wet" = 5)) %>%
+  kable_paper()
 
 
 ################################## #

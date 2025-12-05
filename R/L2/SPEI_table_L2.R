@@ -23,6 +23,7 @@ library(car)
 library(patchwork)
 library(ggeffects)
 library(ggsignif)
+library(purrr)
 
 # Set working directory 
 L0_dir <- Sys.getenv("L0DIR")
@@ -348,6 +349,94 @@ summary(emm_biomass)
 simres <- simulateResiduals(lrr.lm9sub2_norm)
 plot(simres)
 
+# Sensitivity analysis (leave-one-site out) # created with ChatGPT
+sites <- unique(lrr9sub_norm$site)
+results_list <- list()
+
+for (s in sites) {
+  cat("Leaving out site:", s, "\n")
+  # remove one site
+  df_subset <- lrr9sub_norm %>% filter(site != s)
+  # refit model
+  mod <- lmer(
+    LRR ~ spei9_category * nitrogen +
+      (1 | site/experiment/uniqueid) +
+      (1 | year),
+    data = df_subset
+  )
+  # store the model summary (you can change this)
+  results_list[[as.character(s)]] <- summary(mod)
+}
+
+# Extract fixed effects from the list of summaries
+coef_df <- map_df(
+  names(results_list),
+  ~ {
+    sm <- results_list[[.x]]
+    fe <- as.data.frame(sm$coefficients)
+    fe$term <- rownames(fe)
+    fe$site_left_out <- .x
+    fe
+  }
+)
+ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Estimate - `Std. Error`,
+                    ymax = Estimate + `Std. Error`),
+                width = 0.2) +
+  facet_wrap(~ term, scales = "free_y") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  labs(
+    title = "Leave-one-site-out sensitivity analysis",
+    x = "Site left out",
+    y = "Fixed effect estimate ± SE"
+  )
+
+# Leave one year out
+years <- unique(lrr9sub_norm$year)
+results_list <- list()
+
+for (s in years) {
+  cat("Leaving out year:", s, "\n")
+  # remove one year
+  df_subset <- lrr9sub_norm %>% filter(year != s)
+  # refit model
+  mod <- lmer(
+    LRR ~ spei9_category * nitrogen +
+      (1 | site/experiment/uniqueid) +
+      (1 | year),
+    data = df_subset
+  )
+  # store the model summary (you can change this)
+  results_list[[as.character(s)]] <- summary(mod)
+}
+
+# Extract fixed effects from the list of summaries
+coef_df <- map_df(
+  names(results_list),
+  ~ {
+    sm <- results_list[[.x]]
+    fe <- as.data.frame(sm$coefficients)
+    fe$term <- rownames(fe)
+    fe$site_left_out <- .x
+    fe
+  }
+)
+ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Estimate - `Std. Error`,
+                    ymax = Estimate + `Std. Error`),
+                width = 0.2) +
+  facet_wrap(~ term, scales = "free_y") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  labs(
+    title = "Leave-one-year-out sensitivity analysis",
+    x = "Year left out",
+    y = "Fixed effect estimate ± SE"
+  )
+
 plot_model(
   lrr.lm9sub2_norm,
   type = "pred",
@@ -451,6 +540,94 @@ summary(emm_rich)
 simres <- simulateResiduals(lrr.lm9sub_rich_norm)
 plot(simres)
 
+# Sensitivity analysis (leave-one-site out) # created with ChatGPT
+sites <- unique(lrr9sub_rich_norm$site)
+results_list <- list()
+
+for (s in sites) {
+  cat("Leaving out site:", s, "\n")
+  # remove one site
+  df_subset <- lrr9sub_rich_norm %>% filter(site != s)
+  # refit model
+  mod <- lmer(
+    LRR ~ spei9_category * nitrogen +
+      (1 | site/experiment/uniqueid) +
+      (1 | year),
+    data = df_subset
+  )
+  # store the model summary (you can change this)
+  results_list[[as.character(s)]] <- summary(mod)
+}
+
+# Extract fixed effects from the list of summaries
+coef_df <- map_df(
+  names(results_list),
+  ~ {
+    sm <- results_list[[.x]]
+    fe <- as.data.frame(sm$coefficients)
+    fe$term <- rownames(fe)
+    fe$site_left_out <- .x
+    fe
+  }
+)
+ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Estimate - `Std. Error`,
+                    ymax = Estimate + `Std. Error`),
+                width = 0.2) +
+  facet_wrap(~ term, scales = "free_y") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  labs(
+    title = "Leave-one-site-out sensitivity analysis",
+    x = "Site left out",
+    y = "Fixed effect estimate ± SE"
+  )
+
+# Leave one year out
+years <- unique(lrr9sub_rich_norm$year)
+results_list <- list()
+
+for (s in years) {
+  cat("Leaving out year:", s, "\n")
+  # remove one year
+  df_subset <- lrr9sub_rich_norm %>% filter(year != s)
+  # refit model
+  mod <- lmer(
+    LRR ~ spei9_category * nitrogen +
+      (1 | site/experiment/uniqueid) +
+      (1 | year),
+    data = df_subset
+  )
+  # store the model summary (you can change this)
+  results_list[[as.character(s)]] <- summary(mod)
+}
+
+# Extract fixed effects from the list of summaries
+coef_df <- map_df(
+  names(results_list),
+  ~ {
+    sm <- results_list[[.x]]
+    fe <- as.data.frame(sm$coefficients)
+    fe$term <- rownames(fe)
+    fe$site_left_out <- .x
+    fe
+  }
+)
+ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Estimate - `Std. Error`,
+                    ymax = Estimate + `Std. Error`),
+                width = 0.2) +
+  facet_wrap(~ term, scales = "free_y") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  labs(
+    title = "Leave-one-year-out sensitivity analysis",
+    x = "Year left out",
+    y = "Fixed effect estimate ± SE"
+  )
+
 # LRR plot for richness 
 lrr9sub_rich_norm %>%
   ggplot(aes(x = spei9_category, y = LRR, col = nitrogen)) +
@@ -546,6 +723,94 @@ summary(emm_dom)
 simres <- simulateResiduals(lrr.lm9sub_dom_norm)
 plot(simres)
 
+# Sensitivity analysis (leave-one-site out) # created with ChatGPT
+sites <- unique(lrr9sub_dom_norm$site)
+results_list <- list()
+
+for (s in sites) {
+  cat("Leaving out site:", s, "\n")
+  # remove one site
+  df_subset <- lrr9sub_dom_norm %>% filter(site != s)
+  # refit model
+  mod <- lmer(
+    LRR ~ spei9_category * nitrogen +
+      (1 | site/experiment/uniqueid) +
+      (1 | year),
+    data = df_subset
+  )
+  # store the model summary (you can change this)
+  results_list[[as.character(s)]] <- summary(mod)
+}
+
+# Extract fixed effects from the list of summaries
+coef_df <- map_df(
+  names(results_list),
+  ~ {
+    sm <- results_list[[.x]]
+    fe <- as.data.frame(sm$coefficients)
+    fe$term <- rownames(fe)
+    fe$site_left_out <- .x
+    fe
+  }
+)
+ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Estimate - `Std. Error`,
+                    ymax = Estimate + `Std. Error`),
+                width = 0.2) +
+  facet_wrap(~ term, scales = "free_y") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  labs(
+    title = "Leave-one-site-out sensitivity analysis",
+    x = "Site left out",
+    y = "Fixed effect estimate ± SE"
+  )
+
+# Leave one year out
+years <- unique(lrr9sub_dom_norm$year)
+results_list <- list()
+
+for (s in years) {
+  cat("Leaving out year:", s, "\n")
+  # remove one year
+  df_subset <- lrr9sub_dom_norm %>% filter(year != s)
+  # refit model
+  mod <- lmer(
+    LRR ~ spei9_category * nitrogen +
+      (1 | site/experiment/uniqueid) +
+      (1 | year),
+    data = df_subset
+  )
+  # store the model summary (you can change this)
+  results_list[[as.character(s)]] <- summary(mod)
+}
+
+# Extract fixed effects from the list of summaries
+coef_df <- map_df(
+  names(results_list),
+  ~ {
+    sm <- results_list[[.x]]
+    fe <- as.data.frame(sm$coefficients)
+    fe$term <- rownames(fe)
+    fe$site_left_out <- .x
+    fe
+  }
+)
+ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Estimate - `Std. Error`,
+                    ymax = Estimate + `Std. Error`),
+                width = 0.2) +
+  facet_wrap(~ term, scales = "free_y") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  labs(
+    title = "Leave-one-year-out sensitivity analysis",
+    x = "Year left out",
+    y = "Fixed effect estimate ± SE"
+  )
+
 # LRR plot for dominance normal only
 lrr9sub_dom_norm %>%
   ggplot(aes(x = spei9_category, y = LRR, col = nitrogen)) +
@@ -638,6 +903,94 @@ emm_ev <- emmeans(lrr.lm9sub_ev_norm, pairwise ~ spei9_category * nitrogen, infe
 summary(emm_ev)
 simres <- simulateResiduals(lrr.lm9sub_ev_norm)
 plot(simres)
+
+# Sensitivity analysis (leave-one-site out) # created with ChatGPT
+sites <- unique(lrr9sub_ev_norm$site)
+results_list <- list()
+
+for (s in sites) {
+  cat("Leaving out site:", s, "\n")
+  # remove one site
+  df_subset <- lrr9sub_ev_norm %>% filter(site != s)
+  # refit model
+  mod <- lmer(
+    LRR ~ spei9_category * nitrogen +
+      (1 | site/experiment/uniqueid) +
+      (1 | year),
+    data = df_subset
+  )
+  # store the model summary (you can change this)
+  results_list[[as.character(s)]] <- summary(mod)
+}
+
+# Extract fixed effects from the list of summaries
+coef_df <- map_df(
+  names(results_list),
+  ~ {
+    sm <- results_list[[.x]]
+    fe <- as.data.frame(sm$coefficients)
+    fe$term <- rownames(fe)
+    fe$site_left_out <- .x
+    fe
+  }
+)
+ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Estimate - `Std. Error`,
+                    ymax = Estimate + `Std. Error`),
+                width = 0.2) +
+  facet_wrap(~ term, scales = "free_y") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  labs(
+    title = "Leave-one-site-out sensitivity analysis",
+    x = "Site left out",
+    y = "Fixed effect estimate ± SE"
+  )
+
+# Leave one year out
+years <- unique(lrr9sub_ev_norm$year)
+results_list <- list()
+
+for (s in years) {
+  cat("Leaving out year:", s, "\n")
+  # remove one year
+  df_subset <- lrr9sub_ev_norm %>% filter(year != s)
+  # refit model
+  mod <- lmer(
+    LRR ~ spei9_category * nitrogen +
+      (1 | site/experiment/uniqueid) +
+      (1 | year),
+    data = df_subset
+  )
+  # store the model summary (you can change this)
+  results_list[[as.character(s)]] <- summary(mod)
+}
+
+# Extract fixed effects from the list of summaries
+coef_df <- map_df(
+  names(results_list),
+  ~ {
+    sm <- results_list[[.x]]
+    fe <- as.data.frame(sm$coefficients)
+    fe$term <- rownames(fe)
+    fe$site_left_out <- .x
+    fe
+  }
+)
+ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Estimate - `Std. Error`,
+                    ymax = Estimate + `Std. Error`),
+                width = 0.2) +
+  facet_wrap(~ term, scales = "free_y") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  labs(
+    title = "Leave-one-year-out sensitivity analysis",
+    x = "Year left out",
+    y = "Fixed effect estimate ± SE"
+  )
 
 # LRR plot for evenness normal only
 lrr9sub_ev_norm %>%

@@ -414,6 +414,91 @@ summary(resis_norm_dry_std)
 #view
 print(resis_norm_estim_dry)
 
+####Sensitivity analysis for resistance####
+# Sensitivity analysis dry (leave-one-site out) 
+sites <- unique(plot_ece_9_cn_prior_dry$site)
+results_list <- list()
+
+for (s in sites) {
+  cat("Leaving out site:", s, "\n")
+  # remove one site
+  df_subset <- plot_ece_9_cn_prior_dry %>% filter(site != s)
+  # refit model
+  mod <- lmer(log(resistance_n)~richness+dominant_relative_abund_zero+nitrogen+evar+
+                (1|site/experiment/uniqueid)
+              +(1|year), data = df_subset)
+  
+  # store the model summary (you can change this)
+  results_list[[as.character(s)]] <- summary(mod)
+}
+
+# Extract fixed effects from the list of summaries
+coef_df <- map_df(
+  names(results_list),
+  ~ {
+    sm <- results_list[[.x]]
+    fe <- as.data.frame(sm$coefficients)
+    fe$term <- rownames(fe)
+    fe$site_left_out <- .x
+    fe
+  }
+)
+resist_dry_sens<-ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Estimate - `Std. Error`,
+                    ymax = Estimate + `Std. Error`),
+                width = 0.2) +
+  facet_wrap(~ term, scales = "free_y") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  labs(
+    title = "sensitivity analysis",
+    x = "Site left out",
+    y = "ln(Resistance_dry ± SE)"
+  )
+
+# Sensitivity analysis resistance wet (leave-one-site out) 
+sites <- unique(plot_ece_9_cn_prior_wet$site)
+results_list <- list()
+
+for (s in sites) {
+  cat("Leaving out site:", s, "\n")
+  # remove one site
+  df_subset <- plot_ece_9_cn_prior_wet %>% filter(site != s)
+  # refit model
+  mod <- lmer(log(resistance_n)~richness+dominant_relative_abund_zero+nitrogen+evar+
+                (1|site/experiment/uniqueid)
+              +(1|year), data = df_subset)
+  
+  # store the model summary (you can change this)
+  results_list[[as.character(s)]] <- summary(mod)
+}
+
+# Extract fixed effects from the list of summaries
+coef_df <- map_df(
+  names(results_list),
+  ~ {
+    sm <- results_list[[.x]]
+    fe <- as.data.frame(sm$coefficients)
+    fe$term <- rownames(fe)
+    fe$site_left_out <- .x
+    fe
+  }
+)
+resist_wet_sens<-ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Estimate - `Std. Error`,
+                    ymax = Estimate + `Std. Error`),
+                width = 0.2) +
+  facet_wrap(~ term, scales = "free_y") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  labs(
+    title = "sensitivity analysis",
+    x = "Site left out",
+    y = "ln(Resistance_wet ± SE)"
+  )
+
 #remove resilience values where extreme event occured after an extreme event####
 plot_ece_9_cn_prior_rm<-plot_ece_9_cn_prior%>%
   filter(extreme_after=="no")
@@ -681,6 +766,97 @@ print(resil_norm_estim_dry)
 resis_norm_estim_dry + resis_norm_estim_wet+ plot_layout(guides = "collect")+resil_norm_estim_dry+resil_norm_estim_wet& plot_annotation(tag_levels = 'A')&theme(legend.position = "bottom")
 #&scale_fill_discrete(limits =c(resis_norm_estim_dry$event_type, resis_norm_estim_wet$event_type))
 
+####sensitivity analyses#####
+# Sensitivity analysis resilience wet (leave-one-site out) 
+sites <- unique(plot_ece_9_cn_prior_rm_wet$site)
+results_list <- list()
+
+for (s in sites) {
+  cat("Leaving out site:", s, "\n")
+  # remove one site
+  df_subset <- plot_ece_9_cn_prior_rm_wet %>% filter(site != s)
+  # refit model
+  mod <- lmer(log(resilience_n)~richness+dominant_relative_abund_zero+nitrogen+evar+
+                dominant_relative_abund_zero:nitrogen+
+                evar:nitrogen+(1|site/experiment/uniqueid)
+              +(1|year), data = df_subset)
+  
+  # store the model summary (you can change this)
+  results_list[[as.character(s)]] <- summary(mod)
+}
+
+# Extract fixed effects from the list of summaries
+coef_df <- map_df(
+  names(results_list),
+  ~ {
+    sm <- results_list[[.x]]
+    fe <- as.data.frame(sm$coefficients)
+    fe$term <- rownames(fe)
+    fe$site_left_out <- .x
+    fe
+  }
+)
+resil_wet_sens<-ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Estimate - `Std. Error`,
+                    ymax = Estimate + `Std. Error`),
+                width = 0.2) +
+  facet_wrap(~ term, scales = "free_y") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  labs(
+    title = "sensitivity analysis",
+    x = "Site left out",
+    y = "ln(Resilience_wet ± SE)"
+  )
+
+
+# Sensitivity analysis resilience dry (leave-one-site out) 
+sites <- unique(plot_ece_9_cn_prior_rm_dry_kbsout$site)
+results_list <- list()
+#did not work-probably because not all site had all the required interactions
+for (s in sites) {
+  cat("Leaving out site:", s, "\n")
+  # remove one site
+  df_subset <- plot_ece_9_cn_prior_rm_dry %>% filter(site != s)
+  # refit model
+  mod <- lmer(log(resilience_n)~richness+dominant_relative_abund_zero+nitrogen+evar+
+                dominant_relative_abund_zero:nitrogen+
+                evar:nitrogen+(1|site/experiment/uniqueid)
+              +(1|year), data = df_subset)
+  
+  # store the model summary (you can change this)
+  results_list[[as.character(s)]] <- summary(mod)
+}
+
+# Extract fixed effects from the list of summaries
+coef_df <- map_df(
+  names(results_list),
+  ~ {
+    sm <- results_list[[.x]]
+    fe <- as.data.frame(sm$coefficients)
+    fe$term <- rownames(fe)
+    fe$site_left_out <- .x
+    fe
+  }
+)
+ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Estimate - `Std. Error`,
+                    ymax = Estimate + `Std. Error`),
+                width = 0.2) +
+  facet_wrap(~ term, scales = "free_y") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  labs(
+    title = "Leave-one-site-out sensitivity analysis",
+    x = "Site left out",
+    y = "In(Resilience_dry ± SE)"
+  )
+
+#####combine sensitivity figures####
+resist_dry_sens / resist_wet_sens+ plot_layout(guides = "collect")+resil_wet_sens& plot_annotation(tag_levels = 'A')&theme(legend.position = "bottom")
+#&scale_fil
 
 #calculating Mean annual temp and precipitation for each site####
 precip_temp<-meta%>%

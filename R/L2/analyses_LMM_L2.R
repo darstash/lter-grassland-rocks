@@ -443,6 +443,11 @@ coef_df <- map_df(
     fe
   }
 )
+coef_df<-coef_df%>%
+  mutate(term=case_when(term=="dominant_relative_abund_zero"~"dominant",
+                        term=="nitrogennutrients"~"nutrients",
+                        term=="evar"~"evenness",
+                        .default=term))
 resist_dry_sens<-ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
   geom_point() +
   geom_errorbar(aes(ymin = Estimate - `Std. Error`,
@@ -452,9 +457,9 @@ resist_dry_sens<-ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
   labs(
-    title = "sensitivity analysis",
+    title = "sensitivity analysis of resistance to dry extreme events",
     x = "Site left out",
-    y = "ln(Resistance_dry ± SE)"
+    y = "ln(Resistance ± SE)"
   )
 
 # Sensitivity analysis resistance wet (leave-one-site out) 
@@ -485,6 +490,12 @@ coef_df <- map_df(
     fe
   }
 )
+coef_df<-coef_df%>%
+  mutate(term=case_when(term=="dominant_relative_abund_zero"~"dominant",
+                        term=="nitrogennutrients"~"nutrients",
+                        term=="evar"~"evenness",
+                        .default=term))
+
 resist_wet_sens<-ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
   geom_point() +
   geom_errorbar(aes(ymin = Estimate - `Std. Error`,
@@ -494,10 +505,105 @@ resist_wet_sens<-ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
   labs(
-    title = "sensitivity analysis",
+    title = "Sensitivity analysis of resistance to wet extreme events",
     x = "Site left out",
-    y = "ln(Resistance_wet ± SE)"
+    y = "ln(Resistance ± SE)"
   )
+
+######sensitivity anlaysis by year####
+#resistance to dry
+years <- unique(plot_ece_9_cn_prior_dry$year)
+results_list <- list()
+
+for (s in years) {
+  cat("Leaving out year:", s, "\n")
+  # remove one site
+  df_subset <- plot_ece_9_cn_prior_dry %>% filter(year != s)
+  # refit model
+  mod <- lmer(log(resistance_n)~richness+dominant_relative_abund_zero+nitrogen+evar+
+                (1|site/experiment/uniqueid)
+              +(1|year), data = df_subset)
+  
+  # store the model summary (you can change this)
+  results_list[[as.character(s)]] <- summary(mod)
+}
+
+# Extract fixed effects from the list of summaries
+coef_df <- map_df(
+  names(results_list),
+  ~ {
+    sm <- results_list[[.x]]
+    fe <- as.data.frame(sm$coefficients)
+    fe$term <- rownames(fe)
+    fe$year_left_out <- .x
+    fe
+  }
+)
+coef_df<-coef_df%>%
+  mutate(term=case_when(term=="dominant_relative_abund_zero"~"dominant",
+                        term=="nitrogennutrients"~"nutrients",
+                        term=="evar"~"evenness",
+                        .default=term))
+year_resist_dry_sens<-ggplot(coef_df, aes(x = year_left_out, y = Estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Estimate - `Std. Error`,
+                    ymax = Estimate + `Std. Error`),
+                width = 0.2) +
+  facet_wrap(~ term, scales = "free_y") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  labs(
+    title = "sensitivity analysis of resistance to dry extreme events",
+    x = "year left out",
+    y = "ln(Resistance ± SE)"
+  )
+#resistance to extreme wet
+years <- unique(plot_ece_9_cn_prior_wet$year)
+results_list <- list()
+
+for (s in years) {
+  cat("Leaving out year:", s, "\n")
+  # remove one site
+  df_subset <- plot_ece_9_cn_prior_wet %>% filter(year != s)
+  # refit model
+  mod <- lmer(log(resistance_n)~richness+dominant_relative_abund_zero+nitrogen+evar+
+                (1|site/experiment/uniqueid)
+              +(1|year), data = df_subset)
+  
+  # store the model summary (you can change this)
+  results_list[[as.character(s)]] <- summary(mod)
+}
+
+# Extract fixed effects from the list of summaries
+coef_df <- map_df(
+  names(results_list),
+  ~ {
+    sm <- results_list[[.x]]
+    fe <- as.data.frame(sm$coefficients)
+    fe$term <- rownames(fe)
+    fe$year_left_out <- .x
+    fe
+  }
+)
+coef_df<-coef_df%>%
+  mutate(term=case_when(term=="dominant_relative_abund_zero"~"dominant",
+                        term=="nitrogennutrients"~"nutrients",
+                        term=="evar"~"evenness",
+                        .default=term))
+year_resist_wet_sens<-ggplot(coef_df, aes(x = year_left_out, y = Estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Estimate - `Std. Error`,
+                    ymax = Estimate + `Std. Error`),
+                width = 0.2) +
+  facet_wrap(~ term, scales = "free_y") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  labs(
+    title = "sensitivity analysis of resistance to wet extreme events",
+    x = "year left out",
+    y = "ln(Resistance ± SE)"
+  )
+
 
 #remove resilience values where extreme event occured after an extreme event####
 plot_ece_9_cn_prior_rm<-plot_ece_9_cn_prior%>%
@@ -796,6 +902,15 @@ coef_df <- map_df(
     fe
   }
 )
+#rename terms appropriately
+coef_df<-coef_df%>%
+  mutate(term=case_when(term=="dominant_relative_abund_zero"~"dominant",
+                        term=="nitrogennutrients"~"nutrients",
+                        term=="evar"~"evenness",
+                        term %in% "nitrogennutrients" ~ "nutrients",
+                        term %in% "dominant_relative_abund_zero:nitrogennutrients" ~ "dominant:nutrients",
+                        term %in% "nitrogennutrients:evar" ~ "evenness:nutrients",
+                        .default=term))
 resil_wet_sens<-ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
   geom_point() +
   geom_errorbar(aes(ymin = Estimate - `Std. Error`,
@@ -805,14 +920,14 @@ resil_wet_sens<-ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
   labs(
-    title = "sensitivity analysis",
+    title = "sensitivity analysis of resilience to wet extreme events",
     x = "Site left out",
-    y = "ln(Resilience_wet ± SE)"
+    y = "ln(Resilience ± SE)"
   )
 
 
 # Sensitivity analysis resilience dry (leave-one-site out) 
-sites <- unique(plot_ece_9_cn_prior_rm_dry_kbsout$site)
+sites <- unique(plot_ece_9_cn_prior_rm_dry$site)
 results_list <- list()
 #did not work-probably because not all site had all the required interactions
 for (s in sites) {
@@ -853,9 +968,116 @@ ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
     x = "Site left out",
     y = "In(Resilience_dry ± SE)"
   )
+######sensitivity analysis by year####
+# Sensitivity analysis resilience wet (leave-one-year out) 
+years <- unique(plot_ece_9_cn_prior_rm_wet$year)
+results_list <- list()
 
-#####combine sensitivity figures####
+for (s in years) {
+  cat("Leaving out year:", s, "\n")
+  # remove one site
+  df_subset <- plot_ece_9_cn_prior_rm_wet %>% filter(year != s)
+  # refit model
+  mod <- lmer(log(resilience_n)~richness+dominant_relative_abund_zero+nitrogen+evar+
+                dominant_relative_abund_zero:nitrogen+
+                evar:nitrogen+(1|site/experiment/uniqueid)
+              +(1|year), data = df_subset)
+  
+  # store the model summary (you can change this)
+  results_list[[as.character(s)]] <- summary(mod)
+}
+
+# Extract fixed effects from the list of summaries
+coef_df <- map_df(
+  names(results_list),
+  ~ {
+    sm <- results_list[[.x]]
+    fe <- as.data.frame(sm$coefficients)
+    fe$term <- rownames(fe)
+    fe$year_left_out <- .x
+    fe
+  }
+)
+#rename terms appropriately
+coef_df<-coef_df%>%
+  mutate(term=case_when(term=="dominant_relative_abund_zero"~"dominant",
+                        term=="nitrogennutrients"~"nutrients",
+                        term=="evar"~"evenness",
+                        term %in% "nitrogennutrients" ~ "nutrients",
+                        term %in% "dominant_relative_abund_zero:nitrogennutrients" ~ "dominant:nutrients",
+                        term %in% "nitrogennutrients:evar" ~ "evenness:nutrients",
+                        .default=term))
+year_resil_wet_sens<-ggplot(coef_df, aes(x = year_left_out, y = Estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Estimate - `Std. Error`,
+                    ymax = Estimate + `Std. Error`),
+                width = 0.2) +
+  facet_wrap(~ term, scales = "free_y") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  labs(
+    title = "sensitivity analysis of resilience to wet extreme events",
+    x = "year left out",
+    y = "ln(Resilience ± SE)"
+  )
+
+# Sensitivity analysis resilience dry (leave-one-year out) 
+years <- unique(plot_ece_9_cn_prior_rm_dry$year)
+results_list <- list()
+
+for (s in years) {
+  cat("Leaving out year:", s, "\n")
+  # remove one site
+  df_subset <- plot_ece_9_cn_prior_rm_dry %>% filter(year != s)
+  # refit model
+  mod <- lmer(log(resilience_n)~richness+dominant_relative_abund_zero+nitrogen+evar+
+                dominant_relative_abund_zero:nitrogen+
+                evar:nitrogen+(1|site/experiment/uniqueid)
+              +(1|year), data = df_subset)
+
+  # store the model summary (you can change this)
+  results_list[[as.character(s)]] <- summary(mod)
+}
+
+# Extract fixed effects from the list of summaries
+coef_df <- map_df(
+  names(results_list),
+  ~ {
+    sm <- results_list[[.x]]
+    fe <- as.data.frame(sm$coefficients)
+    fe$term <- rownames(fe)
+    fe$year_left_out <- .x
+    fe
+  }
+)
+#rename terms appropriately
+coef_df<-coef_df%>%
+  mutate(term=case_when(term=="dominant_relative_abund_zero"~"dominant",
+                        term=="nitrogennutrients"~"nutrients",
+                        term=="evar"~"evenness",
+                        term %in% "nitrogennutrients" ~ "nutrients",
+                        term %in% "dominant_relative_abund_zero:nitrogennutrients" ~ "dominant:nutrients",
+                        term %in% "nitrogennutrients:evar" ~ "evenness:nutrients",
+                        .default=term))
+year_resil_dry_sens<-ggplot(coef_df, aes(x = year_left_out, y = Estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Estimate - `Std. Error`,
+                    ymax = Estimate + `Std. Error`),
+                width = 0.2) +
+  facet_wrap(~ term, scales = "free_y") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  labs(
+    title = "sensitivity analysis of resilience to dry extreme events",
+    x = "year left out",
+    y = "ln(Resilience ± SE)"
+  )
+#####combine sensitivity figures for sites####
 resist_dry_sens / resist_wet_sens+ plot_layout(guides = "collect")+resil_wet_sens& plot_annotation(tag_levels = 'A')&theme(legend.position = "bottom")
+#&scale_fil
+
+#####combine sensitivity fig for years
+year_resist_dry_sens / year_resist_wet_sens+ plot_layout(guides = "collect")+year_resil_wet_sens& plot_annotation(tag_levels = 'A')&theme(legend.position = "bottom")
 #&scale_fil
 
 #calculating Mean annual temp and precipitation for each site####

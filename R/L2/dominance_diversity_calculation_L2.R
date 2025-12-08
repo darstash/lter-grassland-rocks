@@ -44,7 +44,12 @@ Evenness_richness<-community_structure(species_abundance_SPEI_evar, time.var="ye
                                        abundance.var="relative_abundance",metric="Evar")%>%
   select(-richness)#remove richness since it was already calculated
 #monoculture produces NAs for evenness
-
+?community_structure()
+#calculates evenness using EQ to compare result with Evar
+Evenness_EQ<-community_structure(species_abundance_SPEI_evar, time.var="year",
+                                       replicate.var = "uniqueid",
+                                       abundance.var="relative_abundance",metric="EQ")%>%
+  select(-richness)#remove richness since it was already calculated
 
 #determine the species with the average max relative abundance within each plot across all years
 dominant_species_year<-species_abundance_SPEI_evar%>%
@@ -72,6 +77,7 @@ plot_metrics_SPEI_diversity <- plot_metrics_SPEI %>%
   right_join(., species_abundance_SPEI_Metric, by = c("year", "site",  "higher_order_organization", "plot", "uniqueid",
                                                      "spei12", "spei3", "spei6", "spei9", "spei6_category", "spei12_category"))%>%
   left_join(Evenness_richness, by = c("year","uniqueid"))%>%
+  left_join(Evenness_EQ, by = c("year","uniqueid"))%>%
   left_join(rel_abund_dom_species_year, by=c("year","uniqueid"))%>%
   #create a new column of dominant abundance and convert NAs to zero
   #as NAs are primarily due to the absence of the dominant species
@@ -87,7 +93,8 @@ plot_metrics_SPEI_diversity <- plot_metrics_SPEI %>%
          prior_year_dom_zero=lag(dominant_relative_abund_zero),
          prior_year_dom=lag(dominant_relative_abund),
          prior_year_evar=lag(Evar),
-         prior_year_spei9=lag(spei9))
+         prior_year_spei9=lag(spei9),
+         prior_year_eq=lag(EQ))
 
 
 write.csv(plot_metrics_SPEI_diversity, file.path(L2_dir, "./plot_metrics_SPEI_diversity_L2.csv"), row.names=F)

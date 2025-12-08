@@ -140,11 +140,12 @@ table(plot_ece_9_cn$nitrogen)
 
 #rename prior year community metrics and create a new dataframe
 plot_ece_9_cn_prior<-plot_ece_9_cn%>%
-  select(-richness, -evar, -dominant_relative_abund, -dominant_relative_abund_zero)%>%
+  select(-richness, -evar, -dominant_relative_abund, -dominant_relative_abund_zero,-eq)%>%
   rename(richness=prior_year_rich,
          dominant_relative_abund_zero= prior_year_dom_zero,
          dominant_relative_abund=prior_year_dom,
-         evar=prior_year_evar)
+         evar=prior_year_evar,
+         eq=prior_year_eq)
 
 ##resistance with control and nitrogen####
 resis_norm<-lmer(log(resistance_n)~richness*dominant_relative_abund_zero+nitrogen+richness:nitrogen+evar+
@@ -295,6 +296,7 @@ summary(resis_norm_wet)
 simres <- simulateResiduals(resis_norm_wet)
 plot(simres)
 check_model(resis_norm_wet)
+
 #model for extreme dry
 resis_norm_dry<-lmer(log(resistance_n)~richness+dominant_relative_abund_zero+nitrogen+evar+
                        (1|site/experiment/uniqueid)
@@ -304,6 +306,16 @@ summary(resis_norm_dry)
 simres <- simulateResiduals(resis_norm_dry)
 plot(simres)
 check_model(resis_norm_dry)
+
+#refit with EQ as evenness metric
+#resis_wet_EQ<-lmer(log(resistance_n)~richness+dominant_relative_abund_zero+nitrogen+eq+
+#                     (1|site/experiment/uniqueid)
+#                   +(1|year), data=plot_ece_9_cn_prior_wet)
+#anova(resis_wet_EQ)#did not change model result
+#resis_dry_EQ<-lmer(log(resistance_n)~richness+dominant_relative_abund_zero+nitrogen+eq+
+#                       (1|site/experiment/uniqueid)
+#                     +(1|year), data=plot_ece_9_cn_prior_dry)
+#anova(resis_dry_EQ)
 #####create figure for resistance extreme dry and extreme wet####
 resis_norm_wet_std <- update(resis_norm_wet, 
                         data = plot_ece_9_cn_prior_wet %>% 
@@ -753,6 +765,18 @@ simres <- simulateResiduals(resil_norm_dry)
 plot(simres)
 check_model(resil_norm_dry)
 
+#refit with EQ as evenness
+#resil_wet_eq<-lmer(log(resilience_n)~richness+dominant_relative_abund_zero+nitrogen+eq+
+#                       dominant_relative_abund_zero:nitrogen+
+#                       eq:nitrogen+(1|site/experiment/uniqueid)
+#                     +(1|year), data=plot_ece_9_cn_prior_rm_wet)
+#anova(resil_wet_eq)
+#resil_dry_eq<-lmer(log(resilience_n)~richness+dominant_relative_abund_zero+nitrogen+eq+
+#                       dominant_relative_abund_zero:nitrogen+
+#                       eq:nitrogen+(1|site/experiment/uniqueid)
+#                     +(1|year), data=plot_ece_9_cn_prior_rm_dry)
+#summary(resil_dry_eq)
+#largely similar
 ####create figure for resiience wet and dry####
 resil_norm_wet_std <- update(resil_norm_wet, 
                              data = plot_ece_9_cn_prior_rm_wet %>% 

@@ -896,6 +896,19 @@ print(resil_norm_estim_dry)
 resis_norm_estim_dry + resis_norm_estim_wet+ plot_layout(guides = "collect")+resil_norm_estim_dry+resil_norm_estim_wet& plot_annotation(tag_levels = 'A')&theme(legend.position = "bottom")
 #&scale_fill_discrete(limits =c(resis_norm_estim_dry$event_type, resis_norm_estim_wet$event_type))
 
+####Interaction figures####
+ggpredict(model = resil_norm_dry_std, terms = c("evar", "nitrogen"), back_transform = F) %>%
+  plot(show_data = F)+
+  labs(title=NULL, x="Evenness", y="ln(Resilience)")+
+  scale_fill_manual(values=c("#377EB8","#E41A1C"))+
+  scale_color_manual(values=c("#377EB8","#E41A1C"),labels = c("control", "nutrients"))+
+  
+  theme(legend.title=element_blank())#+
+  theme_classic()
+ggpredict(model = resil_norm_wet_std, terms =  c("dominant_relative_abund_zero", "nitrogen"), back_transform = F) %>%
+  plot(show_data = F,colors= c("#377EB8","#E41A1C"))
+ggpredic
+?labs()
 ####sensitivity analyses#####
 # Sensitivity analysis resilience wet (leave-one-site out) 
 sites <- unique(plot_ece_9_cn_prior_rm_wet$site)

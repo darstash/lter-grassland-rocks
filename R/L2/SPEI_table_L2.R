@@ -379,7 +379,16 @@ coef_df <- map_df(
     fe
   }
 )
-ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
+coef_df <- coef_df %>%
+  mutate(term = case_when(
+    term == "(Intercept)" ~ "(Intercept)",
+    term == "spei9_categoryExtreme wet" ~ "event type",
+    term == "nitrogenno_fertilizer" ~ "nutrients",
+    term == "spei9_categoryExtreme wet:nitrogenno_fertilizer" ~ "event type:nutrients"
+  )) %>%
+  mutate(across(term, ~factor(., levels=c("(Intercept)","event type","nutrients", "event type:nutrients"))))
+
+fig_sens_anpp_site <- ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
   geom_point() +
   geom_errorbar(aes(ymin = Estimate - `Std. Error`,
                     ymax = Estimate + `Std. Error`),
@@ -388,7 +397,7 @@ ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
   labs(
-    title = "Leave-one-site-out sensitivity analysis",
+    title = "Leave-one-site-out biomass",
     x = "Site left out",
     y = "Fixed effect estimate ± SE"
   )
@@ -423,7 +432,16 @@ coef_df <- map_df(
     fe
   }
 )
-ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
+coef_df <- coef_df %>%
+  mutate(term = case_when(
+    term == "(Intercept)" ~ "(Intercept)",
+    term == "spei9_categoryExtreme wet" ~ "event type",
+    term == "nitrogenno_fertilizer" ~ "nutrients",
+    term == "spei9_categoryExtreme wet:nitrogenno_fertilizer" ~ "event type:nutrients"
+  )) %>%
+  mutate(across(term, ~factor(., levels=c("(Intercept)","event type","nutrients", "event type:nutrients"))))
+
+fig_sens_anpp_year <- ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
   geom_point() +
   geom_errorbar(aes(ymin = Estimate - `Std. Error`,
                     ymax = Estimate + `Std. Error`),
@@ -432,7 +450,7 @@ ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
   labs(
-    title = "Leave-one-year-out sensitivity analysis",
+    title = "Leave-one-year-out biomass",
     x = "Year left out",
     y = "Fixed effect estimate ± SE"
   )
@@ -570,7 +588,16 @@ coef_df <- map_df(
     fe
   }
 )
-ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
+coef_df <- coef_df %>%
+  mutate(term = case_when(
+    term == "(Intercept)" ~ "(Intercept)",
+    term == "spei9_categoryExtreme wet" ~ "event type",
+    term == "nitrogenno_fertilizer" ~ "nutrients",
+    term == "spei9_categoryExtreme wet:nitrogenno_fertilizer" ~ "event type:nutrients"
+  )) %>%
+  mutate(across(term, ~factor(., levels=c("(Intercept)","event type","nutrients", "event type:nutrients"))))
+
+fig_sens_rich_site <- ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
   geom_point() +
   geom_errorbar(aes(ymin = Estimate - `Std. Error`,
                     ymax = Estimate + `Std. Error`),
@@ -579,7 +606,7 @@ ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
   labs(
-    title = "Leave-one-site-out sensitivity analysis",
+    title = "Leave-one-site-out richness",
     x = "Site left out",
     y = "Fixed effect estimate ± SE"
   )
@@ -614,7 +641,16 @@ coef_df <- map_df(
     fe
   }
 )
-ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
+coef_df <- coef_df %>%
+  mutate(term = case_when(
+    term == "(Intercept)" ~ "(Intercept)",
+    term == "spei9_categoryExtreme wet" ~ "event type",
+    term == "nitrogenno_fertilizer" ~ "nutrients",
+    term == "spei9_categoryExtreme wet:nitrogenno_fertilizer" ~ "event type:nutrients"
+  )) %>%
+  mutate(across(term, ~factor(., levels=c("(Intercept)","event type","nutrients", "event type:nutrients"))))
+
+fig_sens_rich_year <- ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
   geom_point() +
   geom_errorbar(aes(ymin = Estimate - `Std. Error`,
                     ymax = Estimate + `Std. Error`),
@@ -623,7 +659,7 @@ ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
   labs(
-    title = "Leave-one-year-out sensitivity analysis",
+    title = "Leave-one-year-out richness",
     x = "Year left out",
     y = "Fixed effect estimate ± SE"
   )
@@ -753,7 +789,16 @@ coef_df <- map_df(
     fe
   }
 )
-ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
+coef_df <- coef_df %>%
+  mutate(term = case_when(
+    term == "(Intercept)" ~ "(Intercept)",
+    term == "spei9_categoryExtreme wet" ~ "event type",
+    term == "nitrogenno_fertilizer" ~ "nutrients",
+    term == "spei9_categoryExtreme wet:nitrogenno_fertilizer" ~ "event type:nutrients"
+  )) %>%
+  mutate(across(term, ~factor(., levels=c("(Intercept)","event type","nutrients", "event type:nutrients"))))
+
+fig_sens_dom_site <- ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
   geom_point() +
   geom_errorbar(aes(ymin = Estimate - `Std. Error`,
                     ymax = Estimate + `Std. Error`),
@@ -762,7 +807,7 @@ ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
   labs(
-    title = "Leave-one-site-out sensitivity analysis",
+    title = "Leave-one-site-out dominance",
     x = "Site left out",
     y = "Fixed effect estimate ± SE"
   )
@@ -797,7 +842,16 @@ coef_df <- map_df(
     fe
   }
 )
-ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
+coef_df <- coef_df %>%
+  mutate(term = case_when(
+    term == "(Intercept)" ~ "(Intercept)",
+    term == "spei9_categoryExtreme wet" ~ "event type",
+    term == "nitrogenno_fertilizer" ~ "nutrients",
+    term == "spei9_categoryExtreme wet:nitrogenno_fertilizer" ~ "event type:nutrients"
+  )) %>%
+  mutate(across(term, ~factor(., levels=c("(Intercept)","event type","nutrients", "event type:nutrients"))))
+
+fig_sens_dom_year <- ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
   geom_point() +
   geom_errorbar(aes(ymin = Estimate - `Std. Error`,
                     ymax = Estimate + `Std. Error`),
@@ -806,7 +860,7 @@ ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
   labs(
-    title = "Leave-one-year-out sensitivity analysis",
+    title = "Leave-one-year-out dominance",
     x = "Year left out",
     y = "Fixed effect estimate ± SE"
   )
@@ -934,7 +988,16 @@ coef_df <- map_df(
     fe
   }
 )
-ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
+coef_df <- coef_df %>%
+  mutate(term = case_when(
+    term == "(Intercept)" ~ "(Intercept)",
+    term == "spei9_categoryExtreme wet" ~ "event type",
+    term == "nitrogenno_fertilizer" ~ "nutrients",
+    term == "spei9_categoryExtreme wet:nitrogenno_fertilizer" ~ "event type:nutrients"
+  )) %>%
+  mutate(across(term, ~factor(., levels=c("(Intercept)","event type","nutrients", "event type:nutrients"))))
+
+fig_sens_ev_site <- ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
   geom_point() +
   geom_errorbar(aes(ymin = Estimate - `Std. Error`,
                     ymax = Estimate + `Std. Error`),
@@ -943,7 +1006,7 @@ ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
   labs(
-    title = "Leave-one-site-out sensitivity analysis",
+    title = "Leave-one-site-out evenness",
     x = "Site left out",
     y = "Fixed effect estimate ± SE"
   )
@@ -978,7 +1041,16 @@ coef_df <- map_df(
     fe
   }
 )
-ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
+coef_df <- coef_df %>%
+  mutate(term = case_when(
+    term == "(Intercept)" ~ "(Intercept)",
+    term == "spei9_categoryExtreme wet" ~ "event type",
+    term == "nitrogenno_fertilizer" ~ "nutrients",
+    term == "spei9_categoryExtreme wet:nitrogenno_fertilizer" ~ "event type:nutrients"
+  )) %>%
+  mutate(across(term, ~factor(., levels=c("(Intercept)","event type","nutrients", "event type:nutrients"))))
+
+fig_sens_ev_year <- ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
   geom_point() +
   geom_errorbar(aes(ymin = Estimate - `Std. Error`,
                     ymax = Estimate + `Std. Error`),
@@ -987,7 +1059,7 @@ ggplot(coef_df, aes(x = site_left_out, y = Estimate)) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
   labs(
-    title = "Leave-one-year-out sensitivity analysis",
+    title = "Leave-one-year-out evenness",
     x = "Year left out",
     y = "Fixed effect estimate ± SE"
   )
@@ -1068,7 +1140,10 @@ anpp_plot_norm_pred + rich_plot_norm_pred + dom_plot_norm_pred + ev_plot_norm_pr
 ## FIGURE S3 ----
 anpp_plot_norm3 + rich_plot_norm3 + dom_plot_norm3 + ev_plot_norm3 + plot_layout(guides = 'collect') & plot_annotation(tag_levels = 'A')
 
+## FIGURE Supp ----
+fig_sens_anpp_site + fig_sens_rich_site + fig_sens_dom_site + fig_sens_ev_site & plot_annotation(tag_levels = 'A')
 
+fig_sens_anpp_year + fig_sens_rich_year + fig_sens_dom_year + fig_sens_ev_year & plot_annotation(tag_levels = 'A')
 
 # ARCHIVED CODE ----
 # # Calculate the number of extreme wet years

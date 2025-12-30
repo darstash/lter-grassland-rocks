@@ -507,7 +507,8 @@ anpp_plot_norm_pred <- lrr.lm9sub2_norm.df %>%
   geom_signif(map_signif_level = F, tip_length = 0, y_position = 0.25, xmin = 0.95, xmax = 1.95, annotations = "***", color = "black") +
   geom_signif(map_signif_level = F, tip_length = 0, y_position = 0.45, xmin = 1.05, xmax = 2.05, annotations = "***", color = "black") +
   annotate(geom = "text", x=1, y = 0.05, label="***", color="black") +
-  annotate(geom = "text", x=2, y = 0.4, label="**", color="black")
+  annotate(geom = "text", x=2, y = 0.4, label="**", color="black") +
+  coord_cartesian(ylim = c(NA, 0.48))
 
 # Three way interaction (for supplement)
 lrr9sub_norm$nitrogen <- fct_recode(lrr9sub_norm$nitrogen, "nutrients" = "N", "control" = "no_fertilizer")
@@ -1108,8 +1109,9 @@ ev_plot_norm_pred <- lrr.lm9sub_ev_norm.df %>%
   scale_shape_manual(values = c(1, 2), labels = c('control', 'nutrients')) +
   theme(legend.title=element_blank()) +
   annotate(geom = "text", x=2, y=0.13, label= "**", color="black") +
-  geom_signif(map_signif_level = F, tip_length = 0, y_position = 0.45, xmin = 0.95, xmax = 1.95, annotations = "*", color = "black") +
-  geom_signif(map_signif_level = F, tip_length = 0, y_position = 0.5, xmin = 1.05, xmax = 2.05, annotations = "***", color = "black")
+  geom_signif(map_signif_level = F, tip_length = 0, y_position = 0.44, xmin = 0.95, xmax = 1.95, annotations = "*", color = "black") +
+  geom_signif(map_signif_level = F, tip_length = 0, y_position = 0.5, xmin = 1.05, xmax = 2.05, annotations = "***", color = "black") +
+  coord_cartesian(ylim = c(NA, 0.52))
 
 # Three way interaction (for supplement)
 lrr9sub_ev_norm$nitrogen <- fct_recode(lrr9sub_ev_norm$nitrogen, "nutrients" = "N", "control" = "no_fertilizer")

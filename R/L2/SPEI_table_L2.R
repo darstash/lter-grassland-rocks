@@ -230,8 +230,8 @@ plot_model(
   show.data = TRUE,
   title = "",
   axis.title = c("SPEI-9", "Aboveground biomass")) +
-  theme_bw()
-
+  theme_bw() +
+  scale_y_continuous(trans = "log1p", breaks = c(0, 10, 100, 1000, 10000))
 
 # LRR ----
 # Add experiment column to all plots

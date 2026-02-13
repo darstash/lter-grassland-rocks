@@ -229,7 +229,7 @@ plot_model(
   terms="spei9  [all]",
   show.data = TRUE,
   title = "",
-  axis.title = c("SPEI-9", "Aboveground biomass")) +
+  axis.title = c("SPEI-9", expression("Aboveground biomass (g/m"^2*")"))) +
   theme_bw() +
   scale_y_continuous(trans = "log1p", breaks = c(0, 10, 100, 1000, 10000))
 

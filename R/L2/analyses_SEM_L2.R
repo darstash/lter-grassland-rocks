@@ -32,42 +32,42 @@ list.files(L2_dir)
 
 # Read in CSV files
 plot <- read.csv(file.path(L2_dir, "plot_metrics_SPEI_diversity_L2.csv"))
-ece <- read.csv(file.path(L2_dir, "ece_resist_resil_L2.csv"))#based on SPEI6
+#ece <- read.csv(file.path(L2_dir, "ece_resist_resil_L2.csv"))#based on SPEI6
 meta <- read.csv(file.path(L1_dir, "metadata_L1.csv"))
-ece_9<-read.csv(file.path(L2_dir, "ece_resist_resil_spei9_L2.csv"))#calculated based on SPEI9
+#ece_9<-read.csv(file.path(L2_dir, "ece_resist_resil_spei9_L2.csv"))#calculated based on SPEI9
 ece_9_norm<-read.csv(file.path(L2_dir, "ece_resist_resil_spei9_norm_L2.csv"))#calculated based on SPEI9 without including moderate events as part of the normal events 
 
 names(plot)
 
 # Only keep distinct rows in ece
-ece <- distinct(ece)
-ece_9<-distinct(ece_9)
+#ece <- distinct(ece)
+#ece_9<-distinct(ece_9)
 ece_9_norm<-distinct(ece_9_norm)
 
 # Change ex_year to year
-ece <- ece %>%
-  rename(year = ex_year)
-ece_9<-ece_9%>%
-  rename(year = ex_year)
+#ece <- ece %>%
+  #rename(year = ex_year)
+#ece_9<-ece_9%>%
+  #rename(year = ex_year)
 ece_9_norm<-ece_9_norm%>%
   rename(year = ex_year,
          resistance_n=resistance,
          resilience_n=resilience)
 
 # Merge plot with resistance and resilience
-plot_ece <- left_join(plot, ece)
-plot_ece_9<-left_join(plot, ece_9)
-plot_ece_9<-left_join(plot_ece_9, ece_9_norm)
+#plot_ece <- left_join(plot, ece)
+#plot_ece_9<-left_join(plot, ece_9)
+plot_ece_9<-left_join(plot, ece_9_norm)
 
 # Make column with categories for high and low dominance
-plot_ece <- plot_ece %>%
-  mutate(dom_category = case_when(
-    Berger_Parker >= 0.5 ~ "high",
-    Berger_Parker < 0.5 ~ "low"
-  ))
+#plot_ece <- plot_ece %>%
+  #mutate(dom_category = case_when(
+    #Berger_Parker >= 0.5 ~ "high",
+    #Berger_Parker < 0.5 ~ "low"
+  #))
 
 # Standardize column names
-plot_ece <- clean_names(plot_ece)
+#plot_ece <- clean_names(plot_ece)
 plot_ece_9 <- clean_names(plot_ece_9)
 
 
@@ -76,50 +76,50 @@ plot_ece_9 <- clean_names(plot_ece_9)
 # plot_ece_9$resilience[plot_ece_9$resilience == Inf] <- NA
 
 # Add experiment column_SPEI6####
-plot_ece$experiment <- sub("nutnet.*", "nutnet", plot_ece$higher_order_organization)
-plot_ece$experiment <- sub("glbrc_scaleup.*", "glbrc_scaleup", plot_ece$experiment)
-plot_ece$experiment <- sub("glbrc_G10.*", "glbrc", plot_ece$experiment)
-plot_ece$experiment <- sub("glbrc_G9.*", "glbrc", plot_ece$experiment)
-plot_ece$experiment <- sub("mcse.*", "mcse", plot_ece$experiment)
-plot_ece$experiment <- sub("microplots.*", "microplots", plot_ece$experiment)
-plot_ece$experiment <- sub("Experiment 1.*", "Experiment 1", plot_ece$experiment)
-plot_ece$experiment <- sub("001d_A_fl", "001d_fl", plot_ece$experiment)
-plot_ece$experiment <- sub("001d_B_fl", "001d_fl", plot_ece$experiment)
-plot_ece$experiment <- sub("001d_C_fl", "001d_fl", plot_ece$experiment)
-plot_ece$experiment <- sub("001d_D_fl", "001d_fl", plot_ece$experiment)
-plot_ece$experiment <- sub("001d_A_tu", "001d_tu", plot_ece$experiment)
-plot_ece$experiment <- sub("001d_B_tu", "001d_tu", plot_ece$experiment)
-plot_ece$experiment <- sub("001d_C_tu", "001d_tu", plot_ece$experiment)
-plot_ece$experiment <- sub("001d_D_tu", "001d_tu", plot_ece$experiment)
-plot_ece$experiment <- sub("004a_A_fl", "004a_fl", plot_ece$experiment)
-plot_ece$experiment <- sub("004a_B_fl", "004a_fl", plot_ece$experiment)
-plot_ece$experiment <- sub("004a_C_fl", "004a_fl", plot_ece$experiment)
-plot_ece$experiment <- sub("004a_D_fl", "004a_fl", plot_ece$experiment)
-plot_ece$experiment <- sub("004a_A_tu", "004a_tu", plot_ece$experiment)
-plot_ece$experiment <- sub("004a_B_tu", "004a_tu", plot_ece$experiment)
-plot_ece$experiment <- sub("004a_C_tu", "004a_tu", plot_ece$experiment)
-plot_ece$experiment <- sub("004a_D_tu", "004a_tu", plot_ece$experiment)
-plot_ece$experiment <- sub("004b_A_fl", "004b_fl", plot_ece$experiment)
-plot_ece$experiment <- sub("004b_B_fl", "004b_fl", plot_ece$experiment)
-plot_ece$experiment <- sub("004b_C_fl", "004b_fl", plot_ece$experiment)
-plot_ece$experiment <- sub("004b_D_fl", "004b_fl", plot_ece$experiment)
-plot_ece$experiment <- sub("004b_A_tu", "004b_tu", plot_ece$experiment)
-plot_ece$experiment <- sub("004b_B_tu", "004b_tu", plot_ece$experiment)
-plot_ece$experiment <- sub("004b_C_tu", "004b_tu", plot_ece$experiment)
-plot_ece$experiment <- sub("004b_D_tu", "004b_tu", plot_ece$experiment)
-plot_ece$experiment <- sub("002d.*", "002d", plot_ece$experiment)
-plot_ece$experiment <- sub("Experiment 54.*", "Experiment 54", plot_ece$experiment)
-plot_ece$experiment <- sub("KNZ_WAT01.*", "KNZ_WAT01", plot_ece$experiment)
-plot_ece$experiment <- sub("002c.*", "002c", plot_ece$experiment)
-plot_ece$experiment <- sub("e061.*", "e061", plot_ece$experiment)
-plot_ece$experiment <- sub("e247.*", "e247", plot_ece$experiment)
-plot_ece$experiment <- sub("e245.*", "e245", plot_ece$experiment)
-plot_ece$experiment[plot_ece$experiment == "A"] <- "NGE"
-plot_ece$experiment[plot_ece$experiment == "B"] <- "NGE"
-plot_ece$experiment[plot_ece$experiment == "C"] <- "NGE"
-plot_ece$experiment[plot_ece$experiment == "D"] <- "NGE"
-plot_ece$experiment[plot_ece$experiment == "E"] <- "NGE"
-plot_ece$experiment[plot_ece$experiment == "F"] <- "NGE"
+# plot_ece$experiment <- sub("nutnet.*", "nutnet", plot_ece$higher_order_organization)
+# plot_ece$experiment <- sub("glbrc_scaleup.*", "glbrc_scaleup", plot_ece$experiment)
+# plot_ece$experiment <- sub("glbrc_G10.*", "glbrc", plot_ece$experiment)
+# plot_ece$experiment <- sub("glbrc_G9.*", "glbrc", plot_ece$experiment)
+# plot_ece$experiment <- sub("mcse.*", "mcse", plot_ece$experiment)
+# plot_ece$experiment <- sub("microplots.*", "microplots", plot_ece$experiment)
+# plot_ece$experiment <- sub("Experiment 1.*", "Experiment 1", plot_ece$experiment)
+# plot_ece$experiment <- sub("001d_A_fl", "001d_fl", plot_ece$experiment)
+# plot_ece$experiment <- sub("001d_B_fl", "001d_fl", plot_ece$experiment)
+# plot_ece$experiment <- sub("001d_C_fl", "001d_fl", plot_ece$experiment)
+# plot_ece$experiment <- sub("001d_D_fl", "001d_fl", plot_ece$experiment)
+# plot_ece$experiment <- sub("001d_A_tu", "001d_tu", plot_ece$experiment)
+# plot_ece$experiment <- sub("001d_B_tu", "001d_tu", plot_ece$experiment)
+# plot_ece$experiment <- sub("001d_C_tu", "001d_tu", plot_ece$experiment)
+# plot_ece$experiment <- sub("001d_D_tu", "001d_tu", plot_ece$experiment)
+# plot_ece$experiment <- sub("004a_A_fl", "004a_fl", plot_ece$experiment)
+# plot_ece$experiment <- sub("004a_B_fl", "004a_fl", plot_ece$experiment)
+# plot_ece$experiment <- sub("004a_C_fl", "004a_fl", plot_ece$experiment)
+# plot_ece$experiment <- sub("004a_D_fl", "004a_fl", plot_ece$experiment)
+# plot_ece$experiment <- sub("004a_A_tu", "004a_tu", plot_ece$experiment)
+# plot_ece$experiment <- sub("004a_B_tu", "004a_tu", plot_ece$experiment)
+# plot_ece$experiment <- sub("004a_C_tu", "004a_tu", plot_ece$experiment)
+# plot_ece$experiment <- sub("004a_D_tu", "004a_tu", plot_ece$experiment)
+# plot_ece$experiment <- sub("004b_A_fl", "004b_fl", plot_ece$experiment)
+# plot_ece$experiment <- sub("004b_B_fl", "004b_fl", plot_ece$experiment)
+# plot_ece$experiment <- sub("004b_C_fl", "004b_fl", plot_ece$experiment)
+# plot_ece$experiment <- sub("004b_D_fl", "004b_fl", plot_ece$experiment)
+# plot_ece$experiment <- sub("004b_A_tu", "004b_tu", plot_ece$experiment)
+# plot_ece$experiment <- sub("004b_B_tu", "004b_tu", plot_ece$experiment)
+# plot_ece$experiment <- sub("004b_C_tu", "004b_tu", plot_ece$experiment)
+# plot_ece$experiment <- sub("004b_D_tu", "004b_tu", plot_ece$experiment)
+# plot_ece$experiment <- sub("002d.*", "002d", plot_ece$experiment)
+# plot_ece$experiment <- sub("Experiment 54.*", "Experiment 54", plot_ece$experiment)
+# plot_ece$experiment <- sub("KNZ_WAT01.*", "KNZ_WAT01", plot_ece$experiment)
+# plot_ece$experiment <- sub("002c.*", "002c", plot_ece$experiment)
+# plot_ece$experiment <- sub("e061.*", "e061", plot_ece$experiment)
+# plot_ece$experiment <- sub("e247.*", "e247", plot_ece$experiment)
+# plot_ece$experiment <- sub("e245.*", "e245", plot_ece$experiment)
+# plot_ece$experiment[plot_ece$experiment == "A"] <- "NGE"
+# plot_ece$experiment[plot_ece$experiment == "B"] <- "NGE"
+# plot_ece$experiment[plot_ece$experiment == "C"] <- "NGE"
+# plot_ece$experiment[plot_ece$experiment == "D"] <- "NGE"
+# plot_ece$experiment[plot_ece$experiment == "E"] <- "NGE"
+# plot_ece$experiment[plot_ece$experiment == "F"] <- "NGE"
 
 plot(plot_ece_9$prior_year_rich, plot_ece_9$richness)
 cor.test(plot_ece_9$prior_year_rich, plot_ece_9$richness)
@@ -171,10 +171,10 @@ plot_ece_9$experiment[plot_ece_9$experiment == "E"] <- "NGE"
 plot_ece_9$experiment[plot_ece_9$experiment == "F"] <- "NGE"
 
 # taake out 
-plot_ece_prior = plot_ece %>% select(-c(dominant_relative_abund_zero,richness,evar))
-plot_ece_prior = plot_ece_prior %>%  rename(dominant_relative_abund_zero = prior_year_dom)
-plot_ece_prior = plot_ece_prior %>%  rename(evar = prior_year_evar)
-plot_ece_prior = plot_ece_prior %>%  rename(richness =prior_year_rich)
+# plot_ece_prior = plot_ece %>% select(-c(dominant_relative_abund_zero,richness,evar))
+# plot_ece_prior = plot_ece_prior %>%  rename(dominant_relative_abund_zero = prior_year_dom)
+# plot_ece_prior = plot_ece_prior %>%  rename(evar = prior_year_evar)
+# plot_ece_prior = plot_ece_prior %>%  rename(richness =prior_year_rich)
 
 plot_ece_9_prior = plot_ece_9 %>% select(-c(dominant_relative_abund_zero,richness,evar))
 plot_ece_9_prior = plot_ece_9_prior %>%  rename(dominant_relative_abund_zero = prior_year_dom)
@@ -184,26 +184,26 @@ plot_ece_9_prior = plot_ece_9_prior %>%  rename(richness =prior_year_rich)
 
 # Merge with metadata
 
-plot_ece_meta <- left_join(plot_ece_prior, meta)
-unique(plot_ece_meta$experiment)
+# plot_ece_meta <- left_join(plot_ece_prior, meta)
+# unique(plot_ece_meta$experiment)
 plot_ece_9_meta <- left_join(plot_ece_9_prior, meta)
 unique(plot_ece_9_meta$experiment)
 
 
 # Remove NAs for non-extreme years
-plot_ece_rm_na <- plot_ece_meta %>%
-  drop_na(resistance)
+# plot_ece_rm_na <- plot_ece_meta %>%
+#   drop_na(resistance)
 plot_ece_9_rm_na <- plot_ece_9_meta %>%
   drop_na(resistance_n)
 #checking each experiment/study
-plot_filter<-plot_ece_rm_na%>%
-  filter(experiment=="004b_fl")
+# plot_filter<-plot_ece_rm_na%>%
+#   filter(experiment=="004b_fl")
 
 # Make year a factor
-str(plot_ece_rm_na)
+#str(plot_ece_rm_na)
 str(plot_ece_9_rm_na)
-plot_ece_rm_na$year <- as.factor(plot_ece_rm_na$year)
-plot_ece_rm_na$measurement_scale_cover <- as.factor(plot_ece_rm_na$measurement_scale_cover)
+# plot_ece_rm_na$year <- as.factor(plot_ece_rm_na$year)
+# plot_ece_rm_na$measurement_scale_cover <- as.factor(plot_ece_rm_na$measurement_scale_cover)
 plot_ece_9_rm_na$year <- as.factor(plot_ece_9_rm_na$year)
 plot_ece_9_rm_na$measurement_scale_cover <- as.factor(plot_ece_9_rm_na$measurement_scale_cover)
 

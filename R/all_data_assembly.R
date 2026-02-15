@@ -29,11 +29,11 @@ source("R/L1/KBS_initial_data_wrangling_L1.R")
 
 # combine data together and add SPEI ####
 #---------------------------------------#
-source("R/L1/all_sites_dataset.R")
-source("R/L1/all_sites_dataset_plus_spei.R")
+source("R/L1/all_sites_dataset_L1.R")
+source("R/L1/all_sites_dataset_plus_spei_L1.R")
 
 
 # calculate dominance, diversity (richness and evenness), resistance and resilience ####
 #-------------------------------------------------------------#
-source("R/L2/dominance_diversity_calculation.R")
-source("R/L2/resistance_resilience_calculation.R") # be patient. the loop to calculate resistance and resilience is not the fastest.
+source("R/L2/dominance_diversity_calculation_L2.R")
+source("R/L2/resistance_resilience_calculation_L2.R") # be patient. the loop to calculate resistance and resilience is not the fastest.

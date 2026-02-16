@@ -18,7 +18,7 @@ Each LTER site has its own R script for initial merging and cleaning of datasets
 
 There is a script to calculate dominance and diversity (richness and evenness) and another to calculate resistance and resilience. For each analysis we carried out, there is a separate script (e.g. analyses_LMM_L2.R, analyses_sem_L2.R).
 
-![LTER Grassland Rock Data Processing Diagram](data_processing_workflow.png)
+[![LTER Grassland Rock Data Processing Diagram](data_processing_workflow.png)](LTER Grassland Rock Data Processing Diagram)
 
 # Location of data
 

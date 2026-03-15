@@ -16,13 +16,17 @@ Each LTER site has its own R script for initial merging and cleaning of datasets
 
 ## L2 Folder
 
-There is a script to calculate dominance and diversity (richness and evenness) and another to calculate resistance and resilience. For each analysis we carried out, there is a separate script (e.g. analyses_LMM_L2.R, analyses_sem_L2.R).
+There is a script to calculate dominance and diversity (richness and evenness) and another to calculate resistance and resilience. For each analysis we carried out, there is a separate script (e.g. analyses_LMM_L2.R, analyses_sem_L2.R). R scripts in the archive subfolder are not needed for this project. There were exploratory scripts at best.
 
 [![LTER Grassland Rock Data Processing Diagram](data_processing_workflow.png)](https://github.com/darstash/lter-grassland-rocks/blob/main/data_processing_workflow.png)LTER Grassland Rock Data Processing Diagram
 
+### L2 R version and packages
+
+For our L2 analyses We used R version 4.5.1 (2025-06-13 ucrt). Here are a list of the major packages used for our main analyses in our manuscript: car 3.1.3, DHARMa 0.4.7, emmeans 2.0.0, ggeffects 2.3.1, ggsignif 0.6.4, kableExtra 1.4.0, lavaan 0.6.21, lme4 1.1.37, lmerTest 3.1.3, patchwork 1.3.2, performance 0.15.1, piecewiseSEM 2.3.0.2, purrr 1.1.0, tidyverse 2.0.0
+
 # Location of data
 
-Some L1 data and all L2 data that are processed in the scripts in this repository are published as an EDI package (<https://doi.org/10.6073/pasta/330082c127413fadc278a7657abad27f>). In some scripts, the header may state that the data was input from Google Drive, which is an artifact of our data processing steps.
+Some L1 data and all L2 data that are processed in the scripts in this repository are published as an EDI package (<https://doi.org/10.6073/pasta/330082c127413fadc278a7657abad27f>). In some scripts, the header may state that the data was input from Google Drive, which is an artifact of our data processing steps. The data from the EDI package should be saved in the same folder as the analyses_LMM_L2, SPEI_table_L2 and analyses_SEM_L2 R scripts.
 
 # Spatiotemporal extent and resolution
 
@@ -53,6 +57,13 @@ All analyses were conducted using R (R Core Team 2021).
 • L1 files are cleaned, site-level, and combined datasets, named for their contents (e.g., species_abundance_L1.csv, plot_metrics_SPEI_L1.csv). If a file does not specify a specific site, then that means all sites are included in that file.
 
 • L2 files are analysis outputs, named after the metric or model (e.g., plot_metrics_SPEI_diversity_L2.csv, ece_resist_resil_spei9_norm_L2.csv).
+
+## Additional data information
+
+-   All data set had at least 5 consecutive years of plant biomass and plant community data.
+-   We excluded actively managed biodiversity and agricultural plots.
+-   We excluded plots that were continually disturbed (e.g, tilled, irrigated, pesticides, grazed).
+-   Nutrient addition plots were grouped together in our analyses based on the presence of nitrogen (N, NP, NPK+(contained NPK with micronutrients), NPK)
 
 # Contributers
 

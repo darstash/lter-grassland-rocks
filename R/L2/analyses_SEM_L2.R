@@ -6,9 +6,6 @@
 # PROJECT:      LTER Grassland Rock
 # DATE:         October 2024 , last updated: April 2025
 
-# Clear all existing data
-rm(list=ls())
-
 # Load packages
 library(tidyverse)
 library(lme4)

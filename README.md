@@ -20,10 +20,6 @@ There is a script to calculate dominance and diversity (richness and evenness) a
 
 [![LTER Grassland Rock Data Processing Diagram](data_processing_workflow.png)](https://github.com/darstash/lter-grassland-rocks/blob/main/data_processing_workflow.png)LTER Grassland Rock Data Processing Diagram
 
-### L2 R version and packages
-
-For our L2 analyses We used R version 4.5.1 (2025-06-13 ucrt). Here are a list of the major packages used for our main analyses in our manuscript: car 3.1.3, DHARMa 0.4.7, emmeans 2.0.0, ggeffects 2.3.1, ggsignif 0.6.4, kableExtra 1.4.0, lavaan 0.6.21, lme4 1.1.37, lmerTest 3.1.3, patchwork 1.3.2, performance 0.15.1, piecewiseSEM 2.3.0.2, purrr 1.1.0, tidyverse 2.0.0
-
 # Location of data
 
 Some L1 data and all L2 data that are processed in the scripts in this repository are published as an EDI package (<https://doi.org/10.6073/pasta/330082c127413fadc278a7657abad27f>). In some scripts, the header may state that the data was input from Google Drive, which is an artifact of our data processing steps. The data from the EDI package should be saved in the same folder as the analyses_LMM_L2, SPEI_table_L2 and analyses_SEM_L2 R scripts.
@@ -42,7 +38,11 @@ Some L1 data and all L2 data that are processed in the scripts in this repositor
 
 # Usage
 
-All analyses were conducted using R (R Core Team 2021).
+Main analyses were conducted using R version 4.4.1 (2024-06-14) (R Core Team 2021).
+
+Attached package versions: ggsignif 0.6.4, emmeans 2.0.1, ggforce 0.5.0, lavaan 0.6-21, piecewiseSEM 2.3.0.1, kableExtra 1.4.0, cowplot 1.2.0, patchwork 1.3.2, sjPlot 2.9.0, performance 0.15.3, GGally 2.4.0, car 3.1-3, carData 3.0-5, MuMIn 1.48.11, ggeffects 2.3.2, bbmle 1.0.25.1, DHARMa 0.4.7, lmerTest 3.2-0, lme4 1.1-38, Matrix 1.7-4, codyn 2.0.5, pacman 0.5.1, janitor 2.2.1, TNRS 0.3.6, gtools 3.9.5. lubridate 1.9.4, forcats 1.0.1, stringr 1.6.0, dplyr 1.1.4, purrr 1.2.1, readr 2.1.6, tidyr 1.3.2, tibble 3.3.1, ggplot2 4.0.1, tidyverse 2.0.0
+
+Full session information (including dependency versions) is provided in `sessionInfo.txt`.
 
 # File naming conventions
 
@@ -75,7 +75,7 @@ Joshua Ajowele, Rachael Brenneman, Caitlin Broderick, Seraina Cappelli, Ashley D
 
 # Contact Information
 
-For inquiries related to the data and scripts, please contact Ashley Darst \@ @darstash\@msu.edu or Joshua Ajowele @jaajowele\@uncg.edu
+For inquiries related to the data and scripts, please contact Ashley Darst @darstash\@msu.edu or Joshua Ajowele @jaajowele\@uncg.edu
 
 # Funding
 

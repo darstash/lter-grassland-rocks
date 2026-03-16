@@ -8,9 +8,6 @@
 
 # this code is to harmonize plant biomass and plant composition datasets from CDR, KBS, and KNZ
 
-# Clear all existing data
-rm(list=ls())
-
 # Load packages
 library(tidyverse)
 library(gtools)
@@ -91,19 +88,6 @@ species_abundance <- full_join(species_abundance, KNZ_species_abundance)
 
 species_abundance <- species_abundance %>%
   select(-X)
-
-######### UNFINISHED SPECIES NAMES FIXING #####################
-# make species information dataset
-# idea: at this stage, don't touch names in the dataset anymore, but have a 
-# dataframe that assigns each weirdo and non-weirdo entry in the species column
-# a cleaned up version of names 
-
-## Try TNRS
-
-# TO DO HERE: loop TNRS confirmed species names (in results) back into the 
-# species_abundance data set. Create lists of things that are non-plants and
-# different identification levels. Filter out unwanted things from dataset 
-# (probably non-plant things and spp things)
 
 species_abundance2 <- species_abundance %>%
   mutate(

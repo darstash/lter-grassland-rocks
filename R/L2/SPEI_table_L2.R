@@ -1147,6 +1147,8 @@ fig_sens_anpp_site + fig_sens_rich_site + fig_sens_dom_site + fig_sens_ev_site &
 fig_sens_anpp_year + fig_sens_rich_year + fig_sens_dom_year + fig_sens_ev_year & plot_annotation(tag_levels = 'A')
 
 # ARCHIVED CODE ----
+# This code is unneeded for analyses but may be useful
+
 # # Calculate the number of extreme wet years
 # CDR_ew <- length(which(spei_summary$site == "CDR" & spei_summary$spei12_category == "Extreme wet"))
 # KBS_ew <- length(which(spei_summary$site == "KBS" & spei_summary$spei12_category == "Extreme wet"))

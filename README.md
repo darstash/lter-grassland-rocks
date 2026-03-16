@@ -67,13 +67,29 @@ Full session information (including dependency versions) is provided in `session
 -   We excluded plots that were continually disturbed (e.g, tilled, irrigated, pesticides, grazed).
 -   Nutrient addition plots were grouped together in our analyses based on the presence of nitrogen (N, NP, NPK+(contained NPK with micronutrients), NPK)
 
-Below are links to some source data that contributed to our Environmental Data Initiative (EDI) package . [*https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-cdr&identifier=571&revision=9*](https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-cdr&identifier=571&revision=9){.uri}<https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-kbs&identifier=19&revision=85> [*https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-knz&identifier=100&revision=7*](https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-knz&identifier=100&revision=7){.uri}<https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-knz&identifier=55&revision=17> [*https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-knz&identifier=127&revision=5*](https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-knz&identifier=127&revision=5){.uri}<https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-knz&identifier=69&revision=22> [*https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-kbs&identifier=55&revision=49*](https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-kbs&identifier=55&revision=49){.uri}<https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-cdr&identifier=567&revision=9> [*https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-cdr&identifier=18&revision=12*](https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-cdr&identifier=18&revision=12){.uri}<https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-cdr&identifier=14&revision=11> [*https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-cdr&identifier=175&revision=10*](https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-cdr&identifier=175&revision=10){.uri}<https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-cdr&identifier=384&revision=11> [*https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-knz&identifier=106&revision=3*](https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-knz&identifier=106&revision=3){.uri}<https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-knz&identifier=91&revision=7> [*https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-knz&identifier=72&revision=22*](https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-knz&identifier=72&revision=22){.uri}<https://spei.csic.es/spei_database_2_10>
+Below are links to publicly available source data that contributed to our Environmental Data Initiative (EDI) package:
+<https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-cdr&identifier=571&revision=9>
+<https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-kbs&identifier=19&revision=85>
+<https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-knz&identifier=100&revision=7>
+<https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-knz&identifier=55&revision=17>
+<https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-knz&identifier=127&revision=5>
+<https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-knz&identifier=69&revision=22>
+<https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-kbs&identifier=55&revision=49>
+<https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-cdr&identifier=567&revision=9>
+<https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-cdr&identifier=18&revision=12>
+<https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-cdr&identifier=14&revision=11>
+<https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-cdr&identifier=175&revision=10>
+<https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-cdr&identifier=384&revision=11>
+<https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-knz&identifier=106&revision=3>
+<https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-knz&identifier=91&revision=7>
+<https://portal.edirepository.org/nis/mapbrowse?scope=knb-lter-knz&identifier=72&revision=22>
+<https://spei.csic.es/spei_database_2_10>
 
-Some other source data we used were not publicly available, but we had permission to publish them as part of our harmonized data set published as an EDI package. See the Table S2 in our manuscript.
+Some other source data we used were not publicly available, but we had permission to publish them as part of our harmonized data set published as an EDI package. See Table S2 in our manuscript.
 
 # Contributers
 
-Joshua Ajowele, Rachael Brenneman, Caitlin Broderick, Seraina Cappelli, Ashley Darst, Maowei Liang, Mary Linabury, Matthew Nieland, Maya Parker-Smith, Smriti Pehim Limbu, Rose Terry, Moriah Young, Max Zaret, Marissa Zaricor
+Joshua Ajowele,  Ashley Darst, Nameer Baker, Rachael Brenneman, Caitlin Broderick, Seraina Cappelli, Maowei Liang, Mary Linabury, Matthew Nieland, Maya Parker-Smith, Smriti Pehim Limbu, Rose Terry, Moriah Young, Max Zaret, Marissa Zaricor
 
 # Contact Information
 

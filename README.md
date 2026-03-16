@@ -22,7 +22,9 @@ There is a script to calculate dominance and diversity (richness and evenness) a
 
 # Location of data
 
-Some L1 data and all L2 data that are processed in the scripts in this repository are published as an EDI package (<https://doi.org/10.6073/pasta/330082c127413fadc278a7657abad27f>). In some scripts, the header may state that the data was input from Google Drive, which is an artifact of our data processing steps. The data from the EDI package should be saved in the same folder as the analyses_LMM_L2, SPEI_table_L2 and analyses_SEM_L2 R scripts.
+Data were saved to Google Drive in the folders L0, L1, and L2. L0 contained raw data uploaded from both publicly and not publicly available data obtained with permission from our three sites (see data provenance in EDI for the publicly available L0 data). L1 contained processed, harmonized data products. L2 contained data products resulting from calculations necessary for analyses (e.g., diversity and stability metrics).
+
+All L1 and L2 data necessary for analyses are published as an EDI package (<https://doi.org/10.6073/pasta/330082c127413fadc278a7657abad27f>). In some scripts, the header may state that the data was input from Google Drive, which is an artifact of our data processing steps. The data from the EDI package should be saved in the same folder as the analyses_LMM_L2, SPEI_table_L2 and analyses_SEM_L2 R scripts.
 
 # Spatiotemporal extent and resolution
 

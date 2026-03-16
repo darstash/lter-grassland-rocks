@@ -107,4 +107,4 @@ species_na<-species_abundance_SPEI_evar%>%
   filter(uniqueid=="004b_D_tu_1")%>%
   filter(species=="Cornus drummondii")
 #NA occurred primarily due to the absence of the dominant species; about 1200 out of 21648 observations affected
-#potential solutions: leave as NAs or convert NAs to zero
+#potential solutions: leave as NAs or convert NAs to zero -> explore more in analysis section

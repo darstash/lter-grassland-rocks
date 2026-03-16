@@ -8,6 +8,8 @@
 
 # this code is to harmonize plant biomass and plant composition datasets from CDR, KBS, and KNZ
 
+rm(list=ls())
+
 # Load packages
 library(tidyverse)
 library(gtools)

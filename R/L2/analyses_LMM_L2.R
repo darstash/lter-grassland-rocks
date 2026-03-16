@@ -6,6 +6,7 @@
 # PROJECT:      LTER Grassland Rock
 # DATE:         October 2024 , last updated: December 2025
 
+rm(list=ls())
 
 # Load packages
 library(tidyverse)

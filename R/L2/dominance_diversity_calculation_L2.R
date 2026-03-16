@@ -6,6 +6,8 @@
 # PROJECT: LTER Grassland Rock
 # DATE: October 2024: Last updated: May, 2025
 
+rm(list=ls())
+
 #a community metric package that provides options for various evenness metrics.
 #install.packages("codyn")
 library(codyn)

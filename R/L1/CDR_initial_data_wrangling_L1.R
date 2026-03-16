@@ -119,6 +119,7 @@
 #        N_fixer               nitrogen fixin yes or no (0/1)     
 #        max_cover             maximum observed percent cover of taxon in plot for year indicated
 
+rm(list=ls())
 
 #Load packages
 library(tidyverse) # tidyverse 2.0.0

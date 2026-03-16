@@ -29,10 +29,9 @@ plot <- read.csv(file.path(L1_dir, "plot_metrics_L1.csv"), stringsAsFactors = FA
 sp <- read.csv(file.path(L1_dir, "species_abundance_L1.csv"), stringsAsFactors = FALSE)
 
 range(spei$year)
-range(plot$year) # something wrong with KNZ years
-plot_spei <- merge(plot, spei, by = c("year", "site")) # # hmm why losing observations....
-  # losing observations from 2023 and some KNZ rows with bad years
-sp_spei <- merge(sp, spei, by = c("year", "site")) # # hmm why losing observations....
+range(plot$year) 
+plot_spei <- merge(plot, spei, by = c("year", "site")) 
+sp_spei <- merge(sp, spei, by = c("year", "site")) 
 
 write.csv(plot_spei, file.path(L1_dir, "./plot_metrics_SPEI_L1.csv"), row.names=F)
 write.csv(sp_spei, file.path(L1_dir, "./species_abundance_SPEI_L1.csv"), row.names=F)

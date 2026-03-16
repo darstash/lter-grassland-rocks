@@ -119,8 +119,6 @@
 #        N_fixer               nitrogen fixin yes or no (0/1)     
 #        max_cover             maximum observed percent cover of taxon in plot for year indicated
 
-# Clear all existing data
-rm(list=ls())
 
 #Load packages
 library(tidyverse) # tidyverse 2.0.0
@@ -219,7 +217,8 @@ e247_cover <- read.delim(paste(L0_dir, "CDR/e247_Plant_Species_Composition_perce
 
 
 # Clean data ####
-#climate data to be included in metadata for all datasets
+#climate data to be included in metadata for all datasets 
+
 climate_growingseason <- climate %>%
   separate(Date, into=c("Month", "Day", "Year"), remove = F) %>%
   mutate(Date = as.POSIXct(Date, format = "%m/%d/%Y"),
@@ -262,7 +261,7 @@ e001e002_anpp <- e001e002_anpp %>%
          uniqueid = paste(higher_order_organization, " plot", Plot)) 
 
 #adding climate information
-e001e002_anpp <- inner_join(e001e002_anpp, climate, by="Year", multiple="all")
+e001e002_anpp <- inner_join(e001e002_anpp, climate, by="Year", multiple="all") 
 
 #make new column that designates if fertilized or not
 e001e002_anpp <- e001e002_anpp %>%
@@ -521,7 +520,8 @@ e001e002_metadata <- e001e002_anpp %>%
          treatment = ifelse(n_trt %in% 9, "control", paste("nitrogen", nitr_add+n_atm_n_add, sep = "_")),
          source = "https://doi.org/10.6073/pasta/2eba7aac6b347d27a92208e03fd3f8ea; https://doi.org/10.6073/pasta/66724d71711b80d520fa33a690f962b2",
          treatment_comment = "") %>%
-  select(site, year, plot, uniqueid, higher_order_organization, temperature, precipitation, treatment, growtemp, growprecip,
+  select(site, year, plot, uniqueid, higher_order_organization, treatment,
+         temperature, precipitation,  growtemp, growprecip,
          nutrients_added, nitrogen_amount, grazing, fire_frequency, time_since_fire,
          disturbance, source, treatment_comment, diversity_manipulated) %>%
   # remove duplicates that are there because of multiple species measured in each plot
@@ -564,7 +564,7 @@ e054_anpp <- e054_anpp %>%
          uniqueid = paste(higher_order_organization," plot", Plot)) 
 
 #adding climate information
-e054_anpp <- inner_join(e054_anpp, climate, by="Year", multiple="all")
+e054_anpp <- inner_join(e054_anpp, climate, by="Year", multiple="all") 
 
 #make new column that designates if fertilized or not
 e054_anpp <- e054_anpp %>%
@@ -630,8 +630,9 @@ e054_metadata <- e054_anpp %>%
          treatment_comment = "fields differ in time since abandonment and after 2007 in burn/no burn treatment, but we entered all plots as control, since there is no real control vs. treatment contrast.",
          source = "https://doi.org/10.6073/pasta/02d38edbe0860ef0a0555ff3e495ca1a"
          ) %>%
-  select(site, year, plot, higher_order_organization, uniqueid, 
-         temperature, precipitation, growtemp, growprecip, treatment, disturbance,
+  select(site, year, plot, higher_order_organization, uniqueid,  treatment,
+         growtemp, growprecip, temperature, precipitation,
+         disturbance,
          nutrients_added, nitrogen_amount, grazing, fire_frequency, time_since_fire,
          source, treatment_comment, diversity_manipulated) %>%
   unique()
@@ -732,7 +733,9 @@ for (i in 2:nrow(df)) {
 
 
 e245_metadata <- e245_anpp %>%
-  select(year, site, plot, higher_order_organization, uniqueid, temperature, precipitation, growtemp, growprecip, treatment) %>%
+  select(year, site, plot, higher_order_organization, uniqueid, 
+         temperature, precipitation, growtemp, growprecip, 
+         treatment) %>%
   rename(treatment_comment = treatment) %>%
   unique() %>%
   mutate(
@@ -1011,31 +1014,36 @@ cdr_sp_data <- cdr_sp_data %>%
 #Combine CDR metadata #####
 cdr_metadata <- e001e002_metadata %>% mutate(dataset = "e001_e002") %>%
   select(year,            site,            dataset,       plot,          higher_order_organization,
-         uniqueid,        temperature,     precipitation, growtemp, growprecip, treatment,
+         uniqueid,    treatment,    
+         temperature,     precipitation, growtemp, growprecip,
          nutrients_added, nitrogen_amount, disturbance,   grazing,
          fire_frequency,  time_since_fire, source,        treatment_comment,
          diversity_manipulated) %>%
   rbind(e054_metadata %>% mutate(dataset = "e054") %>%
           select(year,            site,            dataset,       plot,          higher_order_organization,
-                 uniqueid,        temperature,     precipitation, growtemp, growprecip, treatment,
+                 uniqueid,        treatment,
+                 temperature,     precipitation, growtemp, growprecip, 
                  nutrients_added, nitrogen_amount, disturbance,   grazing,
                  fire_frequency,  time_since_fire, source,        treatment_comment,
                  diversity_manipulated)) %>%
   rbind(e061_metadata %>% mutate(dataset = "e061") %>%
           select(year,            site,            dataset,       plot,          higher_order_organization,
-                 uniqueid,        temperature,     precipitation, growtemp, growprecip, treatment,
+                 uniqueid,         treatment,
+                 temperature,     precipitation, growtemp, growprecip,
                  nutrients_added, nitrogen_amount, disturbance,   grazing,
                  fire_frequency,  time_since_fire, source,        treatment_comment,
                  diversity_manipulated))%>%
   rbind(e245_metadata %>% mutate(dataset = "e245") %>%
           select(year,            site,            dataset,       plot,          higher_order_organization,
-                 uniqueid,        temperature,     precipitation, growtemp, growprecip, treatment,
+                 uniqueid,        treatment,
+                 temperature,     precipitation, growtemp, growprecip, 
                  nutrients_added, nitrogen_amount, disturbance,   grazing,
                  fire_frequency,  time_since_fire, source,        treatment_comment,
                  diversity_manipulated))%>%
   rbind(e247_metadata %>% mutate(dataset = "e247") %>%
           select(year,            site,            dataset,       plot,          higher_order_organization,
-                 uniqueid,        temperature,     precipitation, treatment, growtemp, growprecip,
+                 uniqueid,        treatment,
+                 temperature,     precipitation, growtemp, growprecip,
                  nutrients_added, nitrogen_amount, disturbance,   grazing,
                  fire_frequency,  time_since_fire, source,        treatment_comment,
                  diversity_manipulated))

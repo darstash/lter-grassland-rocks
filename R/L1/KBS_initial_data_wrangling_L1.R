@@ -118,7 +118,6 @@ t7$cover_method <- "pseudo percent cover from mass"
 
 
 # We'll need to go through this more and see if we need to change or delete anything (like none plant stuff). 
-# I wonder if we should make a master list of species between our 3 sites?
 unique(t7$species)
 # REMOVE: "UnSorted" COULD BE MANY SP, "Standing Dead" and "Surface Litter" FROM LAST YEAR
 # OK for sp richness and ANPP calcs:
@@ -324,7 +323,7 @@ micro$nitrogen_amount <- with(micro, ifelse(fertilized_microplot == "fertilized"
 micro$disturbance <- with(micro, ifelse(disturbed_microplot == "disturbed", "disturbed", "undisturbed"))
 micro$grazing <- "ungrazed"
 micro$fire_frequency <- 1
-micro$time_since_fire <- with(micro, ifelse(year == 2007, 2, 1)) # not really true, only a few months since fire # not burned in 2007
+micro$time_since_fire <- with(micro, ifelse(year == 2007, 2, 1)) # not burned in 2007
 micro$experiment <- "microplots"
 micro$cover_method <- "pseudo percent cover from mass"
 
@@ -356,8 +355,7 @@ micro_clean %>%
   group_by(year, treatment, replicate,  nutrients_added, nitrogen_amount,
            disturbance, grazing, fire_frequency, time_since_fire, species) %>% 
   count() # just down to the unknowns now. 
-  # not sure where to go from here. maybe just leave it?
-  # make decisions later?
+
 
 
 table( micro$year, micro$month)
@@ -660,12 +658,12 @@ nutnet_bio$nutrients_added <-  dplyr::case_match(nutnet_bio$treatment, "Fence" ~
   unique(nutnet_bio$nutrients_added)
 nutnet_bio$nitrogen_amount <- with(nutnet_bio, 
                                    ifelse(nutrients_added == "NK" | nutrients_added == "N" | nutrients_added == "NP" | nutrients_added == "NPK" | nutrients_added == "NPK+Fence", 10, NA)) # g N m^-2 as granular ammonium nitrate 
-  unique(nutnet_bio$nitrogen_amount) # only amount nitrogen # should we add columns for other elements? (each is 10)
+  unique(nutnet_bio$nitrogen_amount) # only amount nitrogen 
 nutnet_bio$area_sampled_bio
   
 #micro$disturbance <- with(micro, ifelse(disturbed_microplot == "disturbed", "disturbed", "undisturbed"))
 nutnet_bio$grazing <- "ungrazed"
-nutnet_bio$disturbance <- "NA" # CHECK THIS!!!! what to do with fence !!!!!
+nutnet_bio$disturbance <- "NA" 
 nutnet_bio$fire_frequency <- 0
 nutnet_bio$time_since_fire <- NA
 nutnet_bio$experiment <- "nutnet"
@@ -703,10 +701,10 @@ nutnet_cover$nutrients_added <-  dplyr::case_match(nutnet_cover$treatment, "Fenc
 unique(nutnet_cover$nutrients_added)
 nutnet_cover$nitrogen_amount <- with(nutnet_cover, 
                                      ifelse(nutrients_added == "NK" | nutrients_added == "N" | nutrients_added == "NP" | nutrients_added == "NPK" | nutrients_added == "NPK+Fence", 10, NA)) # g N m^-2 as granular ammonium nitrate 
-unique(nutnet_cover$nitrogen_amount) # only amount nitrogen # should we add columns for other elements? (each is 10)
+unique(nutnet_cover$nitrogen_amount) # only amount nitrogen 
 #micro$disturbance <- with(micro, ifelse(disturbed_microplot == "disturbed", "disturbed", "undisturbed"))
 nutnet_cover$grazing <- "ungrazed"
-nutnet_cover$disturbance <- "NA" # CHECK THIS!!!! what to do with fence !!!!!
+nutnet_cover$disturbance <- "NA" 
 nutnet_cover$fire_frequency <- 0
 nutnet_cover$time_since_fire <- NA
 nutnet_cover$experiment <- "nutnet"
@@ -752,7 +750,7 @@ nutnet_cover_with_ANPP <- merge(nutnet_cover_nounknown, anpp_rich_nutnet,
 
 
 ########################################
-# bind all KBS dataset together???
+# bind all KBS dataset together
 ########################################
 
 # species comp
@@ -791,7 +789,6 @@ weatheryear <- weatherdaily %>%
 weatheryear
 
 # calculate growing season precip (85-248)
-# need to add this in
 
 weathergrow <- weatherdaily
 weathergrow$yday <- yday(weathergrow$date)
@@ -916,9 +913,8 @@ kbs_plot_level_metrics$plot_evenness <- kbs_plot_level_metrics$shannon / log (kb
 names(kbs_plot_level_metrics)
 
 
-# here, we are doing two things:
-  # (1) remove microplots - inconsistent sampling
-  # (2) breaking up into main data and metadata
+# here, we are:
+  # breaking up into main data and metadata
 # for each of two datasets:
   # allkbsdata_spcomp_tp
   # allkbsdata_anpp_tp

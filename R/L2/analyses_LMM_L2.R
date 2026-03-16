@@ -897,18 +897,20 @@ resis_norm_estim_dry + resis_norm_estim_wet+ plot_layout(guides = "collect")+res
 #&scale_fill_discrete(limits =c(resis_norm_estim_dry$event_type, resis_norm_estim_wet$event_type))
 
 ####Interaction figures####
-ggpredict(model = resil_norm_dry_std, terms = c("evar", "nitrogen"), back_transform = F) %>%
+inter_evenn<-ggpredict(model = resil_norm_dry_std, terms = c("evar", "nitrogen"), back_transform = F) %>%
   plot(show_data = F)+
-  labs(title=NULL, x="Evenness", y="ln(Resilience)")+
+  labs(title="Dry extreme events", x="Evenness", y="ln(Resilience)")+
   scale_fill_manual(values=c("#377EB8","#E41A1C"))+
   scale_color_manual(values=c("#377EB8","#E41A1C"),labels = c("control", "nutrients"))+
-  
-  theme(legend.title=element_blank())#+
-  theme_classic()
-ggpredict(model = resil_norm_wet_std, terms =  c("dominant_relative_abund_zero", "nitrogen"), back_transform = F) %>%
-  plot(show_data = F,colors= c("#377EB8","#E41A1C"))
-ggpredic
-?labs()
+  theme(legend.title=element_blank())
+inter_domina<-ggpredict(model = resil_norm_wet_std, terms =  c("dominant_relative_abund_zero", "nitrogen"), back_transform = F) %>%
+  plot(show_data = F)+
+  labs(title="Wet extreme events", x="dominant species", y="ln(Resilience)")+
+  scale_fill_manual(values=c("#377EB8","#E41A1C"))+
+  scale_color_manual(values=c("#377EB8","#E41A1C"),labels = c("control", "nutrients"))+
+  theme(legend.title=element_blank())
+#combine both figures
+inter_evenn+inter_domina+ plot_layout(guides = "collect")& plot_annotation(tag_levels = 'A')
 ####sensitivity analyses#####
 # Sensitivity analysis resilience wet (leave-one-site out) 
 sites <- unique(plot_ece_9_cn_prior_rm_wet$site)

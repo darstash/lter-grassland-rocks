@@ -6,7 +6,6 @@
 # PROJECT:      LTER Grassland Rock
 # DATE:         October 2024 , last updated: April 2025
 
-# Clear all existing data
 rm(list=ls())
 
 # Load packages
@@ -763,6 +762,7 @@ parameterEstimates(fit.survey) %>%
       col.names = c("Response", "Predictor", "", rep(c("Est.", "Std. Err.", "z-value", "P-value", " "), 2))) %>%
   add_header_above(c(" " = 3, "Extreme dry" = 5, "Extreme wet" = 5)) %>%
   kable_paper()
+
 
 
 ################################## #

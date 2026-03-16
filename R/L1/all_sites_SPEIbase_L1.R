@@ -18,8 +18,6 @@
 #note i left the lat long in the file names for easy retrievel of different SPEI metric
 
 
-# Clear all existing data
-rm(list=ls())
 
 # Load packaages
 library(tidyverse)

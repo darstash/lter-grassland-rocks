@@ -6,7 +6,6 @@
 # PROJECT: LTER Grassland Rock
 # DATE: October 2024
 
-# Clear all existing data
 rm(list=ls())
 
 # Load packages

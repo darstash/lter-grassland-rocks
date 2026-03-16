@@ -9,7 +9,6 @@
 # this code is to clean MCSE (and microplot treatment) data, merge them, and link with temp/precip
 # 1-17-24 - added GLBRC BCSE and scale-up code. 
 
-# Clear all existing data
 rm(list=ls())
 
 # Load packages

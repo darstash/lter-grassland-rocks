@@ -60,7 +60,7 @@ Full session information (including dependency versions) is provided in `session
 
 • L2 files are analysis outputs, named after the metric or model (e.g., plot_metrics_SPEI_diversity_L2.csv, ece_resist_resil_spei9_norm_L2.csv).
 
-## Additional data information
+# Additional data information
 
 -   All data set had at least 5 consecutive years of plant biomass and plant community data.
 -   We excluded actively managed biodiversity and agricultural plots.
@@ -86,6 +86,9 @@ Below are links to publicly available source data that contributed to our Enviro
 <https://spei.csic.es/spei_database_2_10>
 
 Some other source data we used were not publicly available, but we had permission to publish them as part of our harmonized data set published as an EDI package. See Table S2 in our manuscript.
+
+## Metadata
+The metadeta for each publicly available dataset is in the file metadata.txt. See also the EDI data package for more metadata information (<https://doi.org/10.6073/pasta/330082c127413fadc278a7657abad27f>).
 
 # Contributers
 

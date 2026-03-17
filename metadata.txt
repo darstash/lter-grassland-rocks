@@ -1,0 +1,110 @@
+species_abundance_SPEI_L1
+name	definition
+year	Year in which data was collected
+site	The site from which the data originates.
+species	Taxon name as it occurs in the original data. Harmonized species names accross datasets are in the column species harmonized
+dataset	The dataset from which the data originates and usually corresponds with the experiment from which the data was collected. This was only entered for Cedar Creek data.
+plot	plot number/id within experiment/site
+higher_order_organization	Grouping variable for the next higher organization level than plot. For example Site_Experiment_Block, if the data orginiates from an experiment at a site that is organized in blocks. The variable structure depends on the experimental design from which the data point originates.
+uniqueid	Unique plot id accross experiments and sites.
+abundance	Species abundance as measured in its original unit (biomass, %cover at various spatial scales)
+relative_abundance	the relative abundance of the species in any year and plot calculated based on the measured abundance
+original_measurement_unit	Indicates at which unit the value in the abundance column was estimated
+cover_method	additional method how relative abundance was estimated
+species_harmonized	The binomial species name or Genus sp., harmonized accross datasets.
+identification_level	The taxonomic detail to which a species was identified.
+broad_category	information on whether the value is at the species level or higher, or if it is unidentified or abiotic
+spei12	annual Standardized Precipitation Evapotranspiration Index for August from SPEIbase
+spei3	3-month Standardized Precipitation Evapotranspiration Index for August from SPEIbase
+spei6	6-month Standardized Precipitation Evapotranspiration Index for August from SPEIbase
+spei9	9-month Standardized Precipitation Evapotranspiration Index for August from SPEIbase
+spei3_category	Categorical values representing climatic conditions based on SPEI-3: extreme drought, extreme wetness, moderate drought, moderate wetness, and normal.
+spei6_category	Categorical values representing climatic conditions based on SPEI-6: extreme drought, extreme wetness, moderate drought, moderate wetness, and normal.
+spei9_category	Categorical values representing climatic conditions based on SPEI-9: extreme drought, extreme wetness, moderate drought, moderate wetness, and normal.
+spei12_category	Categorical values representing climatic conditions based on SPEI-12: extreme drought, extreme wetness, moderate drought, moderate wetness, and normal.
+
+plot_metrics_SPEI_L1
+name	definition
+year	year surveyed
+site	Long-Term Ecological research site
+higher_order_organization	the experiment, field, or watershed in which multiple plots are located
+plot	experiment specific plot ID
+uniqueid	unique identifier for a plot
+original_measurement_unit	the original measurement unit used to measure plot biomass
+plot_biomass	plant biomass in a plot
+measurement_scale_biomass	plot scale at which the biomass was collected in the field
+measurement_scale_cover	plot scale at which the cover was taken in the field
+spei12	annual Standardized Precipitation Evapotranspiration Index for August from SPEIbase
+spei3	3-month Standardized Precipitation Evapotranspiration Index for August from SPEIbase
+spei6	6-month Standardized Precipitation Evapotranspiration Index for August from SPEIbase
+spei9	9-month Standardized Precipitation Evapotranspiration Index for August from SPEIbase
+spei3_category	Categorical values representing climatic conditions based on SPEI-3: extreme drought, extreme wetness, moderate drought, moderate wetness, and normal.
+spei6_category	Categorical values representing climatic conditions based on SPEI-6: extreme drought, extreme wetness, moderate drought, moderate wetness, and normal.
+spei9_category	Categorical values representing climatic conditions based on SPEI-9: extreme drought, extreme wetness, moderate drought, moderate wetness, and normal.
+spei12_category	Categorical values representing climatic conditions based on SPEI-12: extreme drought, extreme wetness, moderate drought, moderate wetness, and normal.
+
+plot_metrics_SPEI_diversity_L2
+name	definition
+year	year surveyed
+site	Long-Term Ecological research site
+higher_order_organization	the experiment, field, or watershed in which multiple plots are located
+plot	experiment specific plot ID
+uniqueid	unique identifier for a plot
+original_measurement_unit	the original measurement unit used to measure plot biomass
+plot_biomass	plant biomass in a plot
+measurement_scale_biomass	plot scale at which the biomass was collected in the field
+measurement_scale_cover	plot scale at which the cover was taken in the field
+spei12	annual Standardized Precipitation Evapotranspiration Index for August from SPEIbase
+spei3	3-month Standardized Precipitation Evapotranspiration Index for August from SPEIbase
+spei6	6-month Standardized Precipitation Evapotranspiration Index for August from SPEIbase
+spei9	9-month Standardized Precipitation Evapotranspiration Index for August from SPEIbase
+spei3_category	Categorical values representing climatic conditions based on SPEI-3: extreme drought, extreme wetness, moderate drought, moderate wetness, and normal.
+spei6_category	Categorical values representing climatic conditions based on SPEI-6: extreme drought, extreme wetness, moderate drought, moderate wetness, and normal.
+spei9_category	Categorical values representing climatic conditions based on SPEI-9: extreme drought, extreme wetness, moderate drought, moderate wetness, and normal.
+spei12_category	Categorical values representing climatic conditions based on SPEI-12: extreme drought, extreme wetness, moderate drought, moderate wetness, and normal.
+dataset	the LTER specific dataset
+cover_method	additional method how relative abundance was estimated
+Berger_Parker	Berger-Parker dominance index
+Richness	species richness
+Evar	Evar (evenness index)
+dominant_relative_abund	relative abundance of the typically dominant species during normal years
+dominant_species_code	plot specific dominant species name
+dominant_relative_abund_zero	relative abundance of the typically dominant species during normal years; zero when absent
+prior_year_rich	species richness in the previous year
+prior_year_type	SPEI extreme event category for the previous year
+after_year_type	SPEI extreme event category for the year after
+prior_year_dom_zero	previous year relative abundance of the typically dominant species during normal years; zero when absent
+prior_year_dom	previous year relative abundance of the typically dominant species during normal years
+prior_year_evar	previous year Evar (evenness index)
+prior_year_spei9	previous year 9-month Standardized Precipitation Evapotranspiration Index for August from SPEIbase
+
+ece_resist_resil_spei9_norm_L2
+name	definition
+ex_year	extreme climate event year
+site	Long-Term Ecological research site
+uniqueid	unique identifier for a plot
+resistance	mean normal year biomass divided by the absolute value of event year biomass minus mean normal year biomass
+resilience	the absolute value of event year biomass minus mean normal year biomass divided by next year's biomass minus mean normal year biomass
+
+metadata_L1
+name	definition
+year	Year in which data was collected
+site	The site from which the data originates.
+dataset	The dataset from which the data originates and usually corresponds with the experiment from which the data was collected. This was only entered for Cedar Creek data.
+plot	plot number/id within experiment/site
+higher_order_organization	Grouping variable for the next higher organization level than plot. For example Site_Experiment_Block, if the data orginiates from an experiment at a site that is organized in blocks. The variable structure depends on the experimental design from which the data point originates.
+uniqueid	Unique plot id accross experiments and sites.
+growprecip	Sum of precipitation per year at site level within a growing season period defined by a range of Julian day of year dates from this paper: https://doi.org/10.1111/j.1600-0706.2012.20655.x
+treatment	were plots control or treated (e.g., fertilization, tilled, etc.)
+nutrients_added	Type of nutrients added to plot.
+nitrogen_amount	Amount of nitrogen added to plot.
+disturbance	Note of whether plots were experimentally disturbed (e.g., annual tilling)
+grazing	Whether or not a plot was grazed or not.
+fire_frequency	How often plots were experimentally burned (1 = annually).
+time_since_fire	the number of years since the last prescribed burn
+source	Where data came from. This can be the data code (PAB012 for Konza, Table 250 for KBS, etc). Can be a list of sources. This aids in finding dataset on LTER website if issues/questions arise.
+treatment_comment	Warnings if treatments were changed. Treatments can change over time. E.g. stop of fertilization, start of burning. So the same plot can have different treatment variables in different time points. OR the plots are treated as different plots with different treatments once the treatments change. OR the original treatment is the treatment that we look at.
+diversity_manipulated	was this an experiment that manipulated diversity or were grasslands naturally assembled
+meantemp	Annual mean temperature at site level.
+annualprecip	Annual precipitation at site level.
+phosphorus_amount	Amount of phosphorus added to a plot.

@@ -312,16 +312,15 @@ df_wet <- df %>% filter(spei9_category %in% "Extreme wet")
 
 
 ##################################### #
-# Full SEM (without legacy effect) ####
+# Full SEM (main) ####
 ##################################### #
-
+# This section includes the main models from the manuscript
 
 ## piecewise SEM ####
 #-------------------#
 
 ### multigroup ####
-# this is our main model, but it doesn't yet include the legacy effect of past spei.
-# Doesn't converge with year as random intercept, weird...
+# Doesn't converge with year as random intercept
 model1 <- psem(
   lmer(log_resistance ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|site/experiment/uniqueid),
        data = df ),
@@ -355,6 +354,7 @@ model1_all_sum_table$model = "All_no_legacy"
 model1_all_sum_paths$model = "All_no_legacy"
 
 # Fix convergence error by removing site from random effects structure
+# this is our main model
 model1.1 <- psem(
   lmer(log_resistance ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|experiment/uniqueid), data = df),
   lmer(log_resilience ~ spei9_abs + richness + dominant_relative_abund_zero + evar + nut_dummy + (1|experiment/uniqueid), data = df) ,
@@ -763,16 +763,17 @@ parameterEstimates(fit.survey) %>%
   add_header_above(c(" " = 3, "Extreme dry" = 5, "Extreme wet" = 5)) %>%
   kable_paper()
 
-
+# Archived exploratory code ----
+# Below this point is code that explores including different SEM paths and were not included in the manuscript
 
 ################################## #
-# Full SEM (with legacy effect) ####
+## Full SEM (with legacy effect) ####
 ################################## #
 
-## piecewise SEM ####
+### piecewise SEM ####
 #-------------------#
 
-### multigroup ####
+#### multigroup ####
 # this is our second model, it includes the legacy effect of past spei.
 
 model2 <- psem(
@@ -807,7 +808,7 @@ model2_all_sum_paths$model = "All_legacy"
 
 
 
-### dry ####
+#### dry ####
 # this is the same model as model 2, but fitted to the dry subset of the data
 # this is done to get the R2 and the covariances
 
@@ -840,7 +841,7 @@ model2_dry_sum_table$model = "Dry_legacy"
 model2_dry_sum_paths$model = "Dry_legacy"
 
 
-### wet ####
+#### wet ####
 # this is the same model as model 2, but fitted to the wet subset of the data
 # this is done to get the R2 and the covariances
 
@@ -906,7 +907,7 @@ names(allpath_order)[7] <- "Stars"
 allpath_final = allpath_order %>% mutate(across(where(is.numeric), round, 3))
 #write.csv(allpath_final, file.path(L2_dir, "./SEM_coefficients_paths_L2.csv"), row.names=F)
 
-## lavaan ####
+### lavaan ####
 #------------#
 model2_lavaan <- '
 # effects
@@ -962,13 +963,13 @@ summary(model2_lavaan_fit_c, rsquare=T)
 
 
 ########################################### #
-# Simple SEM (no SPEI, no legacy effect) ####
+## Simple SEM (no SPEI, no legacy effect) ####
 ########################################### #
 
-## piecewise SEM ####
+### piecewise SEM ####
 #-------------------#
 
-### multigroup ####
+#### multigroup ####
 # this is our main model, but it doesn't yet include the legacy effect of past spei.
 
 model0 <- psem(
@@ -996,7 +997,7 @@ multigroup2(model0,  group = "spei9_category")
 
 
 
-### dry ####
+#### dry ####
 # this is the same model as model 0, but fitted to the dry subset of the data
 # this is done to get the R2 and the covariances
 
@@ -1023,7 +1024,7 @@ model0_dry <- psem(
 summary(model0_dry, intercepts = T)
 
 
-### wet ####
+#### wet ####
 # this is the same model as model 0, but fitted to the wet subset of the data
 # this is done to get the R2 and the covariances
 
@@ -1050,7 +1051,7 @@ model0_wet <- psem(
 summary(model0_wet, intercepts = T)
 
 
-## lavaan ####
+### lavaan ####
 #------------#
 model0_lavaan <- '
 # effects
@@ -1106,7 +1107,7 @@ summary(model0_lavaan_fit_c, rsquare=T)
 ################################################################################
 ################################################################################
 
-# old (some overlap with before) #####
+## old (some overlap with before) #####
 seraina_resist <- psem(
   lm(log_resistance ~ spei9_abs +richness + dominant_relative_abund_zero + evar + nut_dummy,
      data = df ),

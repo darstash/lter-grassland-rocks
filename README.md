@@ -1,6 +1,6 @@
 [![DOI](https://zenodo.org/badge/696404724.svg)](https://doi.org/10.5281/zenodo.17202949)
 
-Open research: The data from this study are openly available in the Environmental Data Initiative data repository at <https://doi.org/10.6073/pasta/330082c127413fadc278a7657abad27f>.
+Open research: The data from this study are openly available in the Environmental Data Initiative data repository at <https://doi.org/10.6073/pasta/433a9ec43bfca734604b8c874895c991>.
 
 ## lter-grassland-rocks
 
@@ -24,7 +24,7 @@ There is a script to calculate dominance and diversity (richness and evenness) a
 
 Data were saved to Google Drive in the folders L0, L1, and L2. L0 contained raw data uploaded from both publicly and not publicly available data obtained with permission from our three sites (see data provenance in EDI for the publicly available L0 data). L1 contained processed, harmonized data products. L2 contained data products resulting from calculations necessary for analyses (e.g., diversity and stability metrics).
 
-All L1 and L2 data necessary for analyses are published as an EDI package (<https://doi.org/10.6073/pasta/330082c127413fadc278a7657abad27f>). In some scripts, the header may state that the data was input from Google Drive, which is an artifact of our data processing steps. The data from the EDI package should be saved in the same folder as the analyses_LMM_L2, SPEI_table_L2 and analyses_SEM_L2 R scripts.
+All L1 and L2 data necessary for analyses are published as an EDI package (<https://doi.org/10.6073/pasta/433a9ec43bfca734604b8c874895c991>). In some scripts, the header may state that the data was input from Google Drive, which is an artifact of our data processing steps. The data from the EDI package should be saved in the same folder as the analyses_LMM_L2, SPEI_table_L2 and analyses_SEM_L2 R scripts.
 
 # Spatiotemporal extent and resolution
 
@@ -88,7 +88,7 @@ Below are links to publicly available source data that contributed to our Enviro
 Some other source data we used were not publicly available, but we had permission to publish them as part of our harmonized data set published as an EDI package. See Table S2 in our manuscript.
 
 ## Metadata
-The metadeta for each publicly available dataset is in the file metadata.txt. See also the EDI data package for more metadata information (<https://doi.org/10.6073/pasta/330082c127413fadc278a7657abad27f>).
+The metadeta for each publicly available dataset is in the file metadata.txt. See also the EDI data package for more metadata information (<https://doi.org/10.6073/pasta/433a9ec43bfca734604b8c874895c991>).
 
 # Contributers
 
